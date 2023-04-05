@@ -59,6 +59,14 @@
         "streambuf": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "bit": "cpp"
-    }
+        "bit": "cpp",
+        "bitset": "cpp",
+        "condition_variable": "cpp",
+        "mutex": "cpp",
+        "shared_mutex": "cpp",
+        "thread": "cpp"
+    },
+    "cSpell.words": [
+        "hipcc"
+    ]
 }
