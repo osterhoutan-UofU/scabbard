@@ -11,11 +11,8 @@
 
 #pragma once
 
-#include <clang/AST/ASTConsumer.h>
 #include <clang/AST/AST.h>
-#include <clang/AST/RecursiveASTVisitor.h>
-#include <clang/AST/Attr.h>
-#include <clang/Sema/Sema.h>
+#include <clang/AST/ASTConsumer.h>
 #include <clang/Frontend/CompilerInstance.h>
 
 
@@ -28,11 +25,10 @@ namespace scabbard {
 class Consumer : public clang::ASTConsumer {
 
   clang::CompilerInstance &Instance;
-  std::set<std::string> ParsedTemplates;
 
 public:
 
-  Consumer(clang::CompilerInstance &CI, std::set<std::string> ParsedTemplates);
+  Consumer(clang::CompilerInstance &CI);
 
   /**
    * @brief Handler for top level declarations

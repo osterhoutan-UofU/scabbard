@@ -21,7 +21,7 @@ include_directories(${LLVM_INCLUDE_DIRS} ${CLANG_INCLUDE_DIRS})
 # add_clang_executable(scabbard src/scabbard.cpp)
 add_library(scabbard
     src/scabbard.cpp
-    src/Consummer.cpp
+    src/Consumer.cpp
   )
 
 target_link_libraries(scabbard

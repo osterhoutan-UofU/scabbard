@@ -9,10 +9,7 @@
  * 
  */
 
-#include <clang/AST/AST.h>
-#include <clang/AST/RecursiveASTVisitor.h>
-#include <clang/AST/Attr.h>
-#include <clang/Sema/Sema.h>
+#include <clang/AST/ASTConsumer.h>
 #include <clang/Frontend/FrontendPluginRegistry.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <llvm/Support/raw_ostream.h>
@@ -27,23 +24,21 @@ namespace scabbard {
  */
 class Action : public clang::PluginASTAction {
 
-  std::set<std::string> ParsedTemplates;
-
 protected:
 
   /**
    * @brief Return the Actual instrumenting tool to clang for usage
    */
-  std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance &CI,
-                                                 llvm::StringRef) override {
-    return std::make_unique<Consumer>(CI, ParsedTemplates);
+  std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance &CI, llvm::StringRef) override 
+  {
+    return std::make_unique<Consumer>(CI);
   }
 
   /**
    * @brief Scabbard's argument parser
    */
-  bool ParseArgs(const clang::CompilerInstance &CI,
-                 const std::vector<std::string> &args) override {
+  bool ParseArgs(const clang::CompilerInstance &CI, const std::vector<std::string> &args) override 
+  {
     using namespace clang;
     //TODO make this work for scabbard
     for (unsigned i = 0, e = args.size(); i != e; ++i) {
@@ -51,20 +46,20 @@ protected:
 
       // Example error handling.
       DiagnosticsEngine &D = CI.getDiagnostics();
-      if (args[i] == "-an-error") {
-        unsigned DiagID = D.getCustomDiagID(DiagnosticsEngine::Error,
-                                            "invalid argument '%0'");
-        D.Report(DiagID) << args[i];
-        return false;
-      } else if (args[i] == "-parse-template") {
-        if (i + 1 >= e) {
-          D.Report(D.getCustomDiagID(DiagnosticsEngine::Error,
-                                     "missing -parse-template argument"));
-          return false;
-        }
-        ++i;
-        ParsedTemplates.insert(args[i]);
-      }
+      // if (args[i] == "-an-error") {
+      //   unsigned DiagID = D.getCustomDiagID(DiagnosticsEngine::Error,
+      //                                       "invalid argument '%0'");
+      //   D.Report(DiagID) << args[i];
+      //   return false;
+      // } else if (args[i] == "-parse-template") {
+      //   if (i + 1 >= e) {
+      //     D.Report(D.getCustomDiagID(DiagnosticsEngine::Error,
+      //                                "missing -parse-template argument"));
+      //     return false;
+      //   }
+      //   ++i;
+      //   ParsedTemplates.insert(args[i]);
+      // }
     }
     if (!args.empty() && args[0] == "help")
       PrintHelp(llvm::errs());
