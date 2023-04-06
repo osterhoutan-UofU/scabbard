@@ -1,5 +1,6 @@
 {
     "cmake.generator": "Ninja",
+    "cmake.parallelJobs": 6,
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "files.associations": {
         "*.json.liquid": "json",
