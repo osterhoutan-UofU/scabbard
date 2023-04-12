@@ -1,22 +1,22 @@
 cmake_minimum_required(VERSION 3.16)
 project(libscabbard VERSION 0.1)
 
-add_library(libscabbard MODULE
+add_library(scabbard MODULE
     src/tmp.cpp
   )
 
-target_include_directories(libscabbard
+target_include_directories(scabbard
     PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
     PRIVATE
     src
   )
-install(TARGETS libscabbard EXPORT libscabbardConfig
+install(TARGETS scabbard EXPORT libscabbardConfig
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   )
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-export(TARGETS libscabbard FILE libscabbardConfig.cmake)
+export(TARGETS scabbard FILE libscabbardConfig.cmake)

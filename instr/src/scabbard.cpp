@@ -10,6 +10,7 @@
  */
 
 #include <llvm/Pass.h>
+#include <llvm/IR/Module.h>
 #include <llvm/IR/Function.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/IR/LegacyPassManager.h> //TODO swap this to the new pass manager
@@ -19,9 +20,11 @@
 namespace scabbard {
 namespace instr {
 
-  class TestPass : public llvm::FunctionPass {
+  struct TestPass : public llvm::FunctionPass {
+    static char ID;
 
   public:
+    TestPass() : FunctionPass(ID) {}
     /**
      * @brief \em fn \c doInitialization : (llvm::Module& -> bool) \n
      *        The \c doInitialization method is allowed to do most of the things that \c FunctionPasses
@@ -39,7 +42,8 @@ namespace instr {
       //TODO figure out how to add code for standard instrumenting modules (probs located in libscabbard)
       // this will probably need to be done in the Umbrella or Top level header IDK if I have to do more than point to og files
       //    will probably also have to modify the LinkLibraries
-      llvm::errs() << "[scabbard::test::note] a MODULE with the name `" << M.getFullModuleName() << "` was found!\n";
+      llvm::errs() << "[scabbard::test::note] a MODULE with the name `" << M.getModuleIdentifier() << "` was found!\n";
+      return false;
     }//?END fn doInitialization : (llvm::Module& -> bool)
 
 
@@ -56,13 +60,17 @@ namespace instr {
       //TODO instrument it appropriately
       //note: I will have to use different instrumentation for when called for host vs device (can we separate the two?)
       llvm::errs() << "[scabbard::test::note] a FUNCTION with the name `" << F.getName() 
-                   << "` and " << F.getInstructionCount() << " instructions was found!\n";
+                   << "` and " << F.getInstructionCount() << " instructions was found!\n"
+                   << "    It contains the following attributes:";
+      for (auto& attr : F.getAttributes())
+        llvm::errs() << "\n        - " << attr.getAsString();
       //note: I will need to use Function::getBasicBlockList() to get the contents of the function (mostly just regions of instruction with conditionals and loops but maybe some symbol table stuff too)
-      auto& contents = F.getBasicBlockList();
-
+      return false;
     }//?END fn runOnFunction : (llvm::Function& -> bool)
 
   };//?END class TestPass
+
+  char TestPass::ID = 0;
 
 } //?namespace instr
 } //?namespace scabbard
@@ -73,6 +81,18 @@ namespace instr {
 // <<                                       PASS REGISTRY                                        >> 
 // << ========================================================================================== >> 
 //TODO register the pass with the pass manager
+// Automatically enable the pass.
+// http://adriansampson.net/blog/clangpass.html
+// static void registerTestPass(const llvm::PassManagerBuilder &,
+//                          llvm::legacy::PassManagerBase &PM) {
+//   PM.add(new scabbard::instr::TestPass());
+// }
+// static llvm::RegisterStandardPasses
+//   RegisterMyPass(/* llvm::PassManagerBuilder::EP_OptimizerLast */ llvm::PassManagerBuilder::EP_EnabledOnOptLevel0,
+//                  registerTestPass);
+static llvm::RegisterPass<scabbard::instr::TestPass> X("scabbard", "Scabbard TestPass",
+                                                        false, false);
+
 
 // << ========================================================================================== >> 
 // <<                                      PLUGIN REGISTRY                                       >> 

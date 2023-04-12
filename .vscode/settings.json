@@ -65,7 +65,8 @@
         "condition_variable": "cpp",
         "mutex": "cpp",
         "shared_mutex": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "*.inc": "cpp"
     },
     "cSpell.words": [
         "hipcc"
