@@ -1,15 +1,16 @@
 {
+    "doxdocgen.file.versionTag": "@version alpha 0.0.1",
     "cmake.generator": "Ninja",
     "cmake.parallelJobs": 6,
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "files.associations": {
+        "known_hosts": "plaintext",
         "*.json.liquid": "json",
         "*.yaml.liquid": "yaml",
         "*.md.liquid": "markdown",
         "*.js.liquid": "liquid-javascript",
         "*.css.liquid": "liquid-css",
         "*.scss.liquid": "liquid-scss",
-        "known_hosts": "plaintext",
         "cctype": "cpp",
         "clocale": "cpp",
         "cmath": "cpp",
@@ -66,9 +67,13 @@
         "mutex": "cpp",
         "shared_mutex": "cpp",
         "thread": "cpp",
-        "*.inc": "cpp"
+        "*.inc": "cpp",
+        "*.def": "cpp",
+        "__threading_support": "cpp",
+        "test.C": "cpp"
     },
     "cSpell.words": [
+        "endregion",
         "hipcc"
     ]
 }
