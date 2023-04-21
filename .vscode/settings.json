@@ -70,7 +70,15 @@
         "*.inc": "cpp",
         "*.def": "cpp",
         "__threading_support": "cpp",
-        "test.C": "cpp"
+        "test.C": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "variant": "cpp",
+        "__bits": "cpp",
+        "__config": "cpp",
+        "__debug": "cpp",
+        "__tuple": "cpp",
+        "__verbose_abort": "cpp"
     },
     "cSpell.words": [
         "endregion",

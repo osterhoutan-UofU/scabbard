@@ -60,12 +60,14 @@ namespace instr {
     llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager &) {
       if (!runScabbardPass(F))
         return llvm::PreservedAnalyses::all();
-      return llvm::PreservedAnalyses::none();
+      return llvm::PreservedAnalyses::none(); // this will have to change after transforms are performed
+      // create custom implementation of Fn llvm::PreservedAnalysis::invalidate : ( -> llvm::PreservedAnalysis) to do so
     }
     llvm::PreservedAnalyses run(llvm::Module &M, llvm::ModuleAnalysisManager &) {
       if (!runScabbardPass(M))
         return llvm::PreservedAnalyses::all();
-      return llvm::PreservedAnalyses::none();
+      return llvm::PreservedAnalyses::none(); // this will have to change after transforms are performed
+      // create custom implementation of Fn llvm::PreservedAnalysis::invalidate : ( -> llvm::PreservedAnalysis) to do so
     }
   };//?END class ScabbardPassPlugin
 

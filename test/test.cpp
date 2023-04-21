@@ -109,8 +109,8 @@ int main()
     //   std::cout << i << ":  " << hip_out[i] << "  " << norm_out[i] << std::endl;
     // std::cout << "DEBUG: reached end" << std::endl;
 
-    delete in;
-    delete norm_out;
-    delete hip_out;
+    delete[] in;
+    delete[] norm_out;
+    delete[] hip_out;
     return 0;
 }
