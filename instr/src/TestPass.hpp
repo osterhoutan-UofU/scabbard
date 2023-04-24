@@ -12,6 +12,7 @@
 
 #include <optional>
 #include <chrono>
+#include <sstream>
 #include <llvm/Pass.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Function.h>
@@ -24,6 +25,8 @@ namespace instr {
 namespace test { 
   
   static const auto _START = std::chrono::high_resolution_clock::now();
+  template<typename T, class R>
+  std::ostream& operator << (std::ostream& out, const std::chrono::duration<T,R> _dur) noexcept;
   template<typename T, class R>
   llvm::raw_ostream& operator << (llvm::raw_ostream& out, const std::chrono::duration<T,R> _dur) noexcept;
 
@@ -56,6 +59,16 @@ namespace test {
     return touched;
   }//?END fn run : (llvm::Module& -> bool)
 
+  std::string getOperands(const llvm::User& usr) {
+    std::stringstream out;
+    std::string sep;
+    for (const auto& op : usr.operand_values()) {
+      out << sep << std::string(op->getValueName()->getKey());
+      sep = ", ";
+    }
+    return out.str();
+  }
+
 
   /**
    * @brief \em fn \c runOnFunction : (llvm::Function& -> bool) \n
@@ -69,14 +82,27 @@ namespace test {
     //TODO figure out how to identify if this is a __device__ or __global__ function or not
     //TODO instrument it appropriately
     //note: I will have to use different instrumentation for when called for host vs device (can we separate the two?)
-    if (F.getCallingConv() == llvm::CallingConv::AMDGPU_KERNEL) {
-      const auto delta = std::chrono::high_resolution_clock::now() - _START;
-      llvm::errs() << "[scabbard::test] Function Pass was run from: "<< origin <<" @ "<< delta << "\n"
-                      "[scabbard::test]   a FUNCTION with the name `" << F.getName() 
-                        << "` and " << F.getInstructionCount() << " instructions was found!\n"
-                      "[scabbard::test]     it has a CallingConvID of: `" << F.getCallingConv() << "`\n"
-                      "[scabbard::test]\n";
-    }
+    if (F.getCallingConv() != llvm::CallingConv::AMDGPU_KERNEL) 
+      return false;
+    const auto delta = std::chrono::high_resolution_clock::now() - _START;
+    llvm::errs() << "[scabbard::test] Function Pass was run from: "<< origin <<" @ "<< delta << "\n"
+                    "[scabbard::test]   a FUNCTION with the name `" << std::string(F.getName()) 
+                      << "` and " << F.getInstructionCount() << " instructions was found!\n"
+                    "[scabbard::test]     it has a CallingConvID of: `" << F.getCallingConv() << "`\n";
+    for (const auto& bb : F.getBasicBlockList())
+      for (const auto& i : bb.getInstList()) 
+        if ("call" == std::string(i.getOpcodeName())) {
+          llvm::errs() << "[scabbard::test]  `call` instruction found!\n"
+                          "[scabbard::test]    repr: `";
+          i.print(llvm::errs());
+          llvm::errs() << "`\n";
+        } else if ("fence" == std::string(i.getOpcodeName())) {
+          llvm::errs() << "[scabbard::test]  `fence` instruction found!\n"
+                          "[scabbard::test]    repr: `";
+          i.print(llvm::errs());
+          llvm::errs() << "`\n";
+        }
+    llvm::errs() << "[scabbard::test]\n";
     //note: I will need to use Function::getBasicBlockList() to get the contents of the function (mostly just regions of instruction with conditionals and loops but maybe some symbol table stuff too)
     return false;
   }//?END fn run : (llvm::Function& -> bool)
@@ -124,6 +150,12 @@ namespace test {
   const std::string _pre0(const std::chrono::duration<T,R> dur) { return ((dur.count()<10) ? "0" : ""); }
   template<typename T, class R>
   llvm::raw_ostream& operator << (llvm::raw_ostream& out, const std::chrono::duration<T,R> _dur) noexcept {
+    std::stringstream _out;
+    _out << _dur;
+    return out << _out.str();
+  }
+  template<typename T, class R>
+  std::ostream& operator << (std::ostream& out, const std::chrono::duration<T,R> _dur) noexcept {
     using namespace std::chrono;
     using day_t = duration<T, std::ratio<3600 * 24>>;
     using femtosecond_t = duration<T, std::femto>;

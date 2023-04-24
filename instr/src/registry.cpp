@@ -56,26 +56,26 @@ llvm::PassPluginLibraryInfo getScabbardPassPluginInfo() {
   using namespace llvm;
   return {LLVM_PLUGIN_API_VERSION, "scabbard", "alpha 0.0.1",
           [](PassBuilder& PB) {
-            PB.registerVectorizerStartEPCallback( // can find kernel functions
-                [](llvm::FunctionPassManager &FPM, OptimizationLevel Level) {
-                  FPM.addPass(scabbard::instr::test::TestPassPlugin("VectorizerStart"));
-                  FPM.addPass(scabbard::instr::ScabbardPassPlugin());
-                });
-            PB.registerScalarOptimizerLateEPCallback( // can find kernel functions
-                [](llvm::FunctionPassManager &FPM, OptimizationLevel Level) {
-                  FPM.addPass(scabbard::instr::test::TestPassPlugin("ScalarOptimizerLate"));
-                  FPM.addPass(scabbard::instr::ScabbardPassPlugin());
-                });
-            PB.registerPipelineStartEPCallback( // ~can~ NOT find kernel functions (sometimes run's twice)
-                [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
-                  MPM.addPass(scabbard::instr::test::TestPassPlugin("PipelineStart")); // 1st to run
-                  MPM.addPass(scabbard::instr::ScabbardPassPlugin());
-                });
-            PB.registerOptimizerEarlyEPCallback( // can NOT find kernel functions (sometimes run's twice)
-                [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
-                  MPM.addPass(scabbard::instr::test::TestPassPlugin("OptimizerEarly"));
-                  MPM.addPass(scabbard::instr::ScabbardPassPlugin());
-                });
+            // PB.registerVectorizerStartEPCallback( // can find kernel functions
+            //     [](llvm::FunctionPassManager &FPM, OptimizationLevel Level) {
+            //       FPM.addPass(scabbard::instr::test::TestPassPlugin("VectorizerStart"));
+            //       FPM.addPass(scabbard::instr::ScabbardPassPlugin());
+            //     });
+            // PB.registerScalarOptimizerLateEPCallback( // can find kernel functions
+            //     [](llvm::FunctionPassManager &FPM, OptimizationLevel Level) {
+            //       FPM.addPass(scabbard::instr::test::TestPassPlugin("ScalarOptimizerLate"));
+            //       FPM.addPass(scabbard::instr::ScabbardPassPlugin());
+            //     });
+            // PB.registerPipelineStartEPCallback( // ~can~ NOT find kernel functions (sometimes run's twice)
+            //     [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
+            //       MPM.addPass(scabbard::instr::test::TestPassPlugin("PipelineStart")); // 1st to run
+            //       MPM.addPass(scabbard::instr::ScabbardPassPlugin());
+            //     });
+            // PB.registerOptimizerEarlyEPCallback( // can NOT find kernel functions (sometimes run's twice)
+            //     [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
+            //       MPM.addPass(scabbard::instr::test::TestPassPlugin("OptimizerEarly"));
+            //       MPM.addPass(scabbard::instr::ScabbardPassPlugin());
+            //     });
             PB.registerOptimizerLastEPCallback( // ~can~ find kernel functions (sometimes run's twice)
                 [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
                   MPM.addPass(scabbard::instr::test::TestPassPlugin("OptimizerLast")); // last to run
