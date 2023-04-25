@@ -32,6 +32,8 @@ static llvm::cl::opt<bool> ScabbardTestPassOpt("scabbard-test", llvm::cl::init(f
 // command line option for the scabbard instrumentation pass
 static llvm::cl::opt<bool> ScabbardPassOpt("scabbard", llvm::cl::init(false), 
                                             llvm::cl::desc("scabbard, a HIP based data race detection system's instrumenter for generating a trace generator"));
+static llvm::cl::opt<std::string> ScabbardLibOpt("scabbard-lib", llvm::cl::init("./build/lib/libscabbard.so"), 
+                                                  llvm::cl::desc("path to the general scabbard lib (not the instrumeter lib). Use if compiler/linker can't find it by default."));
 
 
 
@@ -39,9 +41,9 @@ static llvm::cl::opt<bool> ScabbardPassOpt("scabbard", llvm::cl::init(false),
 // <<                                   LEGACY PASS REGISTRY                                     >> 
 // << ========================================================================================== >> 
 
-static llvm::RegisterPass<scabbard::instr::LegacyScabbard> X("scabbard", "scabbard instrumentation pass",
+static llvm::RegisterPass<scabbard::instr::LegacyScabbard> X("scabbard-leg", "scabbard instrumentation pass",
                                                               false, false);
-static llvm::RegisterPass<scabbard::instr::test::LegacyTestPass> Y("scabbard-test", "scabbard test pass",
+static llvm::RegisterPass<scabbard::instr::test::LegacyTestPass> Y("scabbard-test-leg", "scabbard test pass",
                                                                     false, false);
 
 
@@ -81,18 +83,18 @@ llvm::PassPluginLibraryInfo getScabbardPassPluginInfo() {
                   MPM.addPass(scabbard::instr::test::TestPassPlugin("OptimizerLast")); // last to run
                   MPM.addPass(scabbard::instr::ScabbardPassPlugin());
                 });
-            PB.registerPipelineParsingCallback( // can find kernal functions (conditional upon cli args)
-                [](StringRef Name, llvm::FunctionPassManager &FPM,
-                   ArrayRef<llvm::PassBuilder::PipelineElement>) {
-                  if (Name == "scabbard-test") {
-                    FPM.addPass(scabbard::instr::test::TestPassPlugin("PipelineParsing-Function"));
-                    return true;
-                  } else if (Name == "scabbard") {
-                    FPM.addPass(scabbard::instr::ScabbardPassPlugin());
-                    return true;
-                  }
-                  return false;
-                });
+            // PB.registerPipelineParsingCallback( // can find kernal functions (conditional upon cli args)
+            //     [](StringRef Name, llvm::FunctionPassManager &FPM,
+            //        ArrayRef<llvm::PassBuilder::PipelineElement>) {
+            //       if (Name == "scabbard-test") {
+            //         FPM.addPass(scabbard::instr::test::TestPassPlugin("PipelineParsing-Function"));
+            //         return true;
+            //       } else if (Name == "scabbard") {
+            //         FPM.addPass(scabbard::instr::ScabbardPassPlugin());
+            //         return true;
+            //       }
+            //       return false;
+            //     });
             PB.registerPipelineParsingCallback( // can find kernal functions (conditional upon cli args)
                 [](StringRef Name, llvm::ModulePassManager &MPM,
                    ArrayRef<llvm::PassBuilder::PipelineElement>) {

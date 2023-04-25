@@ -8,14 +8,13 @@
 #include <hip/hip_runtime.h>
 #include <hip/hip_runtime_api.h>
 #else
-#include "hip/hip_ext.h"
-#include "hip/hip_runtime.h"
-#include "hip/hip_runtime_api.h"
+#include <hip/hip_ext.h>
+#include <hip/hip_runtime.h>
+#include <hip/hip_runtime_api.h>
 #endif
 
 
-__global__ void __d_increment(int* d_mem)
-{
+__global__ void __d_increment(int* d_mem) {
     size_t i = threadIdx.x;
     int tmp;
     if (i == 0) {

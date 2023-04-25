@@ -59,16 +59,6 @@ namespace test {
     return touched;
   }//?END fn run : (llvm::Module& -> bool)
 
-  std::string getOperands(const llvm::User& usr) {
-    std::stringstream out;
-    std::string sep;
-    for (const auto& op : usr.operand_values()) {
-      out << sep << std::string(op->getValueName()->getKey());
-      sep = ", ";
-    }
-    return out.str();
-  }
-
 
   /**
    * @brief \em fn \c runOnFunction : (llvm::Function& -> bool) \n
@@ -140,6 +130,7 @@ namespace test {
 
 
   // << =============================== Duration Printing Utility ================================ >> 
+
   template<typename ratio1, typename ratio2>
   struct CompareStdRatios {
     // std::static_assert(std::is_base_of<std::ratio,ratio1>::value, "ratio1, must be a ratio");
