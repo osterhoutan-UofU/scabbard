@@ -10,13 +10,17 @@
  * 
  */
 
+#pragma once
+
 #include <optional>
 #include <chrono>
 #include <sstream>
 #include <llvm/Pass.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Function.h>
+#include <llvm/IR/Instructions.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/Casting.h>
 #include <llvm/IR/PassManager.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 
@@ -52,6 +56,7 @@ namespace test {
     const auto delta = std::chrono::high_resolution_clock::now() - _START;
     llvm::errs() << "[scabbard::test] Module Pass was run from: `"<< origin <<"` @ " << delta << "\n"
                     "[scabbard::test]   a MODULE with the name `" << M.getModuleIdentifier() << "` was found!\n"
+                    "[scabbard::test]   a MODULE targeting: `" << M.getTargetTriple() << "` was found!\n"
                     "[scabbard::test]\n";
     bool touched = false;
     for (auto& f : M.getFunctionList())
@@ -81,14 +86,27 @@ namespace test {
                     "[scabbard::test]     it has a CallingConvID of: `" << F.getCallingConv() << "`\n";
     for (const auto& bb : F.getBasicBlockList())
       for (const auto& i : bb.getInstList()) 
-        if ("call" == std::string(i.getOpcodeName())) {
+        if (const auto* call = llvm::dyn_cast<const llvm::CallInst>(&i)) {
           llvm::errs() << "[scabbard::test]  `call` instruction found!\n"
                           "[scabbard::test]    repr: `";
           i.print(llvm::errs());
           llvm::errs() << "`\n";
-        } else if ("fence" == std::string(i.getOpcodeName())) {
+        } else if (const auto* fence = llvm::dyn_cast<const llvm::FenceInst>(&i)) {
           llvm::errs() << "[scabbard::test]  `fence` instruction found!\n"
                           "[scabbard::test]    repr: `";
+                          
+          i.print(llvm::errs());
+          llvm::errs() << "`\n";
+        } else if (const auto* store = llvm::dyn_cast<const llvm::StoreInst>(&i)) {
+          llvm::errs() << "[scabbard::test]  `store` instruction found!\n"
+                          "[scabbard::test]    repr: `";
+                          
+          i.print(llvm::errs());
+          llvm::errs() << "`\n";
+        } else if (const auto* load = llvm::dyn_cast<const llvm::LoadInst>(&i)) {
+          llvm::errs() << "[scabbard::test]  `load` instruction found!\n"
+                          "[scabbard::test]    repr: `";
+                          
           i.print(llvm::errs());
           llvm::errs() << "`\n";
         }

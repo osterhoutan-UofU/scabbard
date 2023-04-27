@@ -41,8 +41,8 @@ static llvm::cl::opt<std::string> ScabbardLibOpt("scabbard-lib", llvm::cl::init(
 // <<                                   LEGACY PASS REGISTRY                                     >> 
 // << ========================================================================================== >> 
 
-static llvm::RegisterPass<scabbard::instr::LegacyScabbard> X("scabbard-leg", "scabbard instrumentation pass",
-                                                              false, false);
+// static llvm::RegisterPass<scabbard::instr::LegacyScabbard> X("scabbard-leg", "scabbard instrumentation pass",
+//                                                               false, false);
 static llvm::RegisterPass<scabbard::instr::test::LegacyTestPass> Y("scabbard-test-leg", "scabbard test pass",
                                                                     false, false);
 
