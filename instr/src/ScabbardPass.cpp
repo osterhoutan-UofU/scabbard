@@ -54,6 +54,8 @@ namespace instr {
           //TODO instrument load instructions
         } else if (auto* call = llvm::dyn_cast<llvm::CallInst>(&i)) {
           //TODO instrument calls to thread id, block id, etc.
+        } else if (auto atomic = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
+          //TODO instrument atomic readwrite instructions
         }
     return llvm::PreservedAnalyses::all();
   }
@@ -68,6 +70,8 @@ namespace instr {
           //TODO instrument load instructions
         } else if (auto* call = llvm::dyn_cast<llvm::CallInst>(&i)) {
           //TODO instrument calls to hip malloc, hip copy, kernel launch and stream sync
+        } else if (auto atomic = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
+          //TODO instrument atomic readwrite instructions
         }
     return llvm::PreservedAnalyses::all();
   }

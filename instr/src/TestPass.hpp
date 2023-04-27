@@ -109,6 +109,12 @@ namespace test {
                           
           i.print(llvm::errs());
           llvm::errs() << "`\n";
+        } else if (const auto atomic = llvm::dyn_cast<const llvm::AtomicRMWInst>(&i)) {
+          llvm::errs() << "[scabbard::test]  ATOMIC instruction found!\n"
+                          "[scabbard::test]    repr: `";
+                          
+          i.print(llvm::errs());
+          llvm::errs() << "`\n";
         }
     llvm::errs() << "[scabbard::test]\n";
     //note: I will need to use Function::getBasicBlockList() to get the contents of the function (mostly just regions of instruction with conditionals and loops but maybe some symbol table stuff too)
