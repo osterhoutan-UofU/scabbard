@@ -122,40 +122,40 @@ llvmGetPassPluginInfo() {
 // << ========================================================================================== >> 
 // <<                                    CLANG PLUGIN STUFF                                      >> 
 // << ========================================================================================== >> 
+// NOTE: Not currently viable
+// namespace {
+// struct ScabbardClangPlugin : public clang::PluginASTAction {
+//   ScabbardClangPlugin() = default;
+//   ~ScabbardClangPlugin() = default;
+//   bool ParseArgs(const clang::CompilerInstance &CI,
+//                   const std::vector<std::string>& args) {
+//                     llvm::errs() << "\n[scabbard::TEST] clang plugin test\n";
+//     bool has_dbg_flag = false;
+//     bool has_scabbard_lib_link = false;
+//     for (unsigned i = 0, e = args.size(); i != e; ++i) {
+//       if (args[i] == "-g") 
+//         has_dbg_flag = true;
+//       else if (args[i] == "-lscabbard") 
+//         has_scabbard_lib_link = true;
+//     }
+//     if (not has_dbg_flag) {
+//       llvm::errs() << "\n[scabbard::WARNING] scabbard requires the `-g` flag during compilation to provide human understandable feedback\n";
+//       return false;
+//     }
+//     if (not has_scabbard_lib_link) {
+//       llvm::errs() << "\n[scabbard::ERROR] scabbard requires you to link to libscabbard durring compilation and linking to properly instrument the code\n";
+//       return false;
+//     }
+//     return true;
+//   }
+//   struct DummyASTConsumer : public clang::ASTConsumer {
+//   public:
+//     virtual void HandleTranslationUnit(clang::ASTContext &Context) {}
+//   };
+//   std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance &CI, clang::StringRef InFile) override {
+//     return std::unique_ptr<DummyASTConsumer>(new DummyASTConsumer());
+//   };
+// };
+// }
 
-namespace {
-struct ScabbardClangPlugin : public clang::PluginASTAction {
-  ScabbardClangPlugin() = default;
-  ~ScabbardClangPlugin() = default;
-  bool ParseArgs(const clang::CompilerInstance &CI,
-                  const std::vector<std::string>& args) {
-                    llvm::errs() << "\n[scabbard::TEST] clang plugin test\n";
-    bool has_dbg_flag = false;
-    bool has_scabbard_lib_link = false;
-    for (unsigned i = 0, e = args.size(); i != e; ++i) {
-      if (args[i] == "-g") 
-        has_dbg_flag = true;
-      else if (args[i] == "-lscabbard") 
-        has_scabbard_lib_link = true;
-    }
-    if (not has_dbg_flag) {
-      llvm::errs() << "\n[scabbard::WARNING] scabbard requires the `-g` flag during compilation to provide human understandable feedback\n";
-      return false;
-    }
-    if (not has_scabbard_lib_link) {
-      llvm::errs() << "\n[scabbard::ERROR] scabbard requires you to link to libscabbard durring compilation and linking to properly instrument the code\n";
-      return false;
-    }
-    return true;
-  }
-  struct DummyASTConsumer : public clang::ASTConsumer {
-  public:
-    virtual void HandleTranslationUnit(clang::ASTContext &Context) {}
-  };
-  std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance &CI, clang::StringRef InFile) override {
-    return std::unique_ptr<DummyASTConsumer>(new DummyASTConsumer());
-  };
-};
-}
-
-static clang::FrontendPluginRegistry::Add<ScabbardClangPlugin> P("scabbard", "Unified memory race detector (clang plugin frontend)");
+// static clang::FrontendPluginRegistry::Add<ScabbardClangPlugin> P("scabbard", "Unified memory race detector (clang plugin frontend)");
