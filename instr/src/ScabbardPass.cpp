@@ -15,24 +15,54 @@
 #include <llvm/IR/Instructions.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/Casting.h>
+#include <llvm/ADT/Triple.h>
 
 namespace scabbard {
 namespace instr {
 
+  // << ========================================================================================== >> 
+  // <<                                       MODULE STUFF                                         >> 
+  // << ========================================================================================== >> 
+
   llvm::PreservedAnalyses ScabbardPassPlugin::run(llvm::Module &M, llvm::ModuleAnalysisManager &MAM) 
   { 
-    const auto target = M.getTargetTriple();
-    //TODO add global references to lib fields and other data
-    //TODO process and store dgb metadata tables
-    for (auto& f : M.getFunctionList()) {
-      llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
-                                              .getManager();
-      run(f,fam);
-    }
+    const llvm::Triple target(M.getTargetTriple());
+    if (target.isAMDGPU())  // checks for both amdgcn & r600 arch(s) (might need to restrict this to just amdgcn with `isAMDGCN()`)
+      run_device(M,MAM);    //                                        To support hip on Nvidia GPUs we might need to also run this for nvptx arch(s) (this might be the same as supporting CUDA though)
+    else
+      run_host(M,MAM);
+    //TODO process analysis invalidations and return the Preserved analysis of all changes
     return llvm::PreservedAnalyses::none(); // this will have to change after transforms are performed
     // create custom implementation of Fn llvm::PreservedAnalysis::invalidate : ( -> llvm::PreservedAnalysis) to do so
   }
 
+  void ScabbardPassPlugin::run_device(llvm::Module& M, llvm::ModuleAnalysisManager &MAM)
+  {
+    //TODO make any necessary additions to the Module (i.e.inserting globals and linking references)
+    //TODO process and store dgb metadata tables
+    for (auto& f : M.getFunctionList()) {
+      llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
+                                              .getManager();
+      run_device(f,fam);
+    }
+  }
+
+  void ScabbardPassPlugin::run_host(llvm::Module& M, llvm::ModuleAnalysisManager &MAM)
+  {
+    //TODO make any necessary additions to the Module (i.e.inserting globals and linking references)
+    //TODO process and store dgb metadata tables
+    for (auto& f : M.getFunctionList()) {
+      llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
+                                              .getManager();
+      run_host(f,fam);
+    }
+  }
+
+
+
+  // << ========================================================================================== >> 
+  // <<                                      FUNCTION STUFF                                        >> 
+  // << ========================================================================================== >> 
 
   llvm::PreservedAnalyses ScabbardPassPlugin::run(llvm::Function &F, llvm::FunctionAnalysisManager &FAM) 
   {

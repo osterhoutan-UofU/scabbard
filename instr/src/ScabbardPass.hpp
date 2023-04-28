@@ -68,19 +68,31 @@ namespace instr {
   protected:
 
     /**
+     * @brief just run coded specifically for kernel/device Modules
+     * @param F \c llvm::Module& - The device side Module to instrument
+     * @param FAM \c llvm::ModuleAnalysisManager& - The Analysis Manager for the Module
+     */
+    auto run_device(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
+    /**
+     * @brief just run coded specifically for host/CPU Modules
+     * @param F \c llvm::Module& - The device side Module to instrument
+     * @param FAM \c llvm::ModuleAnalysisManager& - The Analysis Manager for the Module
+     */
+    auto run_host(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
+    /**
      * @brief just run coded specifically for kernel/device functions
      * @param F \c llvm::Function& - The device side function to instrument
      * @param FAM \c llvm::FunctionAnalysisManager& - The Analysis Manager for the function
      * @return \c llvm::PreservedAnalyses - what has changed and what has not changed.
      */
-    llvm::PreservedAnalyses run_device(llvm::Function& F, llvm::FunctionAnalysisManager &FAM);
+    auto run_device(llvm::Function& F, llvm::FunctionAnalysisManager &FAM) -> llvm::PreservedAnalyses;
     /**
      * @brief just run coded specifically for host/CPU functions
      * @param F \c llvm::Function& - The device side function to instrument
      * @param FAM \c llvm::FunctionAnalysisManager& - The Analysis Manager for the function
      * @return \c llvm::PreservedAnalyses - what has changed and what has not changed.
      */
-    llvm::PreservedAnalyses run_host(llvm::Function& F, llvm::FunctionAnalysisManager &FAM);
+    auto run_host(llvm::Function& F, llvm::FunctionAnalysisManager &FAM) -> llvm::PreservedAnalyses;
 
   };//?END class ScabbardPassPlugin
 

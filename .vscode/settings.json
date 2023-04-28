@@ -81,6 +81,8 @@
         "__verbose_abort": "cpp"
     },
     "cSpell.words": [
+        "amdgcn",
+        "AMDHSA",
         "endregion",
         "hipcc",
         "unifmem"
