@@ -23,10 +23,12 @@
       [ _See unified memory attributes section below:_](#unified-memory-attributes)
 
  2. **Q:** How does the IR denote device memory on the host? (also when it does it do it if inconsistent)
-    - **A:** ...
+    - **A:** It depends on what the classification of the memory is. 
+      [ _See unified memory attributes section below:_](#unified-memory-attributes)
 
- 3. **Q:** ...
+ 3. **Q:** How to identify where memory is stored for device function parameters?
     - **A:** ...
+      (might need to instrument all calls to allocators for ptr's and references passed into kernel launches (back tracking data))
 
 
 
