@@ -22,13 +22,40 @@
     - **A:** It depends on what the classification of the memory is. 
       [ _See unified memory attributes section below:_](#unified-memory-attributes)
 
+    <br/><br/>
+
+
  2. **Q:** How does the IR denote device memory on the host? (also when it does it do it if inconsistent)
     - **A:** It depends on what the classification of the memory is. 
       [ _See unified memory attributes section below:_](#unified-memory-attributes)
 
+    <br/><br/>
+
+
  3. **Q:** How to identify where memory is stored for device function parameters?
-    - **A:** ...
-      (might need to instrument all calls to allocators for ptr's and references passed into kernel launches (back tracking data))
+    - **A:** two ways one runtime and one static 
+       1. There exists a hip/cuda function called [`hipPointerAttributes()`](https://rocm-developer-tools.github.io/HIP/group__Memory.html#ga7c3e8663feebb7be9fd3a1e5139bcefc) that can retrieve a [`hipPointerAttribute_t`](https://rocm-developer-tools.github.io/HIP/structhipPointerAttribute__t.html) which contains the following information:
+          ```cpp
+          // summarized from hip_runtime_api.h 
+          struct hipPointerAttribute {
+            enum hipMemoryType {hipMemoryTypeHost,hipMemoryTypeDevice} memoryType; // enum for what pointer will be valid
+            int device;           // id of the device
+            void* devicePointer;  // pointer to mem location on device
+            void* hostPointer;    // pointer to mem location on host
+            int isManaged;        // if the mem is managed by linux's HMM system
+            unsigned int allocationFlags;  // general allocation flags
+          };
+          ```
+          This is runtime only, and costly in runtime to branch on this every time, but possibly even more costly in storage space for trace (and compression cycles) to output with every trace event to avoid branching.
+          (also might not be callable from the GPU) <br/><br/>
+
+       2. To figure out where memory probably is during compile-time (_aka_ during our instrumentation pass) except for some 
+
+    <br/><br/>
+
+
+ 4. **Q:** How to instrument external modules and libs into an llvm IR module?
+    - **A:** ... 
 
 
 

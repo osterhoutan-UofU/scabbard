@@ -1,0 +1,75 @@
+flowchart TD
+    START_(["You found a load/store/atomic instruction in the IR\n& want to know if and how to instrument it"])
+    modType{"Are you in a\nhost or device\nLLVM IR Module?"}
+    subgraph HOST ["Host"]
+        H_instrType(["What kind of instruction is it?"])
+        subgraph H_LOAD ["Load"]
+        end
+        subgraph H_STORE ["Store"]
+        end
+        subgraph H_ATOMIC ["Atomic"]
+        end
+        H_instrType --> H_LOAD
+        H_instrType --> H_STORE
+        H_instrType --> H_ATOMIC
+    end
+    subgraph DEVICE ["Device"]
+        D_START((Start))
+        D_instrType{"What kind of\ninstruction is it?"}
+        subgraph D_STORE ["Store"]
+            DS_START((Start))
+            DS_Dep{"What is the\n`ptr` field?"}
+            DS_HasManaged{"Does this global\nhave a managed\ncounter part?"}
+            DS_IsManaged[["Record R/W op\n[[ALWAYS]]"]]
+            DS_IsDeviceMem[["Of Interest =>\nRecord store/atomic op"]]
+            DS_NotHeap[["Not of Interest\n(don't record `store`)"]]
+            DS_DepTrace{"Where was this\nlocal defined?"}
+            DS_FnParamType{"Is the param of\na ptr/ref type?"}
+            DS_CallInstr["..."]
+            subgraph DS_CALL ["Call"]
+                DSC_Dep(["Is the first param a `ptr` type?"])
+            end
+            DS_START --> DS_Dep
+            DS_Dep --- DS_global(["gloabl (`@`)"]) --> DS_HasManaged
+            DS_HasManaged -- "Yes" --> DS_IsManaged
+            DS_HasManaged -- "No" --> DS_IsDeviceMem
+            DS_Dep --- DS_local(["local (`%`)"]) --> DS_DepTrace
+            DS_DepTrace --- DS_FnParam(["Fn Param"]) --> DS_FnParamType
+            DS_DepTrace --- DS_LoadInstr([" `load` op"]) -.-> DS_Dep
+            DS_DepTrace --- DS_AddrCastInstr([" `addrspacecast` op"]) -.-> DS_Dep
+            DS_DepTrace --- DS_EmlInstr([" `getelementptr` op"]) -.-> DS_Dep
+            DS_DepTrace --- DS_AtomicInstr([" `atomicrmw` op"]) --> DS_ARecord[["Record atomic op\n[[ALWAYS]]"]]-.->DS_Dep
+            DS_DepTrace --- DS_ArithInstr(["other op(s)"]) --> DS_BAD_TRACE((("BAD DEP\nTRACE\n[END]")))
+            DS_DepTrace --> DS_CALL
+            DS_FnParamType -- "Yes" --> DS_IsDeviceMem
+            DS_FnParamType -- "No" --> DS_NotHeap
+        end
+        subgraph D_LOAD ["Load"]
+            DA_Dep(["What is the `ptr` field?"])
+            subgraph DL_CALL ["Call"]
+                DLC_Dep(["Is the first param a `ptr` type?"])
+            end
+        end
+        subgraph D_ATOMIC ["Atomic rmw"]
+            DA_Dep(["What is the `ptr` field?"])
+            subgraph DA_CALL ["Call"]
+                DAC_Dep(["Is the first param a `ptr` type?"])
+            end
+        end
+        D_START --> D_instrType
+        D_instrType --> D_LOAD
+        D_instrType --> D_STORE
+        D_instrType --> D_ATOMIC
+    end
+    %% cLoc["Where in the code/IR is from?"]
+    %% fnParamLoc["Is the function a GPU/device function?"]
+    %% globalLoc["gloabl"]
+    %% lambdaLoc["lambda"]
+    START_ --> modType
+    modType --> DEVICE
+    modType --> HOST
+    %% cLoc -- "function parameter" --> fnParamLoc
+    %% cLoc -- "global scope" --> globalLoc
+    %% cLoc -- "non-local or global closure" --> lambdaLoc
+    %% cLoc -- "A previouse load instruction" --> loadLoc
+  
