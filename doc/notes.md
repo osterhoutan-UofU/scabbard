@@ -50,6 +50,7 @@
           (also might not be callable from the GPU) <br/><br/>
 
        2. To figure out where memory probably is during compile-time (_aka_ during our instrumentation pass) except for some 
+          - in host kernel you can identify global device & managed mem by looking in the `@__hip_module_ctor` function
 
     <br/><br/>
 
@@ -57,6 +58,13 @@
  4. **Q:** How to instrument external modules and libs into an llvm IR module?
     - **A:** ... 
 
+    <br/><br/>
+
+
+ 5. **Q:** How to deal with the use of external device side library calls?
+    - **A:** ...
+
+    <br/><br/>
 
 
 
