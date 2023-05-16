@@ -85,6 +85,7 @@
         "AMDHSA",
         "endregion",
         "hipcc",
+        "Instramentable",
         "unifmem"
     ]
 }

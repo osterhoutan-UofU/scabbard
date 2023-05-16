@@ -40,11 +40,14 @@ namespace instr {
   {
     //TODO make any necessary additions to the Module (i.e.inserting globals and linking references)
     //TODO process and store dgb metadata tables
-    for (auto& f : M.getFunctionList()) {
-      llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
+    llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
                                               .getManager();
-      run_device(f,fam);
+    if (const auto* ctor = llvm::dyn_cast<llvm::Function>(M.getFunction("__hip_module_ctor"))) {
+        run_hip_ctor(*ctor,fam);
     }
+    for (auto& f : M.getFunctionList())
+      if (f.getName() != "__hip_module_ctor")
+        run_device(f,fam);
   }
 
   void ScabbardPassPlugin::run_host(llvm::Module& M, llvm::ModuleAnalysisManager &MAM)
@@ -73,9 +76,31 @@ namespace instr {
   }
 
 
+  llvm::PreservedAnalyses ScabbardPassPlugin::run_hip_ctor(const llvm::Function& F, const llvm::FunctionAnalysisManager &FAM)
+  {
+    for (const auto& bb : F.getBasicBlockList())
+      for (const auto& i : bb.getInstList())
+        if (const auto* call = llvm::dyn_cast<llvm::CallInst>(&i))
+          if (call->getName() == "__hipRegisterVar") {
+            if (auto* global = llvm::dyn_cast<llvm::GlobalVariable>(call->getArgOperand(2))) {
+              globalDeviceMem.addNodeToList(global);
+            } else {
+              llvm::errs() << "\n[scabbard::WARNING] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterVar` that is not a global variable\n\n";
+            }
+          } else if (call->getName() == "__hipRegisterManagedVar") {
+            if (auto* global = llvm::dyn_cast<llvm::GlobalVariable>(call->getArgOperand(2))) {
+              globalManagedMem.addNodeToList(global);
+            } else {
+              llvm::errs() << "\n[scabbard::WARNING] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterManagedVar` that is not a global variable\n\n";
+            }
+          }
+  }
+
+
   llvm::PreservedAnalyses ScabbardPassPlugin::run_device(llvm::Function& F, llvm::FunctionAnalysisManager &FAM)
   {
     //TODO make any necessary additions to the function (i.e. getting thread, block, tile and stream ids)
+    moduleType = ModuleType::DEVICE;
     for (auto& bb : F.getBasicBlockList())
       for (auto& i : bb.getInstList())
         if (auto* store = llvm::dyn_cast<llvm::StoreInst>(&i)) {
@@ -87,11 +112,13 @@ namespace instr {
         } else if (auto atomic = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
           //TODO instrument atomic readwrite instructions
         }
+    moduleType = ModuleType::UNKNOWN_MODULE;
     return llvm::PreservedAnalyses::all();
   }
 
   llvm::PreservedAnalyses ScabbardPassPlugin::run_host(llvm::Function& F, llvm::FunctionAnalysisManager &FAM)
   {
+    moduleType = ModuleType::DEVICE;
     for (auto& bb : F.getBasicBlockList())
       for (auto& i : bb.getInstList())
         if (auto* store = llvm::dyn_cast<llvm::StoreInst>(&i)) {
@@ -103,10 +130,12 @@ namespace instr {
         } else if (auto atomic = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
           //TODO instrument atomic readwrite instructions
         }
+    moduleType = ModuleType::UNKNOWN_MODULE;
     return llvm::PreservedAnalyses::all();
   }
 
 
+  
   // char LegacyScabbard::ID = 0;
 
 } //?namespace instr

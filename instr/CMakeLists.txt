@@ -6,6 +6,7 @@ include(GNUInstallDirs)
 
 add_library(instr MODULE
     src/ScabbardPass.cpp
+    src/calcInstrWhen_impl.cpp
     src/registry.cpp
   )
 
