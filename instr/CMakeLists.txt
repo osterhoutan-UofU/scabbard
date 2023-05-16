@@ -6,7 +6,9 @@ include(GNUInstallDirs)
 
 add_library(instr MODULE
     src/ScabbardPass.cpp
-    src/calcInstrWhen_impl.cpp
+    src/DepTrace.cpp
+    src/DepTrace_HOST.cpp
+    src/DepTrace_DEVICE.cpp
     src/registry.cpp
   )
 

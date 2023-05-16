@@ -42,9 +42,7 @@ namespace instr {
     //TODO process and store dgb metadata tables
     llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
                                               .getManager();
-    if (const auto* ctor = llvm::dyn_cast<llvm::Function>(M.getFunction("__hip_module_ctor"))) {
-        run_hip_ctor(*ctor,fam);
-    }
+    
     for (auto& f : M.getFunctionList())
       if (f.getName() != "__hip_module_ctor")
         run_device(f,fam);
@@ -67,40 +65,24 @@ namespace instr {
   // <<                                      FUNCTION STUFF                                        >> 
   // << ========================================================================================== >> 
 
-  llvm::PreservedAnalyses ScabbardPassPlugin::run(llvm::Function &F, llvm::FunctionAnalysisManager &FAM) 
+  // llvm::PreservedAnalyses ScabbardPassPlugin::run(llvm::Function &F, llvm::FunctionAnalysisManager &FAM) 
+  // {
+  //   if (F.getCallingConv() == llvm::CallingConv::AMDGPU_KERNEL) // figure out if this is a kernel function or not
+  //     return run_device(F, FAM);
+  //   return run_host(F, FAM); // this will have to change after transforms are performed
+  //   // create custom implementation of Fn llvm::PreservedAnalysis::invalidate : ( -> llvm::PreservedAnalysis) to do so
+  // }
+
+
+  llvm::PreservedAnalyses ScabbardPassPlugin::run_hip_ctor(const llvm::Function& F, const llvm::FunctionAnalysisManager &FAM, const DepTrace& DT)
   {
-    if (F.getCallingConv() == llvm::CallingConv::AMDGPU_KERNEL) // figure out if this is a kernel function or not
-      return run_device(F, FAM);
-    return run_host(F, FAM); // this will have to change after transforms are performed
-    // create custom implementation of Fn llvm::PreservedAnalysis::invalidate : ( -> llvm::PreservedAnalysis) to do so
+    
   }
 
 
-  llvm::PreservedAnalyses ScabbardPassPlugin::run_hip_ctor(const llvm::Function& F, const llvm::FunctionAnalysisManager &FAM)
-  {
-    for (const auto& bb : F.getBasicBlockList())
-      for (const auto& i : bb.getInstList())
-        if (const auto* call = llvm::dyn_cast<llvm::CallInst>(&i))
-          if (call->getName() == "__hipRegisterVar") {
-            if (auto* global = llvm::dyn_cast<llvm::GlobalVariable>(call->getArgOperand(2))) {
-              globalDeviceMem.addNodeToList(global);
-            } else {
-              llvm::errs() << "\n[scabbard::WARNING] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterVar` that is not a global variable\n\n";
-            }
-          } else if (call->getName() == "__hipRegisterManagedVar") {
-            if (auto* global = llvm::dyn_cast<llvm::GlobalVariable>(call->getArgOperand(2))) {
-              globalManagedMem.addNodeToList(global);
-            } else {
-              llvm::errs() << "\n[scabbard::WARNING] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterManagedVar` that is not a global variable\n\n";
-            }
-          }
-  }
-
-
-  llvm::PreservedAnalyses ScabbardPassPlugin::run_device(llvm::Function& F, llvm::FunctionAnalysisManager &FAM)
+  llvm::PreservedAnalyses ScabbardPassPlugin::run_device(llvm::Function& F, llvm::FunctionAnalysisManager &FAM, const DepTraceDevice& DT)
   {
     //TODO make any necessary additions to the function (i.e. getting thread, block, tile and stream ids)
-    moduleType = ModuleType::DEVICE;
     for (auto& bb : F.getBasicBlockList())
       for (auto& i : bb.getInstList())
         if (auto* store = llvm::dyn_cast<llvm::StoreInst>(&i)) {
@@ -112,13 +94,11 @@ namespace instr {
         } else if (auto atomic = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
           //TODO instrument atomic readwrite instructions
         }
-    moduleType = ModuleType::UNKNOWN_MODULE;
     return llvm::PreservedAnalyses::all();
   }
 
-  llvm::PreservedAnalyses ScabbardPassPlugin::run_host(llvm::Function& F, llvm::FunctionAnalysisManager &FAM)
+  llvm::PreservedAnalyses ScabbardPassPlugin::run_host(llvm::Function& F, llvm::FunctionAnalysisManager &FAM, const DepTraceHost& DT)
   {
-    moduleType = ModuleType::DEVICE;
     for (auto& bb : F.getBasicBlockList())
       for (auto& i : bb.getInstList())
         if (auto* store = llvm::dyn_cast<llvm::StoreInst>(&i)) {
@@ -130,7 +110,6 @@ namespace instr {
         } else if (auto atomic = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
           //TODO instrument atomic readwrite instructions
         }
-    moduleType = ModuleType::UNKNOWN_MODULE;
     return llvm::PreservedAnalyses::all();
   }
 
