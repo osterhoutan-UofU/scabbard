@@ -14,12 +14,13 @@ flowchart TB
             HT_IsItDeviceMem{"Is it in\nthe list of Device\nGloabl Vars?"}
             HT_IsDeviceMem[["Of Interest =>\nInstr op"]]
             HT_StackMem[["Local/Stack Mem\nDO NOT Instr op"]]
-            HT_IsPosDeviceMem[["Possibly of Interest=>\nInstr op"]]
+            %% HT_IsPosDeviceMem[["Possibly of Interest=>\nInstr op"]]
             HT_IsItPtrTy{"Is it's\ntype a ptr?"}
             HT_IsItMemCall{"Is is\n`hipMalloc()` or\n`hipMemcpy()`?"}
             HT_IsMemCall[["Instr op\n[[ALWAYS]]"]]
             %% HT_NotHeap[["NOT of Interest =>\n(DO NOT Instr `store` op)"]]
             HT_DepTrace{"Where was this\nlocal defined?"}
+            HT_PhiSplit[/"For each arg pair\nin phi find\ndef instr/op & do dep trace\n((OR results))"\]
             %% HT_FnParamType{"Is the param of\na ptr/ref type?"}
             %% HT_CallRetTy{"Is the return\ntype a ptr?"}
             HT_InstrWithRuntimeCond0{{"Instr, but with\nruntime conditional call"}}
@@ -46,7 +47,8 @@ flowchart TB
             HT_DepTrace --- HT_CallInstr([" `call` op"]) --> HT_IsItMemCall
             HT_IsItMemCall --- HT_Yes3(["Yes"]) --> HT_IsMemCall
             %% HT_IsItMemCall --- HT_No3(["No"]) --> HT_IsItPtrTy
-            HT_DepTrace --- HT_AtomicInstr([" `atomicrmw` op"]) --> HT_IsPosDeviceMem
+            HT_DepTrace --- HT_AtomicInstr([" `atomicrmw` op"]) -.-> HT_Dep
+            HT_DepTrace --- HT_PhiInstr([" `phi` op"]) --> HT_PhiSplit -.-> HT_Dep
             %% HT_ARecord[["Record atomic op\n[[ALWAYS]]"]] -.-> HT_Dep
             HT_DepTrace --- HT_ArithInstr(["other op(s)"]) --> HT_BAD_TRACE((("BAD DEP\nTRACE\n[END]")))
             %% HT_CallRetTy -- "Yes" --> HT_IsDeviceMem
@@ -81,6 +83,7 @@ flowchart TB
             DT_IsPosDeviceMem[["Possibly of Interest=>\nInstr op"]]
             %% DT_NotHeap[["NOT of Interest =>\n(DO NOT Instr `store` op)"]]
             DT_DepTrace{"Where was this\nlocal defined?"}
+            DT_PhiSplit[/"For each arg pair\nin phi find\ndef instr/op & do dep trace\n((OR results))"\]
             %% DT_FnParamType{"Is the param of\na ptr/ref type?"}
             %% DT_CallRetTy{"Is the return\ntype a ptr?"}
             %% -- PATH DECL --
@@ -99,6 +102,7 @@ flowchart TB
             DT_DepTrace --- DT_AllocInstr([" `alloca` op"]) --> DT_StackMem
             DT_DepTrace --- DT_CallInstr([" `call` op"]) --> DT_IsPosDeviceMem
             DT_DepTrace --- DT_AtomicInstr([" `atomicrmw` op"]) --> DT_IsPosDeviceMem
+            DT_DepTrace --- DT_PhiInstr([" `phi` op"]) --> DT_PhiSplit -.-> DT_Dep
             %% DT_ARecord[["Record atomic op\n[[ALWAYS]]"]] -.-> DT_Dep
             DT_DepTrace --- DT_ArithInstr(["other op(s)"]) --> DT_BAD_TRACE((("BAD DEP\nTRACE\n[END]")))
             %% DT_CallRetTy -- "Yes" --> DT_IsDeviceMem
