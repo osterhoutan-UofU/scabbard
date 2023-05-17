@@ -43,6 +43,7 @@ namespace scabbard {
 
     private:
       InstrWhen __calcInstrWhen(const llvm::Instruction&) const;
+      InstrWhen __calcInstrWhen(const llvm::PHINode&) const;
       InstrWhen __calcInstrWhen(const llvm::Value&) const;
       template<class InstrT>
       InstrWhen __calcInstrWhen_rec(const InstrT&) const;

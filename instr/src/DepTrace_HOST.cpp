@@ -14,6 +14,9 @@
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Function.h>
+#include <llvm/Support/Debug.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/Casting.h>
 
 namespace scabbard {
   namespace instr {
@@ -30,13 +33,13 @@ namespace scabbard {
                 if (const auto* global = llvm::dyn_cast<llvm::GlobalVariable>(call->getArgOperand(2))) {
                   globalDeviceMem.addNodeToList(const_cast<llvm::GlobalVariable*>(global));
                 } else {
-                  llvm::errs() << "\n[scabbard::WARNING] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterVar` that is not a global variable\n\n";
+                  llvm::dbgs() << "\n[scabbard::DBG::WARNING] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterVar` that is not a global variable\n\n";
                 }
               } else if (call->getName() == "__hipRegisterManagedVar") {
                 if (const auto* global = llvm::dyn_cast<llvm::GlobalVariable>(call->getArgOperand(2))) {
                   globalManagedMem.addNodeToList(const_cast<llvm::GlobalVariable*>(global));
                 } else {
-                  llvm::errs() << "\n[scabbard::WARNING] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterManagedVar` that is not a global variable\n\n";
+                  llvm::dbgs() << "\n[scabbard::DBG::WARNING] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterManagedVar` that is not a global variable\n\n";
                 }
               }
             }
@@ -46,13 +49,25 @@ namespace scabbard {
     template<> template<>
     InstrWhen DepTrace<HOST>::calcInstrWhen(const llvm::StoreInst& I) const
     {
-      return InstrWhen::NEVER;
+#     ifdef __SCABBARD_TRACE_HOST_WRITE_TO_GPU_READ
+        InstrWhen res = __calcInstrWhen(*I.getPointerOperand());
+        if (res == InstrWhen::NEVER)
+          return InstrWhen::NEVER;
+        res |= (I.isAtomic()) ? InstrWhen::ATOMIC : InstrWhen::NEVER;
+        return (InstrWhen)(InstrWhen::ON_HOST | InstrWhen::WRITE | res);
+#     else
+        return InstrWhen::NEVER;
+#     endif
     }
 
     template<> template<>
     InstrWhen DepTrace<HOST>::calcInstrWhen(const llvm::LoadInst& I) const
     {
-      return InstrWhen::NEVER;
+      InstrWhen res = __calcInstrWhen(*I.getPointerOperand());
+      if (res == InstrWhen::NEVER)
+        return InstrWhen::NEVER;
+      res |= (I.isAtomic()) ? InstrWhen::ATOMIC : InstrWhen::NEVER;
+      return (InstrWhen)(InstrWhen::ON_HOST | InstrWhen::READ | res);
     }
 
     template<> template<>
@@ -88,11 +103,10 @@ namespace scabbard {
     template<> template<>
     InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::AtomicRMWInst& I) const
     {
-      const auto ptr_op = I.getPointerOperand();
-      if (const auto ptr = llvm::dyn_cast<llvm::GlobalVariable>(ptr_op)) {
-
-      }
-      return InstrWhen::NEVER;
+      auto res = __calcInstrWhen(*I.getPointerOperand());
+      if (res == InstrWhen::NEVER)
+        return InstrWhen::NEVER;
+      return (InstrWhen)(InstrWhen::ATOMIC | InstrWhen::READ | InstrWhen::WRITE | res);
     }
 
     template<> template<>
@@ -114,11 +128,15 @@ namespace scabbard {
     }
 
     template<> template<>
-    InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::Argument& I) const
+    InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::Argument& A) const
     {
-      // we don't know for certain if this is device mem or not, 
-      // ==> so we will check before emitting trace (aka add the runtime conditional flag)
-      return (InstrWhen)(InstrWhen::ON_HOST | InstrWhen::_RUNTIME_CONDITIONAL);
+      const auto& TY = *I.getType();
+      if (I.hasByRefAttr() || TY.isPointerTy() /* || TY.isArrayTy() || TY.isPtrOrPtrVectorTy() */) {
+        // we don't know for certain if this is device mem or not, 
+        // ==> so we will check before emitting trace (aka add the runtime conditional flag)
+        return (InstrWhen)(InstrWhen::ON_HOST | InstrWhen::_RUNTIME_CONDITIONAL);
+      } // else // not of concern at all
+      return InstrWhen::NEVER;
     }
 
 

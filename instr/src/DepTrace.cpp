@@ -15,6 +15,10 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Value.h>
+#include <llvm/Analysis/MemorySSA.h>
+#include <llvm/Support/Debug.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/Casting.h>
 
 namespace scabbard {
 namespace instr {
@@ -23,7 +27,7 @@ namespace instr {
   template<ModuleType MT>
   InstrWhen DepTrace<MT>::__calcInstrWhen(const llvm::Instruction& i) const 
   {
-    if (cosnt auto& _i = llvm::dyn_cast<llvm::StoreInst>(i)) {
+    if (const auto& _i = llvm::dyn_cast<llvm::StoreInst>(i)) {
       return __calcInstrWhen_rec(_i); 
     } else if (const auto& _i = llvm::dyn_cast<llvm::LoadInst>(i)) {
       return __calcInstrWhen_rec(_i);
@@ -37,6 +41,8 @@ namespace instr {
       return __calcInstrWhen_rec(_i);
     } else if (const auto& _i = llvm::dyn_cast<llvm::AllocaInst>(i)) {
       return __calcInstrWhen_rec(_i);
+    } else if (const auto& _i = llvm::dyn_cast<llvm::PHINode>(i)) {
+      return __calcInstrWhen(_i);
     }
     return InstrWhen::NEVER;
   }
@@ -54,12 +60,26 @@ namespace instr {
         return InstrWhen::MANAGED_MEM | InstrWhen::ALWAYS;
       }
     } else 
-    // handle local registers
-    if (const auto& a = llvm::dyn_cast<llvm::Argument>(V)) {
-      return __calcInstrWhen_rec(a);
+    // handle local function args/registers
+    if (const auto& A = llvm::dyn_cast<llvm::Argument>(V)) {
+      return __calcInstrWhen_rec(A);
+    }
+    // handle derived values (aka instructions)
+    if (const auto& I = llvm::dyn_cast<llvm::Instruction>(V)) {
+      return __calcInstrWhen(I);
     }
     // unknown Value type...
     return InstrWhen::NEVER;
+  }
+
+  
+  template<ModuleType MT>
+  InstrWhen DepTrace<MT>::__calcInstrWhen(const llvm::PHINode& PHI) const 
+  {
+    InstrWhen res = InstrWhen::NEVER;
+    for (const auto& U : PHI.incoming_values())
+      res |= __calcInstrWhen(*U.get());
+    return res;
   }
   
   template<ModuleType MT>

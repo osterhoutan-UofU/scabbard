@@ -11,12 +11,17 @@ add_library(instr MODULE
     src/DepTrace_DEVICE.cpp
     src/registry.cpp
   )
+add_library(testpass MODULE
+    src/TestPass/TestPass.cpp
+  )
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 
 # add lib instr
 target_include_directories(instr
     PRIVATE
     src
-    ${CMAKE_CURRENT_BINARY_DIR}/../lib
+    ${CMAKE_CURRENT_BINARY_DIR}/../lib/include
   )
 
 target_compile_features(instr PRIVATE cxx_range_for cxx_auto_type)

@@ -16,6 +16,8 @@
 namespace scabbard {
 namespace instr {
 
+    enum ModuleType { HOST=0, DEVICE=1, UNKNOWN_MODULE=-1 };
+
    /**
     * @brief ENUM BYTE MAP\n
     *   \code{.txt}
@@ -38,10 +40,10 @@ namespace instr {
     // This might be of interest, but we can only know after a runtime conditional is run.
     _RUNTIME_CONDITIONAL  = 0b00000100,  // Note: conditional is only valid for HOST/CPU
     // This inst should always be instrumented (no chance of not being of interest in traces) 
-    ALWAYS                = 0b01001010,
+    ALWAYS                = 0b00010100,
     // If this is on the GPU/Device it should be instrumented
-    ON_DEVICE             = 0b00100000,
-    ON_GPU                = 0b00100000,
+    ON_DEVICE             = 0b00010000,
+    ON_GPU                = 0b00010000,
     // If this is on the CPU/Host it shoule be instrumented
     ON_HOST               = 0b00000010,
     ON_CPU                = 0b00000010,
@@ -57,7 +59,14 @@ namespace instr {
     MANAGED_MEM           = 0b0100000000000000,
   };
 
-  enum ModuleType { HOST=0, DEVICE=1, UNKNOWN_MODULE=-1 };
+  InstrWhen operator | (InstrWhen l, InstrWhen r) 
+  {
+    return (InstrWhen)(l | r);
+  }
+  InstrWhen& operator |= (InstrWhen& l, InstrWhen r) 
+  {
+    return (l = (InstrWhen)(l | r));
+  }
 
 } //?namespace instr
 } //?namespace scabbard

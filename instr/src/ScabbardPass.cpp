@@ -13,9 +13,10 @@
 #include "ScabbardPass.hpp"
 
 #include <llvm/IR/Instructions.h>
+#include <llvm/ADT/Triple.h>
+#include <llvm/Support/Debug.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/Casting.h>
-#include <llvm/ADT/Triple.h>
 
 namespace scabbard {
 namespace instr {

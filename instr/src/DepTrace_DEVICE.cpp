@@ -14,6 +14,9 @@
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Function.h>
+#include <llvm/Support/Debug.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/Casting.h>
 
 namespace scabbard {
   namespace instr {
@@ -34,14 +37,26 @@ namespace scabbard {
     template<>
     InstrWhen DepTrace<DEVICE>::calcInstrWhen(const llvm::StoreInst& I) const
     {
-      return InstrWhen::NEVER;
+      InstrWhen res = __calcInstrWhen(*I.getPointerOperand());
+      if (res == InstrWhen::NEVER)
+        return InstrWhen::NEVER;
+      res |= (I.isAtomic()) ? InstrWhen::ATOMIC : InstrWhen::NEVER;
+      return (InstrWhen)(InstrWhen::ON_DEVICE | InstrWhen::WRITE | res);
     }
 
     template<>
     template<>
     InstrWhen DepTrace<DEVICE>::calcInstrWhen(const llvm::LoadInst& I) const
     {
-      return InstrWhen::NEVER;
+#     ifdef __SCABBARD_TRACE_HOST_WRITE_TO_GPU_READ
+        InstrWhen res = __calcInstrWhen(*I.getPointerOperand());
+        if (res == InstrWhen::NEVER)
+          return InstrWhen::NEVER;
+        res |= (I.isAtomic()) ? InstrWhen::ATOMIC : InstrWhen::NEVER;
+        return (InstrWhen)(InstrWhen::ON_DEVICE | InstrWhen::READ | res);
+#     else
+        return InstrWhen::NEVER;
+#     endif
     }
 
     template<>
@@ -110,12 +125,13 @@ namespace scabbard {
     template<> 
     template<>
     InstrWhen DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::Argument& I) const
-    {
+    { //TODO decide if this is necessary or not
       return InstrWhen::ON_DEVICE;
     }
 
 
-    template<> template<>
+    template<> 
+    template<>
     InstrWhen DepTrace<DEVICE>::calcInstrWhen(const llvm::Instruction& i) const
     {
       if (auto* _i = llvm::dyn_cast<llvm::StoreInst>(&i)) {
