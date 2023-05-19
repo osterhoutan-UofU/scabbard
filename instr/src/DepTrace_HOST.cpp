@@ -77,7 +77,7 @@ namespace scabbard {
     template<>
     InstrWhen DepTrace<HOST>::calcInstrWhen(const llvm::CallInst& I) const
     {
-      return InstrWhen::NEVER;
+      return InstrWhen::NEVER; //TODO
     }
 
     template<> 
@@ -87,24 +87,18 @@ namespace scabbard {
       return __calcInstrWhen(I);
     }
 
-    template<> template<>
-    InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::StoreInst& I) const
-    {
-      return InstrWhen::NEVER;
-    }
-
     template<> 
     template<>
     InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::LoadInst& I) const
     {
-      return InstrWhen::NEVER;
+      return __calcInstrWhen(*I.getPointerOperand());
     }
 
     template<> 
     template<>
     InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::CallInst& I) const
     {
-      return InstrWhen::NEVER;
+      return InstrWhen::NEVER; //TODO
     }
 
     template<> 
@@ -121,14 +115,14 @@ namespace scabbard {
     template<>
     InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::AddrSpaceCastInst& I) const
     {
-      return InstrWhen::NEVER;
+      return __calcInstrWhen(*I.getPointerOperand());
     }
 
     template<> 
     template<>
     InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::GetElementPtrInst& I) const
     {
-      return InstrWhen::NEVER;
+      return __calcInstrWhen(*I.getPointerOperand());
     }
 
     template<> 

@@ -75,23 +75,16 @@ namespace scabbard {
 
     template<>
     template<>
-    InstrWhen DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::StoreInst& I) const
-    {
-      return InstrWhen::NEVER;
-    }
-
-    template<>
-    template<>
     InstrWhen DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::LoadInst& I) const
     {
-      return InstrWhen::NEVER;
+      return __calcInstrWhen(*I.getPointerOperand());
     }
 
     template<>
     template<>
     InstrWhen DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::CallInst& I) const
     {
-      return InstrWhen::NEVER;
+      return InstrWhen::NEVER; // TODO
     }
 
     template<>
@@ -105,21 +98,21 @@ namespace scabbard {
     template<>
     InstrWhen DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::AddrSpaceCastInst& I) const
     {
-      return InstrWhen::NEVER;
+      return __calcInstrWhen(*I.getPointerOperand());
     }
 
     template<>
     template<>
     InstrWhen DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::GetElementPtrInst& I) const
     {
-      return InstrWhen::NEVER;
+      return __calcInstrWhen(*I.getPointerOperand());
     }
 
     template<>
     template<>
     InstrWhen DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::AllocaInst& I) const
     {
-      return InstrWhen::NEVER; // this means that this ptr comes from the stack frame
+      return InstrWhen::NEVER; // this means that this ptr comes from the Device stack frame
     }
 
     template<>
