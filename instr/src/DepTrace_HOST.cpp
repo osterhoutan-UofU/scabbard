@@ -46,37 +46,42 @@ namespace scabbard {
       } // else   // this module has no HIP components
     }
 
-    template<> template<>
+
+    template<>
+    template<>
     InstrWhen DepTrace<HOST>::calcInstrWhen(const llvm::StoreInst& I) const
     {
 #     ifdef __SCABBARD_TRACE_HOST_WRITE_TO_GPU_READ
-        InstrWhen res = __calcInstrWhen(*I.getPointerOperand());
-        if (res == InstrWhen::NEVER)
-          return InstrWhen::NEVER;
-        res |= (I.isAtomic()) ? InstrWhen::ATOMIC : InstrWhen::NEVER;
-        return (InstrWhen)(InstrWhen::ON_HOST | InstrWhen::WRITE | res);
-#     else
+      InstrWhen res = __calcInstrWhen(*I.getPointerOperand());
+      if (res == InstrWhen::NEVER)
         return InstrWhen::NEVER;
+      res |= (I.isAtomic()) ? InstrWhen::ATOMIC : InstrWhen::NEVER;
+      return (InstrWhen)(InstrWhen::ON_HOST | InstrWhen::WRITE | res);
+#     else
+      return InstrWhen::NEVER;
 #     endif
     }
 
-    template<> template<>
+    template<>
+    template<>
     InstrWhen DepTrace<HOST>::calcInstrWhen(const llvm::LoadInst& I) const
     {
       InstrWhen res = __calcInstrWhen(*I.getPointerOperand());
       if (res == InstrWhen::NEVER)
         return InstrWhen::NEVER;
-      res |= (I.isAtomic()) ? InstrWhen::ATOMIC : InstrWhen::NEVER;
+      res |= (I.isAtomic()) ? InstrWhen::ATOMIC_MEM : InstrWhen::NEVER;
       return (InstrWhen)(InstrWhen::ON_HOST | InstrWhen::READ | res);
     }
 
-    template<> template<>
+    template<> 
+    template<>
     InstrWhen DepTrace<HOST>::calcInstrWhen(const llvm::CallInst& I) const
     {
       return InstrWhen::NEVER;
     }
 
-    template<> template<>
+    template<> 
+    template<>
     InstrWhen DepTrace<HOST>::calcInstrWhen(const llvm::AtomicRMWInst& I) const
     {
       return __calcInstrWhen(I);
@@ -88,46 +93,63 @@ namespace scabbard {
       return InstrWhen::NEVER;
     }
 
-    template<> template<>
+    template<> 
+    template<>
     InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::LoadInst& I) const
     {
       return InstrWhen::NEVER;
     }
 
-    template<> template<>
+    template<> 
+    template<>
     InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::CallInst& I) const
     {
       return InstrWhen::NEVER;
     }
 
-    template<> template<>
+    template<> 
+    template<>
     InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::AtomicRMWInst& I) const
     {
       auto res = __calcInstrWhen(*I.getPointerOperand());
       if (res == InstrWhen::NEVER)
         return InstrWhen::NEVER;
-      return (InstrWhen)(InstrWhen::ATOMIC | InstrWhen::READ | InstrWhen::WRITE | res);
+      return (InstrWhen)(InstrWhen::ATOMIC_MEM | res);
     }
 
-    template<> template<>
+    template<> 
+    template<>
     InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::AddrSpaceCastInst& I) const
     {
       return InstrWhen::NEVER;
     }
 
-    template<> template<>
+    template<> 
+    template<>
     InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::GetElementPtrInst& I) const
     {
       return InstrWhen::NEVER;
     }
 
-    template<> template<>
+    template<> 
+    template<>
     InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::AllocaInst& I) const
     {
+      //check if this is used in a hipMalloc
+      for (const auto& U : I.users()) {
+        if (const auto& CI = llvm::dyn_cast<llvm::CallInst>(U)) {
+          const auto p = funcsOfInterest.find(CI.getName());
+          if (p != funcsOfInterest.end()) {
+            if (p.second(I,CI))
+              return InstrWhen::ON_HOST;
+          }
+        }
+      }
       return InstrWhen::NEVER; // this means that this ptr comes from the stack frame
     }
 
-    template<> template<>
+    template<> 
+    template<>
     InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::Argument& A) const
     {
       const auto& TY = *I.getType();
@@ -140,9 +162,10 @@ namespace scabbard {
     }
 
 
-    template<> template<>
+    template<> 
+    template<>
     InstrWhen DepTrace<HOST>::calcInstrWhen(const llvm::Instruction& i) const
-    { 
+    {
       if (auto* _i = llvm::dyn_cast<llvm::StoreInst>(&i)) {
         return calcInstrWhen(*_i);
       } else if (auto* _i = llvm::dyn_cast<llvm::LoadInst>(&i)) {
@@ -154,6 +177,37 @@ namespace scabbard {
       }
       return InstrWhen::NEVER;
     }
+    
+
+    template<>
+    const llvm::StringMap<const CallCheck_t> DepTrace<HOST>::funcsOfInterest = {
+        { "hipMalloc", BASE_CHECK },
+        {
+          "hipMemcpy", 
+          [](const llvm::Value& V, const llvm::CallBase& C) -> bool {
+            if (const auto& TrTy = llvm::dyn_cast<llvm::ConstantInt>(C.getArgOperand(3))) {
+              // get which 
+              switch (TrTy.getSExtValue()) {
+                case 1: // H->D
+                  return *C.getArgOperand(0) == V;
+                case 2: // D->H
+                  return *C.getOperand(1) == V;
+                case 3: // D->D
+                  return *C.getArgOperand(0) == V || C.getArgOperand(1) == V;
+                case 0: // H->H
+                default: // Unknown
+                  return false;
+              }
+            }
+            llvm::errs() << "\n[scabbard::ERROR] `hipMemcpy`'s `hipMemcpyKind` was not as expected\n";
+            LLVM_BUILTIN_UNREACHABLE;
+          }
+        },
+        { "hipHostRegister", BASE_CHECK },
+        { "__hipMallocManaged", BASE_CHECK },
+        { "hipMemAdvise", BASE_CHECK },
+      };
+
 
   } // namespace instr
 } //?namespace scabbard

@@ -40,7 +40,7 @@ namespace scabbard {
       InstrWhen res = __calcInstrWhen(*I.getPointerOperand());
       if (res == InstrWhen::NEVER)
         return InstrWhen::NEVER;
-      res |= (I.isAtomic()) ? InstrWhen::ATOMIC : InstrWhen::NEVER;
+      res |= (I.isAtomic()) ? InstrWhen::ATOMIC_MEM : InstrWhen::NEVER;
       return (InstrWhen)(InstrWhen::ON_DEVICE | InstrWhen::WRITE | res);
     }
 
@@ -49,13 +49,13 @@ namespace scabbard {
     InstrWhen DepTrace<DEVICE>::calcInstrWhen(const llvm::LoadInst& I) const
     {
 #     ifdef __SCABBARD_TRACE_HOST_WRITE_TO_GPU_READ
-        InstrWhen res = __calcInstrWhen(*I.getPointerOperand());
-        if (res == InstrWhen::NEVER)
-          return InstrWhen::NEVER;
-        res |= (I.isAtomic()) ? InstrWhen::ATOMIC : InstrWhen::NEVER;
-        return (InstrWhen)(InstrWhen::ON_DEVICE | InstrWhen::READ | res);
-#     else
+      InstrWhen res = __calcInstrWhen(*I.getPointerOperand());
+      if (res == InstrWhen::NEVER)
         return InstrWhen::NEVER;
+      res |= (I.isAtomic()) ? InstrWhen::ATOMIC : InstrWhen::NEVER;
+      return (InstrWhen)(InstrWhen::ON_DEVICE | InstrWhen::READ | res);
+#     else
+      return InstrWhen::NEVER;
 #     endif
     }
 
@@ -70,7 +70,7 @@ namespace scabbard {
     template<>
     InstrWhen DepTrace<DEVICE>::calcInstrWhen(const llvm::AtomicRMWInst& I) const
     {
-      return (InstrWhen)(InstrWhen::ATOMIC | InstrWhen::ON_DEVICE | InstrWhen::READ | InstrWhen::WRITE);  // this means that the mem is device heap (shared or global doesn't matter)
+      return (InstrWhen)(InstrWhen::ATOMIC_MEM | InstrWhen::ON_DEVICE | InstrWhen::READ | InstrWhen::WRITE);  // this means that the mem is device heap (shared or global doesn't matter)
     }
 
     template<>
@@ -108,21 +108,21 @@ namespace scabbard {
       return InstrWhen::NEVER;
     }
 
-    template<> 
+    template<>
     template<>
     InstrWhen DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::GetElementPtrInst& I) const
     {
       return InstrWhen::NEVER;
     }
 
-    template<> 
+    template<>
     template<>
     InstrWhen DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::AllocaInst& I) const
     {
       return InstrWhen::NEVER; // this means that this ptr comes from the stack frame
     }
 
-    template<> 
+    template<>
     template<>
     InstrWhen DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::Argument& I) const
     { //TODO decide if this is necessary or not
@@ -130,7 +130,7 @@ namespace scabbard {
     }
 
 
-    template<> 
+    template<>
     template<>
     InstrWhen DepTrace<DEVICE>::calcInstrWhen(const llvm::Instruction& i) const
     {
@@ -146,7 +146,8 @@ namespace scabbard {
       return InstrWhen::NEVER;
     }
 
-
+    template<>
+    const llvm::StringMap<const CallCheck_t> DepTrace<DEVICE>::funcsOfInterest{};
 
 
   } // namespace I

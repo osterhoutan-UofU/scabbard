@@ -15,10 +15,16 @@
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/IR/SymbolTableListTraits.h>
 
+#include <unordered_set>
+#include <unordered_map>
+#include <functional>
+
 namespace scabbard {
   namespace instr {
 
     class ScabbardPassPlugin;
+
+    typedef std::function<bool(const llvm::Value&,const llvm::CallBase&)> CallCheck_t;
 
     template<ModuleType MT>
     class DepTrace {
@@ -30,6 +36,10 @@ namespace scabbard {
       llvm::SymbolTableListTraits<llvm::GlobalVariable> globalDeviceMem;
 
     public:
+
+      // static const std::unordered_set<const std::StringRef> funcsToInstr;
+      static const llvm::StringMap<const CallCheck_t> funcsOfInterest;
+
       DepTrace(const llvm::Module& M);
       ~DepTrace() = default;
 
@@ -52,6 +62,18 @@ namespace scabbard {
 
     typedef DepTrace<HOST> DepTraceHost;
     typedef DepTrace<DEVICE> DepTraceDevice;
+
+    // base check for if a func call is of interest to instrumentation
+    const CallCheck_t BASE_CHECK = [](const llvm::Value& V, const llvm::CallBase& C) -> bool { 
+            return V == *C.getArgOperand(0);
+          };
+
+    // template<>
+    // const std::unordered_set<const llvm::StringRef> DepTrace<HOST>::funcsToInstr{"hipMalloc","hipMemcpy","__hipPushCallConfiguration", "__hipMallocManaged", "hipMemAdvise", "hipMemSet"};
+    
+    // template<>
+    // const std::unordered_set<const llvm::StringRef> DepTrace<DEVICE>::funcsToInstr{};
+    
 
 
   } // namespace instr

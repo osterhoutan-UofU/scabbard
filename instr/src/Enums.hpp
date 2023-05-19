@@ -22,41 +22,50 @@ namespace instr {
     * @brief ENUM BYTE MAP\n
     *   \code{.txt}
     *     0b_0000_0000_0000_0000
-    *         ^ ^  ^ ^  ^ ^  ^ ^
-    *         | |  | |  | |  | L Runtime Conditional
-    *         | |  | |  | |  L Instr On Host (CPU)
-    *         | |  | |  | L Instr on Device (GPU)
-    *         | |  | |  L Instr as READ
-    *         | |  | L Instr as WRITE
-    *         | |  L Instr as ATOMIC
-    *         | L Instr as global DEVICE memory
-    *         L Instr as global MANAGED memory
+    *         ^ ^ ^ ^  ^^^^ ^^ ^
+    *         | | | |  |||| || L Runtime Conditional
+    *         | | | |  |||| |L Instr in Host (CPU) module
+    *         | | | |  |||| L Instr in Device (GPU) module
+    *         | | | |  |||L Instr as ALLOCATE
+    *         | | | |  ||L Instr as READ
+    *         | | | |  |L Instr as FREE
+    *         | | | |  L Instr as WRITE
+    *         | | | L Instr as ATOMIC
+    *         | | L Instr as MANAGED
+    *         | L Instr DEVICE HEAP memory
+    *         L Instr HOST HEAP memory
     *   \endcode
     */
-  enum InstrWhen : std::int16_t {
+  enum InstrWhen : std::uint16_t {
     // This inst should never be instrumented (no chance of being of interest in traces)
-    NEVER                 = 0b00000000,
-    NO                    = 0b00000000, // just a useful duplicate of NEVER
+    NEVER                 = 0,
+    NO                    = 0, // just a useful duplicate of NEVER
     // This might be of interest, but we can only know after a runtime conditional is run.
-    _RUNTIME_CONDITIONAL  = 0b00000100,  // Note: conditional is only valid for HOST/CPU
-    // This inst should always be instrumented (no chance of not being of interest in traces) 
-    ALWAYS                = 0b00010100,
+    _RUNTIME_CONDITIONAL  = 1<<0,  // Note: conditional is only valid for HOST/CPU
+    // This inst should always be instrumented (no chance of NOT being of interest in traces) 
+    ALWAYS                = (1<<2)|(1<<3),
     // If this is on the GPU/Device it should be instrumented
-    ON_DEVICE             = 0b00010000,
-    ON_GPU                = 0b00010000,
+    ON_DEVICE             = 1<<2,
+    ON_GPU                = 1<<2,
     // If this is on the CPU/Host it shoule be instrumented
-    ON_HOST               = 0b00000010,
-    ON_CPU                = 0b00000010,
+    ON_HOST               = 1<<3,
+    ON_CPU                = 1<<3,
     //
-    READ                  = 0b000001000000,
+    ALLOCATE              = 1<<4,
     //
-    WRITE                 = 0b000100000000,
+    READ                  = 1<<5,
     //
-    ATOMIC                = 0b010000000000,
+    FREE                  = 1<<6,
     //
-    DEVICE_GLOBAL         = 0b0001000000000000,
+    WRITE                 = 1<<7,
+    // this memory should be treated as atomic
+    ATOMIC_MEM            = 1<<9,
+    // 
+    MANAGED_MEM           = 1<<11,
     //
-    MANAGED_MEM           = 0b0100000000000000,
+    DEVICE_HEAP           = 1<<12,
+    //
+    HOST_HEAP             = 1<<14,
   };
 
   InstrWhen operator | (InstrWhen l, InstrWhen r) 
