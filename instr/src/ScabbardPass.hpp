@@ -43,6 +43,8 @@ namespace instr {
   
   
   struct ScabbardPassPlugin : llvm::PassInfoMixin<ScabbardPassPlugin> {
+
+
     // /**
     // * @brief \em fn \c run : (llvm::Function& -> bool) \n
     // *        The \c runOnFunction method must be implemented by your subclass to do the transformation 
@@ -71,6 +73,14 @@ namespace instr {
 
   protected:
 
+    // /**
+    //  * @brief Map of functions that exist in scabbard lib that should be inserted into any host module
+    //  */
+    // static const llvm::ImmutableMap<std::string, llvm::Function> HostInstrLibFuncs;
+    // /**
+    //  * @brief Map of functions that exist in scabbard lib that should be inserted into all device modules
+    //  */
+    // static const llvm::ImmutableMap<std::string, llvm::Function> DeviceInstrLibFuncs;
     
 
     /**

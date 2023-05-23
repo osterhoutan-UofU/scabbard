@@ -14,6 +14,8 @@
 
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/IR/SymbolTableListTraits.h>
+#include <llvm/ADT/StringMap.h>
+#include <llvm/IR/Instructions.h>
 
 #include <unordered_set>
 #include <unordered_map>
@@ -24,7 +26,7 @@ namespace scabbard {
 
     class ScabbardPassPlugin;
 
-    typedef std::function<bool(const llvm::Value&,const llvm::CallBase&)> CallCheck_t;
+    
 
     template<ModuleType MT>
     class DepTrace {
@@ -32,13 +34,14 @@ namespace scabbard {
       DepTrace() = default;
     protected:
 
-      llvm::SymbolTableListTraits<llvm::GlobalVariable> globalManagedMem;
-      llvm::SymbolTableListTraits<llvm::GlobalVariable> globalDeviceMem;
+      llvm::StringMap<const llvm::GlobalVariable*> globalManagedMem;
+      llvm::StringMap<const llvm::GlobalVariable*> globalDeviceMem;
 
     public:
 
       // static const std::unordered_set<const std::StringRef> funcsToInstr;
-      static const llvm::StringMap<const CallCheck_t> funcsOfInterest;
+      // static const llvm::ImmutableMap<std::string, const CallCheck_t> funcsOfInterest;
+      // static const llvm::StringMap<const CallCheck_t> funcsOfInterest;
 
       DepTrace(const llvm::Module& M);
       ~DepTrace() = default;
@@ -46,27 +49,22 @@ namespace scabbard {
       /**
        * @brief Get when/if you should instrument this instruction
        * @tparam InstrT the type of instruction
-       * @return \c InstrWhen -
+       * @return \c InstrData -
        */
       template<class InstrT>
-      InstrWhen calcInstrWhen(const InstrT&) const;
+      InstrData calcInstrWhen(const InstrT&) const;
 
     private:
-      InstrWhen __calcInstrWhen(const llvm::Instruction&) const;
-      InstrWhen __calcInstrWhen(const llvm::PHINode&) const;
-      InstrWhen __calcInstrWhen(const llvm::Value&) const;
+      InstrData __calcInstrWhen_inst(const llvm::Instruction&) const;
+      InstrData __calcInstrWhen_phi(const llvm::PHINode&) const;
+      InstrData __calcInstrWhen_val(const llvm::Value&) const;
       template<class InstrT>
-      InstrWhen __calcInstrWhen_rec(const InstrT&) const;
+      InstrData __calcInstrWhen_rec(const InstrT&) const;
 
     };
 
     typedef DepTrace<HOST> DepTraceHost;
     typedef DepTrace<DEVICE> DepTraceDevice;
-
-    // base check for if a func call is of interest to instrumentation
-    const CallCheck_t BASE_CHECK = [](const llvm::Value& V, const llvm::CallBase& C) -> bool { 
-            return V == *C.getArgOperand(0);
-          };
 
     // template<>
     // const std::unordered_set<const llvm::StringRef> DepTrace<HOST>::funcsToInstr{"hipMalloc","hipMemcpy","__hipPushCallConfiguration", "__hipMallocManaged", "hipMemAdvise", "hipMemSet"};

@@ -17,177 +17,34 @@
 #include <llvm/Support/Debug.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/Casting.h>
+#include <llvm/IR/Constants.h>
+
+#include <unordered_map>
 
 namespace scabbard {
   namespace instr {
 
-    template<>
-    DepTrace<HOST>::DepTrace(const llvm::Module& M)
-      : DepTrace()
-    {
-      if (const auto* F = llvm::dyn_cast<llvm::Function>(M.getFunction("__hip_module_ctor"))) {
-        for (const auto& bb : F->getBasicBlockList())
-          for (const auto& i : bb.getInstList())
-            if (const auto* call = llvm::dyn_cast<llvm::CallInst>(&i)) {
-              if (call->getName() == "__hipRegisterVar") {
-                if (const auto* global = llvm::dyn_cast<llvm::GlobalVariable>(call->getArgOperand(2))) {
-                  globalDeviceMem.addNodeToList(const_cast<llvm::GlobalVariable*>(global));
-                } else {
-                  llvm::dbgs() << "\n[scabbard::DBG::WARNING] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterVar` that is not a global variable\n\n";
-                }
-              } else if (call->getName() == "__hipRegisterManagedVar") {
-                if (const auto* global = llvm::dyn_cast<llvm::GlobalVariable>(call->getArgOperand(2))) {
-                  globalManagedMem.addNodeToList(const_cast<llvm::GlobalVariable*>(global));
-                } else {
-                  llvm::dbgs() << "\n[scabbard::DBG::WARNING] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterManagedVar` that is not a global variable\n\n";
-                }
-              }
-            }
-      } // else   // this module has no HIP components
-    }
+    typedef std::function<bool(const llvm::Value&,const llvm::CallInst&)> CallCheck_t;
 
-
-    template<>
-    template<>
-    InstrWhen DepTrace<HOST>::calcInstrWhen(const llvm::StoreInst& I) const
-    {
-#     ifdef __SCABBARD_TRACE_HOST_WRITE_TO_GPU_READ
-      InstrWhen res = __calcInstrWhen(*I.getPointerOperand());
-      if (res == InstrWhen::NEVER)
-        return InstrWhen::NEVER;
-      res |= (I.isAtomic()) ? InstrWhen::ATOMIC : InstrWhen::NEVER;
-      return (InstrWhen)(InstrWhen::ON_HOST | InstrWhen::WRITE | res);
-#     else
-      return InstrWhen::NEVER;
-#     endif
-    }
-
-    template<>
-    template<>
-    InstrWhen DepTrace<HOST>::calcInstrWhen(const llvm::LoadInst& I) const
-    {
-      InstrWhen res = __calcInstrWhen(*I.getPointerOperand());
-      if (res == InstrWhen::NEVER)
-        return InstrWhen::NEVER;
-      res |= (I.isAtomic()) ? InstrWhen::ATOMIC_MEM : InstrWhen::NEVER;
-      return (InstrWhen)(InstrWhen::ON_HOST | InstrWhen::READ | res);
-    }
-
-    template<> 
-    template<>
-    InstrWhen DepTrace<HOST>::calcInstrWhen(const llvm::CallInst& I) const
-    {
-      return InstrWhen::NEVER; //TODO
-    }
-
-    template<> 
-    template<>
-    InstrWhen DepTrace<HOST>::calcInstrWhen(const llvm::AtomicRMWInst& I) const
-    {
-      return __calcInstrWhen(I);
-    }
-
-    template<> 
-    template<>
-    InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::LoadInst& I) const
-    {
-      return __calcInstrWhen(*I.getPointerOperand());
-    }
-
-    template<> 
-    template<>
-    InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::CallInst& I) const
-    {
-      return InstrWhen::NEVER; //TODO
-    }
-
-    template<> 
-    template<>
-    InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::AtomicRMWInst& I) const
-    {
-      auto res = __calcInstrWhen(*I.getPointerOperand());
-      if (res == InstrWhen::NEVER)
-        return InstrWhen::NEVER;
-      return (InstrWhen)(InstrWhen::ATOMIC_MEM | res);
-    }
-
-    template<> 
-    template<>
-    InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::AddrSpaceCastInst& I) const
-    {
-      return __calcInstrWhen(*I.getPointerOperand());
-    }
-
-    template<> 
-    template<>
-    InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::GetElementPtrInst& I) const
-    {
-      return __calcInstrWhen(*I.getPointerOperand());
-    }
-
-    template<> 
-    template<>
-    InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::AllocaInst& I) const
-    {
-      //check if this is used in a hipMalloc
-      for (const auto& U : I.users()) {
-        if (const auto& CI = llvm::dyn_cast<llvm::CallInst>(U)) {
-          const auto p = funcsOfInterest.find(CI.getName());
-          if (p != funcsOfInterest.end()) {
-            if (p.second(I,CI))
-              return InstrWhen::ON_HOST;
-          }
-        }
-      }
-      return InstrWhen::NEVER; // this means that this ptr comes from the stack frame
-    }
-
-    template<> 
-    template<>
-    InstrWhen DepTrace<HOST>::__calcInstrWhen_rec(const llvm::Argument& A) const
-    {
-      const auto& TY = *I.getType();
-      if (I.hasByRefAttr() || TY.isPointerTy() /* || TY.isArrayTy() || TY.isPtrOrPtrVectorTy() */) {
-        // we don't know for certain if this is device mem or not, 
-        // ==> so we will check before emitting trace (aka add the runtime conditional flag)
-        return (InstrWhen)(InstrWhen::ON_HOST | InstrWhen::_RUNTIME_CONDITIONAL);
-      } // else // not of concern at all
-      return InstrWhen::NEVER;
-    }
-
-
-    template<> 
-    template<>
-    InstrWhen DepTrace<HOST>::calcInstrWhen(const llvm::Instruction& i) const
-    {
-      if (auto* _i = llvm::dyn_cast<llvm::StoreInst>(&i)) {
-        return calcInstrWhen(*_i);
-      } else if (auto* _i = llvm::dyn_cast<llvm::LoadInst>(&i)) {
-        return calcInstrWhen(*_i);
-      } else if (auto* _i = llvm::dyn_cast<llvm::CallInst>(&i)) {
-        return calcInstrWhen(*_i);
-      } else if (auto _i = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
-        return calcInstrWhen(*_i);
-      }
-      return InstrWhen::NEVER;
+    auto BASE_CHECK(const llvm::Value& V, const llvm::CallInst& C) -> bool {
+      return (&V) == C.getArgOperand(0); // compare ptr's and hope llvm does not make copies of IR objects
     }
     
-
-    template<>
-    const llvm::StringMap<const CallCheck_t> DepTrace<HOST>::funcsOfInterest = {
+    const std::unordered_map<std::string, CallCheck_t> funcsOfInterest = {
         { "hipMalloc", BASE_CHECK },
         {
           "hipMemcpy", 
-          [](const llvm::Value& V, const llvm::CallBase& C) -> bool {
-            if (const auto& TrTy = llvm::dyn_cast<llvm::ConstantInt>(C.getArgOperand(3))) {
+          [](const llvm::Value& V, const llvm::CallInst& C) -> bool {
+            const llvm::Value* _V = &V;
+            if (auto* TrTy = llvm::dyn_cast<llvm::ConstantInt>(C.getArgOperand(3))) {
               // get which 
-              switch (TrTy.getSExtValue()) {
+              switch (TrTy->getSExtValue()) {
                 case 1: // H->D
-                  return *C.getArgOperand(0) == V;
+                  return C.getArgOperand(0) == _V;
                 case 2: // D->H
-                  return *C.getOperand(1) == V;
+                  return C.getOperand(1) == _V;
                 case 3: // D->D
-                  return *C.getArgOperand(0) == V || C.getArgOperand(1) == V;
+                  return (C.getArgOperand(0) == _V) || (C.getArgOperand(1) == _V);
                 case 0: // H->H
                 default: // Unknown
                   return false;
@@ -201,6 +58,166 @@ namespace scabbard {
         { "__hipMallocManaged", BASE_CHECK },
         { "hipMemAdvise", BASE_CHECK },
       };
+
+    // << ------------------------------------------------------------------------------------------ >> 
+
+    template<>
+    DepTrace<HOST>::DepTrace(const llvm::Module& M)
+      : DepTrace()
+    {
+      if (const auto* F = llvm::dyn_cast<llvm::Function>(M.getFunction("__hip_module_ctor"))) {
+        for (const auto& bb : F->getBasicBlockList())
+          for (const auto& i : bb.getInstList())
+            if (const auto* call = llvm::dyn_cast<llvm::CallInst>(&i)) {
+              if (call->getName() == "__hipRegisterVar") {
+                if (const auto* global = llvm::dyn_cast<llvm::GlobalVariable>(call->getArgOperand(2))) {
+                  globalDeviceMem.insert(std::make_pair(global->getName(),global));
+                } else {
+                  llvm::dbgs() << "\n[scabbard::DBG::WARNING] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterVar` that is not a global variable\n\n";
+                }
+              } else if (call->getName() == "__hipRegisterManagedVar") {
+                if (const auto* global = llvm::dyn_cast<llvm::GlobalVariable>(call->getArgOperand(2))) {
+                  globalManagedMem.insert(std::make_pair(global->getName(),global));
+                } else {
+                  llvm::dbgs() << "\n[scabbard::DBG::WARNING] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterManagedVar` that is not a global variable\n\n";
+                }
+              }
+            }
+      } // else   // this module has no HIP components
+    }
+
+
+    // << ------------------------------------------------------------------------------------------ >> 
+
+    template<>
+    template<>
+    InstrData DepTrace<HOST>::calcInstrWhen(const llvm::StoreInst& I) const
+    {
+#     ifdef __SCABBARD_TRACE_HOST_WRITE_TO_GPU_READ
+      InstrData res = __calcInstrWhen_val(*I.getPointerOperand());
+      if (res == InstrData::NEVER)
+        return InstrData::NEVER;
+      res |= (I.isAtomic()) ? InstrData::ATOMIC : InstrData::NEVER;
+      return (InstrData)(InstrData::ON_HOST | InstrData::WRITE | res);
+#     else
+      return InstrData::NEVER;
+#     endif
+    }
+
+    template<>
+    template<>
+    InstrData DepTrace<HOST>::calcInstrWhen(const llvm::LoadInst& I) const
+    {
+      InstrData res = __calcInstrWhen_val(*I.getPointerOperand());
+      if (res == InstrData::NEVER)
+        return InstrData::NEVER;
+      res |= (I.isAtomic()) ? InstrData::ATOMIC_MEM : InstrData::NEVER;
+      return (InstrData)(InstrData::ON_HOST | InstrData::READ | res);
+    }
+
+    // template<> 
+    // template<>
+    // InstrData DepTrace<HOST>::calcInstrWhen(const llvm::CallInst& I) const
+    // {
+    //   return InstrData::NEVER; //TODO
+    // }
+
+    template<> 
+    template<>
+    InstrData DepTrace<HOST>::calcInstrWhen(const llvm::AtomicRMWInst& I) const
+    {
+      return __calcInstrWhen_val(I);
+    }
+
+    // << ------------------------------------------------------------------------------------------ >> 
+
+    template<> 
+    template<>
+    InstrData DepTrace<HOST>::__calcInstrWhen_rec(const llvm::LoadInst& I) const
+    {
+      return __calcInstrWhen_val(*I.getPointerOperand());
+    }
+
+    template<> 
+    template<>
+    InstrData DepTrace<HOST>::__calcInstrWhen_rec(const llvm::CallInst& I) const
+    {
+      return InstrData::NEVER;
+    }
+
+    template<> 
+    template<>
+    InstrData DepTrace<HOST>::__calcInstrWhen_rec(const llvm::AtomicRMWInst& I) const
+    {
+      auto res = __calcInstrWhen_val(*I.getPointerOperand());
+      if (res == InstrData::NEVER)
+        return InstrData::NEVER;
+      return (InstrData)(InstrData::ATOMIC_MEM | res);
+    }
+
+    template<> 
+    template<>
+    InstrData DepTrace<HOST>::__calcInstrWhen_rec(const llvm::AddrSpaceCastInst& I) const
+    {
+      return __calcInstrWhen_val(*I.getPointerOperand());
+    }
+
+    template<> 
+    template<>
+    InstrData DepTrace<HOST>::__calcInstrWhen_rec(const llvm::GetElementPtrInst& I) const
+    {
+      return __calcInstrWhen_val(*I.getPointerOperand());
+    }
+
+    template<> 
+    template<>
+    InstrData DepTrace<HOST>::__calcInstrWhen_rec(const llvm::AllocaInst& I) const
+    {
+      //check if this is used in a hipMalloc
+      for (const auto& U : I.uses()) {
+        if (const auto* CI = llvm::dyn_cast<llvm::CallInst>(U.get())) {
+          if (auto p = funcsOfInterest.find(CI->getName().str()); p != funcsOfInterest.end()) {
+            if (p->second(I,*CI))
+              return InstrData::ON_HOST;
+          }
+        }
+      }
+      return InstrData::NEVER; // this means that this ptr comes from the stack frame
+    }
+
+    template<> 
+    template<>
+    InstrData DepTrace<HOST>::__calcInstrWhen_rec(const llvm::Argument& A) const
+    {
+      const auto& TY = *A.getType();
+      if (A.hasByRefAttr() || TY.isPointerTy() /* || TY.isArrayTy() || TY.isPtrOrPtrVectorTy() */) {
+        // we don't know for certain if this is device mem or not, 
+        // ==> so we will check before emitting trace (aka add the runtime conditional flag)
+        return (InstrData)(InstrData::ON_HOST | InstrData::_RUNTIME_CONDITIONAL);
+      } // else // not of concern at all
+      return InstrData::NEVER;
+    }
+
+
+    // << ------------------------------------------------------------------------------------------ >> 
+
+    template<> 
+    template<>
+    InstrData DepTrace<HOST>::calcInstrWhen(const llvm::Instruction& i) const
+    {
+      if (auto* _i = llvm::dyn_cast<llvm::StoreInst>(&i)) {
+        return calcInstrWhen(*_i);
+      } else if (auto* _i = llvm::dyn_cast<llvm::LoadInst>(&i)) {
+        return calcInstrWhen(*_i);
+      // } else if (auto* _i = llvm::dyn_cast<llvm::CallInst>(&i)) {
+      //   return calcInstrWhen(*_i);
+      } else if (auto _i = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
+        return calcInstrWhen(*_i);
+      }
+      return InstrData::NEVER;
+    }
+  
+
 
 
   } // namespace instr

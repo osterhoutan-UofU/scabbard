@@ -18,129 +18,160 @@
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/Casting.h>
 
+#include <unordered_map>
+
 namespace scabbard {
   namespace instr {
+
+    // typedef std::function<bool(const llvm::Value&,const llvm::CallBase&)> CallCheck_t;
+
+    // auto BASE_CHECK(const llvm::Value& V, const llvm::CallBase& C) -> bool { 
+    //         return V == *C.getArgOperand(0);
+    // }
+
+    // const std::unordered_map<std::string, CallCheck_t> funcsOfInterest = {
+    //   {"", BASE_CHECK},
+    //   {"<none>", BASE_CHECK}
+    // };
+
+    // << ------------------------------------------------------------------------------------------ >> 
 
     template<>
     DepTrace<DEVICE>::DepTrace(const llvm::Module& M)
       : DepTrace()
     {
       for (const auto& g : M.getGlobalList())
-        if (const auto mg = M.getNamedGlobal(llvm::Twine(g.getName(), ".managed").getSingleStringRef())) {
-          globalManagedMem.addNodeToList(const_cast<llvm::GlobalVariable*>(mg));
+        if (const auto* mg = M.getNamedGlobal(llvm::Twine(g.getName(), ".managed").getSingleStringRef())) {
+          globalManagedMem.insert(std::make_pair(g.getName(),mg));
         } else if (not g.getName().endswith(".managed")) {
-          globalDeviceMem.addNodeToList(const_cast<llvm::GlobalVariable*>(&g));
+          globalDeviceMem.insert(std::make_pair(g.getName(),&g));
         }
     }
 
+    // << ------------------------------------------------------------------------------------------ >> 
+
     template<>
     template<>
-    InstrWhen DepTrace<DEVICE>::calcInstrWhen(const llvm::StoreInst& I) const
+    InstrData DepTrace<DEVICE>::calcInstrWhen(const llvm::StoreInst& I) const
     {
-      InstrWhen res = __calcInstrWhen(*I.getPointerOperand());
-      if (res == InstrWhen::NEVER)
-        return InstrWhen::NEVER;
-      res |= (I.isAtomic()) ? InstrWhen::ATOMIC_MEM : InstrWhen::NEVER;
-      return (InstrWhen)(InstrWhen::ON_DEVICE | InstrWhen::WRITE | res);
+      InstrData res = __calcInstrWhen_val(*I.getPointerOperand());
+      if (res == InstrData::NEVER)
+        return InstrData::NEVER;
+      res |= (I.isAtomic()) ? InstrData::ATOMIC_MEM : InstrData::NEVER;
+      return (InstrData)(InstrData::ON_DEVICE | InstrData::WRITE | res);
     }
 
     template<>
     template<>
-    InstrWhen DepTrace<DEVICE>::calcInstrWhen(const llvm::LoadInst& I) const
+    InstrData DepTrace<DEVICE>::calcInstrWhen(const llvm::LoadInst& I) const
     {
 #     ifdef __SCABBARD_TRACE_HOST_WRITE_TO_GPU_READ
-      InstrWhen res = __calcInstrWhen(*I.getPointerOperand());
-      if (res == InstrWhen::NEVER)
-        return InstrWhen::NEVER;
-      res |= (I.isAtomic()) ? InstrWhen::ATOMIC : InstrWhen::NEVER;
-      return (InstrWhen)(InstrWhen::ON_DEVICE | InstrWhen::READ | res);
+      InstrData res = __calcInstrWhen_val(*I.getPointerOperand());
+      if (res == InstrData::NEVER)
+        return InstrData::NEVER;
+      res |= (I.isAtomic()) ? InstrData::ATOMIC : InstrData::NEVER;
+      return (InstrData)(InstrData::ON_DEVICE | InstrData::READ | res);
 #     else
-      return InstrWhen::NEVER;
+      return InstrData::NEVER;
 #     endif
     }
 
+    // template<>
+    // template<>
+    // InstrData DepTrace<DEVICE>::calcInstrWhen(const llvm::CallInst& I) const
+    // {
+    //   return InstrData::NEVER;
+    // }
+
     template<>
     template<>
-    InstrWhen DepTrace<DEVICE>::calcInstrWhen(const llvm::CallInst& I) const
+    InstrData DepTrace<DEVICE>::calcInstrWhen(const llvm::AtomicRMWInst& I) const
     {
-      return InstrWhen::NEVER;
+      return (InstrData)(InstrData::ATOMIC_MEM | InstrData::ON_DEVICE | InstrData::READ | InstrData::WRITE);  // this means that the mem is device heap (shared or global doesn't matter)
+    }
+
+    // << ------------------------------------------------------------------------------------------ >> 
+
+    template<>
+    template<>
+    InstrData DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::LoadInst& I) const
+    {
+      return __calcInstrWhen_val(*I.getPointerOperand());
     }
 
     template<>
     template<>
-    InstrWhen DepTrace<DEVICE>::calcInstrWhen(const llvm::AtomicRMWInst& I) const
+    InstrData DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::CallInst& I) const
     {
-      return (InstrWhen)(InstrWhen::ATOMIC_MEM | InstrWhen::ON_DEVICE | InstrWhen::READ | InstrWhen::WRITE);  // this means that the mem is device heap (shared or global doesn't matter)
+      return InstrData::NEVER; // TODO
     }
 
     template<>
     template<>
-    InstrWhen DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::LoadInst& I) const
+    InstrData DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::AtomicRMWInst& I) const
     {
-      return __calcInstrWhen(*I.getPointerOperand());
+      return InstrData::NEVER;
     }
 
     template<>
     template<>
-    InstrWhen DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::CallInst& I) const
+    InstrData DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::AddrSpaceCastInst& I) const
     {
-      return InstrWhen::NEVER; // TODO
+      return __calcInstrWhen_val(*I.getPointerOperand());
     }
 
     template<>
     template<>
-    InstrWhen DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::AtomicRMWInst& I) const
+    InstrData DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::GetElementPtrInst& I) const
     {
-      return InstrWhen::NEVER;
+      return __calcInstrWhen_val(*I.getPointerOperand());
     }
 
     template<>
     template<>
-    InstrWhen DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::AddrSpaceCastInst& I) const
+    InstrData DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::AllocaInst& I) const
     {
-      return __calcInstrWhen(*I.getPointerOperand());
+      //check if this is used in a hipMalloc
+      // for (const auto& U : I.users()) {
+      //   if (const auto& CI = llvm::dyn_cast<llvm::CallInst>(U)) {
+      //     const auto p = funcsOfInterest.find(CI.getName().str());
+      //     if (p != funcsOfInterest.end()) {
+      //       if (p.second(I,CI))
+      //         return InstrData::ON_DEVICE;
+      //     }
+      //   }
+      // }
+      return InstrData::NEVER; // this means that this ptr comes from the stack frame
     }
 
     template<>
     template<>
-    InstrWhen DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::GetElementPtrInst& I) const
-    {
-      return __calcInstrWhen(*I.getPointerOperand());
-    }
-
-    template<>
-    template<>
-    InstrWhen DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::AllocaInst& I) const
-    {
-      return InstrWhen::NEVER; // this means that this ptr comes from the Device stack frame
-    }
-
-    template<>
-    template<>
-    InstrWhen DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::Argument& I) const
+    InstrData DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::Argument& I) const
     { //TODO decide if this is necessary or not
-      return InstrWhen::ON_DEVICE;
+      return InstrData::ON_DEVICE;
     }
 
 
+    // << ------------------------------------------------------------------------------------------ >> 
+
     template<>
     template<>
-    InstrWhen DepTrace<DEVICE>::calcInstrWhen(const llvm::Instruction& i) const
+    InstrData DepTrace<DEVICE>::calcInstrWhen(const llvm::Instruction& i) const
     {
       if (auto* _i = llvm::dyn_cast<llvm::StoreInst>(&i)) {
         return calcInstrWhen(*_i);
       } else if (auto* _i = llvm::dyn_cast<llvm::LoadInst>(&i)) {
         return calcInstrWhen(*_i);
-      } else if (auto* _i = llvm::dyn_cast<llvm::CallInst>(&i)) {
-        return calcInstrWhen(*_i);
+      // } else if (auto* _i = llvm::dyn_cast<llvm::CallInst>(&i)) {
+      //   return calcInstrWhen(*_i);
       } else if (auto _i = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
         return calcInstrWhen(*_i);
       }
-      return InstrWhen::NEVER;
+      return InstrData::NEVER;
     }
 
-    template<>
-    const llvm::StringMap<const CallCheck_t> DepTrace<DEVICE>::funcsOfInterest{};
+
+    
 
 
   } // namespace I

@@ -25,69 +25,69 @@ namespace instr {
   
   
   template<ModuleType MT>
-  InstrWhen DepTrace<MT>::__calcInstrWhen(const llvm::Instruction& i) const 
+  InstrData DepTrace<MT>::__calcInstrWhen_inst(const llvm::Instruction& i) const 
   {
-    if (const auto& _i = llvm::dyn_cast<llvm::StoreInst>(i)) {
-      return __calcInstrWhen_rec(_i); 
-    } else if (const auto& _i = llvm::dyn_cast<llvm::LoadInst>(i)) {
-      return __calcInstrWhen_rec(_i);
-    } else if (const auto& _i = llvm::dyn_cast<llvm::CallInst>(i)) {
-      return __calcInstrWhen_rec(_i);
-    } else if (const auto& _i = llvm::dyn_cast<llvm::AtomicRMWInst>(i)) {
-      return __calcInstrWhen_rec(_i);
-    } else if (const auto& _i = llvm::dyn_cast<llvm::AddrSpaceCastInst>(i)) {
-      return __calcInstrWhen_rec(_i);
-    } else if (const auto& _i = llvm::dyn_cast<llvm::GetElementPtrInst>(i)) {
-      return __calcInstrWhen_rec(_i);
-    } else if (const auto& _i = llvm::dyn_cast<llvm::AllocaInst>(i)) {
-      return __calcInstrWhen_rec(_i);
-    } else if (const auto& _i = llvm::dyn_cast<llvm::PHINode>(i)) {
-      return __calcInstrWhen(_i);
+    if (const auto* _i = llvm::dyn_cast<llvm::StoreInst>(&i)) {
+      return __calcInstrWhen_rec(*_i); 
+    } else if (const auto* _i = llvm::dyn_cast<llvm::LoadInst>(&i)) {
+      return __calcInstrWhen_rec(*_i);
+    } else if (const auto* _i = llvm::dyn_cast<llvm::CallInst>(&i)) {
+      return __calcInstrWhen_rec(*_i);
+    } else if (const auto* _i = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
+      return __calcInstrWhen_rec(*_i);
+    } else if (const auto* _i = llvm::dyn_cast<llvm::AddrSpaceCastInst>(&i)) {
+      return __calcInstrWhen_rec(*_i);
+    } else if (const auto* _i = llvm::dyn_cast<llvm::GetElementPtrInst>(&i)) {
+      return __calcInstrWhen_rec(*_i);
+    } else if (const auto* _i = llvm::dyn_cast<llvm::AllocaInst>(&i)) {
+      return __calcInstrWhen_rec(*_i);
+    } else if (const auto* _i = llvm::dyn_cast<llvm::PHINode>(&i)) {
+      return __calcInstrWhen_phi(*_i);
     }
-    return InstrWhen::NEVER;
+    return InstrData::NEVER;
   }
 
   template<ModuleType MT>
-  InstrWhen DepTrace<MT>::__calcInstrWhen(const llvm::Value& V) const 
+  InstrData DepTrace<MT>::__calcInstrWhen_val(const llvm::Value& V) const 
   {
     // handle globals
-    if (const auto& g = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
+    if (const auto* _g = llvm::dyn_cast<llvm::GlobalVariable>(&V)) {
       const auto name = V.getName();
-      if (globalDeviceMem.lookup(name) != nullptr) {
-        return InstrWhen::DEVICE_GLOBAL | InstrWhen::ALWAYS;
+      if (globalDeviceMem.find(name) != globalDeviceMem.end()) {
+        return InstrData::DEVICE_HEAP | ((MT==HOST) ? InstrData::ON_HOST : InstrData::ON_DEVICE);
       }
-      if (globalManagedMem.lookup(name) != nullptr) {
-        return InstrWhen::MANAGED_MEM | InstrWhen::ALWAYS;
+      if (globalManagedMem.find(name) != globalManagedMem.end()) {
+        return InstrData::MANAGED_MEM | ((MT==HOST) ? InstrData::ON_HOST : InstrData::ON_DEVICE);
       }
     } else 
     // handle local function args/registers
-    if (const auto& A = llvm::dyn_cast<llvm::Argument>(V)) {
-      return __calcInstrWhen_rec(A);
+    if (const auto* _A = llvm::dyn_cast<llvm::Argument>(&V)) {
+      return __calcInstrWhen_rec(*_A);
     }
     // handle derived values (aka instructions)
-    if (const auto& I = llvm::dyn_cast<llvm::Instruction>(V)) {
-      return __calcInstrWhen(I);
+    if (const auto* _I = llvm::dyn_cast<llvm::Instruction>(&V)) {
+      return __calcInstrWhen_inst(*_I);
     }
     // unknown Value type...
-    return InstrWhen::NEVER;
+    return InstrData::NEVER;
   }
 
   
   template<ModuleType MT>
-  InstrWhen DepTrace<MT>::__calcInstrWhen(const llvm::PHINode& PHI) const 
+  InstrData DepTrace<MT>::__calcInstrWhen_phi(const llvm::PHINode& PHI) const 
   {
-    InstrWhen res = InstrWhen::NEVER;
+    InstrData res = InstrData::NEVER;
     for (const auto& U : PHI.incoming_values())
-      res |= __calcInstrWhen(*U.get());
+      res |= __calcInstrWhen_val(*U.get());
     return res;
   }
   
   template<ModuleType MT>
   template<class InstrT>
-  InstrWhen DepTrace<MT>::calcInstrWhen(const InstrT& I) const { return InstrWhen::NEVER; }
+  InstrData DepTrace<MT>::calcInstrWhen(const InstrT& I) const { return InstrData::NEVER; }
   template<ModuleType MT>
   template<class InstrT>
-  InstrWhen DepTrace<MT>::__calcInstrWhen_rec(const InstrT& I) const { return InstrWhen::NEVER; }
+  InstrData DepTrace<MT>::__calcInstrWhen_rec(const InstrT& I) const { return InstrData::NEVER; }
 
 
 

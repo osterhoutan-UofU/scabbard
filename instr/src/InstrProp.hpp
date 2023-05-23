@@ -20,7 +20,7 @@ namespace instr {
 template <class InstTy>
 struct InstrProp {
 
-  InstrWhen instrWhen;
+  InstrData instrWhen;
 
   std::function<void()> Instr;
 

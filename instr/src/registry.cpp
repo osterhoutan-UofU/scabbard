@@ -11,6 +11,7 @@
  */
 
 #include "ScabbardPass.hpp"
+// #include "ScabbardLinkPass.hpp"
 
 #include <llvm/Pass.h>
 #include <llvm/Passes/PassBuilder.h>
@@ -58,16 +59,23 @@ llvm::PassPluginLibraryInfo getScabbardPassPluginInfo() {
             PB.registerOptimizerLastEPCallback( // ~can~ find kernel functions (sometimes run's twice)
                 [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
                   MPM.addPass(scabbard::instr::ScabbardPassPlugin());
-                });
+                }
+              );
             PB.registerPipelineParsingCallback( // can find kernal functions (conditional upon cli args)
-                [](StringRef Name, llvm::ModulePassManager &MPM,
-                   ArrayRef<llvm::PassBuilder::PipelineElement>) {
-                  if (Name == "scabbard") {
-                    MPM.addPass(scabbard::instr::ScabbardPassPlugin());
-                    return true;
+                  [](StringRef Name, llvm::ModulePassManager &MPM,
+                    ArrayRef<llvm::PassBuilder::PipelineElement>) {
+                    if (Name == "scabbard") {
+                      MPM.addPass(scabbard::instr::ScabbardPassPlugin());
+                      return true;
+                    }
+                    return false;
                   }
-                  return false;
-                });
+                );
+              // PB.registerFullLinkTimeOptimizationEarlyEPCallback( // used to handle link time instrumentation
+              //     [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
+              //       MPM.addPass(scabbard::instr::ScabbardLinkPass());
+              //     }
+              //   );
           }};
 }
 extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo

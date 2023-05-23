@@ -17,6 +17,9 @@
 #include <llvm/Support/Debug.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/Casting.h>
+#include <llvm/Bitcode/BitcodeReader.h>
+#include <llvm/IRReader/IRReader.h>
+
 
 namespace scabbard {
 namespace instr {
@@ -42,22 +45,23 @@ namespace instr {
     //TODO make any necessary additions to the Module (i.e.inserting globals and linking references)
     //TODO process and store dgb metadata tables
     llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
-                                              .getManager();
-    
+                                            .getManager();
+    DepTraceDevice dt(M);
     for (auto& f : M.getFunctionList())
       if (f.getName() != "__hip_module_ctor")
-        run_device(f,fam);
+        run_device(f,fam,dt);
   }
 
   void ScabbardPassPlugin::run_host(llvm::Module& M, llvm::ModuleAnalysisManager &MAM)
   {
     //TODO make any necessary additions to the Module (i.e.inserting globals and linking references)
     //TODO process and store dgb metadata tables
-    for (auto& f : M.getFunctionList()) {
       llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
                                               .getManager();
-      run_host(f,fam);
-    }
+    // M.getOrInsertFunction()
+    DepTraceHost dt(M);
+    for (auto& f : M.getFunctionList())
+      run_host(f,fam,dt);
   }
 
 
@@ -75,24 +79,34 @@ namespace instr {
   // }
 
 
-  llvm::PreservedAnalyses ScabbardPassPlugin::run_hip_ctor(const llvm::Function& F, const llvm::FunctionAnalysisManager &FAM, const DepTrace& DT)
-  {
-    
-  }
-
-
   llvm::PreservedAnalyses ScabbardPassPlugin::run_device(llvm::Function& F, llvm::FunctionAnalysisManager &FAM, const DepTraceDevice& DT)
   {
     //TODO make any necessary additions to the function (i.e. getting thread, block, tile and stream ids)
     for (auto& bb : F.getBasicBlockList())
       for (auto& i : bb.getInstList())
+        if (DT.calcInstrWhen(i))
         if (auto* store = llvm::dyn_cast<llvm::StoreInst>(&i)) {
+          if (not DT.calcInstrWhen(*store)) continue;
+          llvm::errs() << "\n[scabbard::device] Found a `store` inst to instrument!\n"
+                            "[scabbard::device]    repr: `";
+          i.print(llvm::errs());
+          llvm::errs() << "`\n[scabbard::device]";
           //TODO instrument store instructions to update trace 
         } else if (auto* load = llvm::dyn_cast<llvm::LoadInst>(&i)) {
+          if (not DT.calcInstrWhen(*load)) continue;
+          llvm::errs() << "\n[scabbard::device] Found a `load` inst to instrument!\n"
+                            "[scabbard::device]    repr: `";
+          i.print(llvm::errs());
+          llvm::errs() << "`\n[scabbard::device]";
           //TODO instrument load instructions
         } else if (auto* call = llvm::dyn_cast<llvm::CallInst>(&i)) {
           //TODO instrument calls to thread id, block id, etc.
         } else if (auto atomic = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
+          if (not DT.calcInstrWhen(*atomic)) continue;
+          llvm::errs() << "\n[scabbard::device] Found an `atomicrmw` inst to instrument!\n"
+                            "[scabbard::device]    repr: `";
+          i.print(llvm::errs());
+          llvm::errs() << "`\n[scabbard::device]";
           //TODO instrument atomic readwrite instructions
         }
     return llvm::PreservedAnalyses::all();
@@ -103,18 +117,58 @@ namespace instr {
     for (auto& bb : F.getBasicBlockList())
       for (auto& i : bb.getInstList())
         if (auto* store = llvm::dyn_cast<llvm::StoreInst>(&i)) {
+          if (not DT.calcInstrWhen(*store)) continue;
+          llvm::errs() << "\n[scabbard::host] Found a `store` inst to instrument!\n"
+                            "[scabbard::host]    repr: `";
+          i.print(llvm::errs());
+          llvm::errs() << "`\n[scabbard::host]";
           //TODO instrument store instructions to update trace 
         } else if (auto* load = llvm::dyn_cast<llvm::LoadInst>(&i)) {
+          if (not DT.calcInstrWhen(*load)) continue;
+          llvm::errs() << "\n[scabbard::host] Found a `load` inst to instrument!\n"
+                            "[scabbard::host]    repr: `";
+          i.print(llvm::errs());
+          llvm::errs() << "`\n[scabbard::host]";
           //TODO instrument load instructions
         } else if (auto* call = llvm::dyn_cast<llvm::CallInst>(&i)) {
           //TODO instrument calls to hip malloc, hip copy, kernel launch and stream sync
         } else if (auto atomic = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
+          if (not DT.calcInstrWhen(*atomic)) continue;
+          llvm::errs() << "\n[scabbard::host] Found an `atomicrmw` inst to instrument!\n"
+                            "[scabbard::host]    repr: `";
+          i.print(llvm::errs());
+          llvm::errs() << "`\n[scabbard::host]";
           //TODO instrument atomic readwrite instructions
         }
     return llvm::PreservedAnalyses::all();
   }
 
-
+  // const llvm::ImmutableMap<std::string, llvm::Function> ScabbardPassPlugin::HostInstrLibFuncs = {
+  //   {
+  //     "host.trace_append$mem",
+  //     llvm::Function(new llvm::FunctionType(,,false))
+  //   },
+  //   {
+  //     "host.trace_append$mem$cond",
+  //   },
+  //   {
+  //     "host.trace_append$mem$atomic",
+  //   },
+  //   {
+  //     "host.trace_append$mem$atomic$cond",
+  //   },
+  //   {
+  //     "host.trace_append$barrier",
+  //   },
+  // };
+  // const llvm::ImmutableMap<std::string, llvm::Function> ScabbardPassPlugin::DeviceInstrLibFuncs = {
+  //   {
+  //     "device.trace_append$mem",
+  //   },
+  //   {
+  //     "device.trace_append$barrier",
+  //   },
+  // };
   
   // char LegacyScabbard::ID = 0;
 

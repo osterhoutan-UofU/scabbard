@@ -36,7 +36,7 @@ namespace instr {
     *         L Instr HOST HEAP memory
     *   \endcode
     */
-  enum InstrWhen : std::uint16_t {
+  enum InstrData : std::uint16_t {
     // This inst should never be instrumented (no chance of being of interest in traces)
     NEVER                 = 0,
     NO                    = 0, // just a useful duplicate of NEVER
@@ -68,13 +68,13 @@ namespace instr {
     HOST_HEAP             = 1<<14,
   };
 
-  InstrWhen operator | (InstrWhen l, InstrWhen r) 
+  inline InstrData operator | (InstrData l, InstrData r) 
   {
-    return (InstrWhen)(l | r);
+    return (InstrData)(static_cast<std::uint16_t>(l) | static_cast<std::uint16_t>(r));
   }
-  InstrWhen& operator |= (InstrWhen& l, InstrWhen r) 
+  inline InstrData& operator |= (InstrData& l, InstrData r) 
   {
-    return (l = (InstrWhen)(l | r));
+    return (l = (InstrData)(static_cast<std::uint16_t>(l) | static_cast<std::uint16_t>(r)));
   }
 
 } //?namespace instr
