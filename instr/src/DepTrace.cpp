@@ -24,63 +24,63 @@ namespace scabbard {
 namespace instr {
   
   
-  template<ModuleType MT>
-  InstrData DepTrace<MT>::__calcInstrWhen_inst(const llvm::Instruction& i) const 
-  {
-    if (const auto* _i = llvm::dyn_cast<llvm::StoreInst>(&i)) {
-      return __calcInstrWhen_rec(*_i); 
-    } else if (const auto* _i = llvm::dyn_cast<llvm::LoadInst>(&i)) {
-      return __calcInstrWhen_rec(*_i);
-    } else if (const auto* _i = llvm::dyn_cast<llvm::CallInst>(&i)) {
-      return __calcInstrWhen_rec(*_i);
-    } else if (const auto* _i = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
-      return __calcInstrWhen_rec(*_i);
-    } else if (const auto* _i = llvm::dyn_cast<llvm::AddrSpaceCastInst>(&i)) {
-      return __calcInstrWhen_rec(*_i);
-    } else if (const auto* _i = llvm::dyn_cast<llvm::GetElementPtrInst>(&i)) {
-      return __calcInstrWhen_rec(*_i);
-    } else if (const auto* _i = llvm::dyn_cast<llvm::AllocaInst>(&i)) {
-      return __calcInstrWhen_rec(*_i);
-    } else if (const auto* _i = llvm::dyn_cast<llvm::PHINode>(&i)) {
-      return __calcInstrWhen_phi(*_i);
-    }
-    return InstrData::NEVER;
-  }
+  // template<ModuleType MT>
+  // InstrData DepTrace<MT>::__calcInstrWhen_inst(const llvm::Instruction& i) const 
+  // {
+  //   if (const auto* _i = llvm::dyn_cast<llvm::StoreInst>(&i)) {
+  //     return __calcInstrWhen_rec(*_i); 
+  //   } else if (const auto* _i = llvm::dyn_cast<llvm::LoadInst>(&i)) {
+  //     return __calcInstrWhen_rec(*_i);
+  //   } else if (const auto* _i = llvm::dyn_cast<llvm::CallInst>(&i)) {
+  //     return __calcInstrWhen_rec(*_i);
+  //   } else if (const auto* _i = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
+  //     return __calcInstrWhen_rec(*_i);
+  //   } else if (const auto* _i = llvm::dyn_cast<llvm::AddrSpaceCastInst>(&i)) {
+  //     return __calcInstrWhen_rec(*_i);
+  //   } else if (const auto* _i = llvm::dyn_cast<llvm::GetElementPtrInst>(&i)) {
+  //     return __calcInstrWhen_rec(*_i);
+  //   } else if (const auto* _i = llvm::dyn_cast<llvm::AllocaInst>(&i)) {
+  //     return __calcInstrWhen_rec(*_i);
+  //   } else if (const auto* _i = llvm::dyn_cast<llvm::PHINode>(&i)) {
+  //     return __calcInstrWhen_phi(*_i);
+  //   }
+  //   return InstrData::NEVER;
+  // }
 
-  template<ModuleType MT>
-  InstrData DepTrace<MT>::__calcInstrWhen_val(const llvm::Value& V) const 
-  {
-    // handle globals
-    if (const auto* _g = llvm::dyn_cast<llvm::GlobalVariable>(&V)) {
-      const auto name = V.getName();
-      if (globalDeviceMem.find(name) != globalDeviceMem.end()) {
-        return InstrData::DEVICE_HEAP | ((MT==HOST) ? InstrData::ON_HOST : InstrData::ON_DEVICE);
-      }
-      if (globalManagedMem.find(name) != globalManagedMem.end()) {
-        return InstrData::MANAGED_MEM | ((MT==HOST) ? InstrData::ON_HOST : InstrData::ON_DEVICE);
-      }
-    } else 
-    // handle local function args/registers
-    if (const auto* _A = llvm::dyn_cast<llvm::Argument>(&V)) {
-      return __calcInstrWhen_rec(*_A);
-    }
-    // handle derived values (aka instructions)
-    if (const auto* _I = llvm::dyn_cast<llvm::Instruction>(&V)) {
-      return __calcInstrWhen_inst(*_I);
-    }
-    // unknown Value type...
-    return InstrData::NEVER;
-  }
+  // template<ModuleType MT>
+  // InstrData DepTrace<MT>::__calcInstrWhen_val(const llvm::Value& V) const 
+  // {
+  //   // handle globals
+  //   if (const auto* _g = llvm::dyn_cast<llvm::GlobalVariable>(&V)) {
+  //     const auto name = V.getName();
+  //     if (globalDeviceMem.find(name) != globalDeviceMem.end()) {
+  //       return InstrData::DEVICE_HEAP | ((MT==HOST) ? InstrData::ON_HOST : InstrData::ON_DEVICE);
+  //     }
+  //     if (globalManagedMem.find(name) != globalManagedMem.end()) {
+  //       return InstrData::MANAGED_MEM | ((MT==HOST) ? InstrData::ON_HOST : InstrData::ON_DEVICE);
+  //     }
+  //   } else 
+  //   // handle local function args/registers
+  //   if (const auto* _A = llvm::dyn_cast<llvm::Argument>(&V)) {
+  //     return __calcInstrWhen_rec(*_A);
+  //   }
+  //   // handle derived values (aka instructions)
+  //   if (const auto* _I = llvm::dyn_cast<llvm::Instruction>(&V)) {
+  //     return __calcInstrWhen_inst(*_I);
+  //   }
+  //   // unknown Value type...
+  //   return InstrData::NEVER;
+  // }
 
   
-  template<ModuleType MT>
-  InstrData DepTrace<MT>::__calcInstrWhen_phi(const llvm::PHINode& PHI) const 
-  {
-    InstrData res = InstrData::NEVER;
-    for (const auto& U : PHI.incoming_values())
-      res |= __calcInstrWhen_val(*U.get());
-    return res;
-  }
+  // template<ModuleType MT>
+  // InstrData DepTrace<MT>::__calcInstrWhen_phi(const llvm::PHINode& PHI) const 
+  // {
+  //   InstrData res = InstrData::NEVER;
+  //   for (const auto& U : PHI.incoming_values())
+  //     res |= __calcInstrWhen_val(*U.get());
+  //   return res;
+  // }
   
   template<ModuleType MT>
   template<class InstrT>
@@ -90,6 +90,24 @@ namespace instr {
   InstrData DepTrace<MT>::__calcInstrWhen_rec(const InstrT& I) const { return InstrData::NEVER; }
 
 
+  llvm::raw_ostream& operator << (llvm::raw_ostream& out, const InstrData& data) noexcept {
+    std::stringstream _out;
+    std::bitset<16> bs(data);
+    _out << std::string((data & InstrData::_RUNTIME_CONDITIONAL) ? "RT_COND, " : "")
+         << std::string((data & InstrData::ON_DEVICE) ? "INSTR_ON_DEVICE, " : "")
+         << std::string((data & InstrData::ON_HOST) ? "INSTR_ON_HOST, " : "")
+         << std::string((data & InstrData::UNKNOWN_HEAP) ? "UNKNOWN_HEAP, " : "")
+         << std::string((data & InstrData::DEVICE_HEAP) ? "DEVICE_HEAP, " : "")
+         << std::string((data & InstrData::HOST_HEAP) ? "HOST_HEAP, " : "")
+         << std::string((data & InstrData::ATOMIC_MEM) ? "ATOMIC_MEM, " : "")
+         << std::string((data & InstrData::MANAGED_MEM) ? "MANAGED_MEM, " : "")
+         << std::string((data & InstrData::READ) ? "READ, " : "")
+         << std::string((data & InstrData::WRITE) ? "WRITE, " : "")
+         << std::string((data & InstrData::ALLOCATE) ? "ALLOCATE, " : "")
+         << std::string((data & InstrData::FREE) ? "FREE, " : "")
+         << "(0b" << bs << ")";
+    return out << _out.str();
+  }
 
 
 } // namespace I

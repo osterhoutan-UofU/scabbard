@@ -61,29 +61,54 @@ namespace scabbard {
 
     // << ------------------------------------------------------------------------------------------ >> 
 
+    const llvm::Value* get_next(const llvm::Value* V) {
+      if (const auto* BCI = llvm::dyn_cast<llvm::BitCastInst>(V)) {
+        llvm::dbgs() << "\n[scabbard::host::DBG_INFO] traversing through a `bitcast` inst\n";
+        return get_next(BCI->getOperand(0));
+      } else if (const auto* GEPI = llvm::dyn_cast<llvm::GetElementPtrInst>(V)) {
+        llvm::dbgs() << "\n[scabbard::host::DBG_INFO] traversing through a `getelementptr` inst\n";
+        return get_next(GEPI->getPointerOperand());
+      } else if (const auto* ASCI = llvm::dyn_cast<llvm::AddrSpaceCastInst>(V)) {
+        llvm::dbgs() << "\n[scabbard::host::DBG_INFO] traversing through a `addrspacecast` inst\n";
+        return get_next(ASCI->getPointerOperand());
+      } else if (const auto* GV = llvm::dyn_cast<llvm::GlobalValue>(V)) {
+        llvm::dbgs() << "\n[scabbard::host::DBG_INFO] traversing SUCCESS found a global !!\n";
+        return GV;
+      }
+      llvm::dbgs() << "\n[scabbard::host::DBG_ERROR] traversing FAILURE could not find a global or viable path !!\n";
+      return V;
+    }
+
     template<>
     DepTrace<HOST>::DepTrace(const llvm::Module& M)
       : DepTrace()
     {
       if (const auto* F = llvm::dyn_cast<llvm::Function>(M.getFunction("__hip_module_ctor"))) {
+        llvm::dbgs() << "\n[scabbard::host::DBG_INFO] this module contains a __hip_module_ctor ctor function\n\n";
         for (const auto& bb : F->getBasicBlockList())
           for (const auto& i : bb.getInstList())
             if (const auto* call = llvm::dyn_cast<llvm::CallInst>(&i)) {
-              if (call->getName() == "__hipRegisterVar") {
-                if (const auto* global = llvm::dyn_cast<llvm::GlobalVariable>(call->getArgOperand(2))) {
+              if (call->getCalledFunction()->getName() == "__hipRegisterVar") {
+                llvm::dbgs() << "\n[scabbard::host::DBG_INFO] found a `__hipRegisterVar` call!\n";
+                if (const auto* global = llvm::dyn_cast_or_null<llvm::GlobalVariable>(get_next(call->getArgOperand(1)))) {
                   globalDeviceMem.insert(std::make_pair(global->getName(),global));
+                  llvm::dbgs() << "\n[scabbard::host::DBG_INFO] added `" << global->getName() << "` to list of global device mem.\n";
                 } else {
-                  llvm::dbgs() << "\n[scabbard::DBG::WARNING] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterVar` that is not a global variable\n\n";
+                  llvm::dbgs() << "\n[scabbard::host::DBG_WARN] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterVar` that is not a global variable\n\n";
                 }
-              } else if (call->getName() == "__hipRegisterManagedVar") {
-                if (const auto* global = llvm::dyn_cast<llvm::GlobalVariable>(call->getArgOperand(2))) {
+              } else if (call->getCalledFunction()->getName() == "__hipRegisterManagedVar") {
+                llvm::dbgs() << "\n[scabbard::host::DBG_INFO] found a `__hipRegisterManagedVar` call!\n";
+                if (const auto* global = llvm::dyn_cast_or_null<llvm::GlobalVariable>(get_next(call->getArgOperand(1)))) {
                   globalManagedMem.insert(std::make_pair(global->getName(),global));
+                  llvm::dbgs() << "\n[scabbard::host::DBG_INFO] added `" << global->getName() << "` to list of global managed mem.\n";
                 } else {
-                  llvm::dbgs() << "\n[scabbard::DBG::WARNING] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterManagedVar` that is not a global variable\n\n";
+                  llvm::dbgs() << "\n[scabbard::host::DBG::WARNING] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterManagedVar` that is not a global variable\n\n";
                 }
               }
             }
-      } // else   // this module has no HIP components
+      } else {   // this module has no HIP components
+        llvm::dbgs() << "\n[scabbard::host::DBG_WARN] module that contains no hip components\n\n";
+      }
     }
 
 
@@ -97,7 +122,7 @@ namespace scabbard {
       InstrData res = __calcInstrWhen_val(*I.getPointerOperand());
       if (res == InstrData::NEVER)
         return InstrData::NEVER;
-      res |= (I.isAtomic()) ? InstrData::ATOMIC : InstrData::NEVER;
+      res |= (I.isAtomic()) ? InstrData::ATOMIC_MEM : InstrData::NEVER;
       return (InstrData)(InstrData::ON_HOST | InstrData::WRITE | res);
 #     else
       return InstrData::NEVER;
@@ -183,6 +208,13 @@ namespace scabbard {
         }
       }
       return InstrData::NEVER; // this means that this ptr comes from the stack frame
+    }
+
+    template<> 
+    template<>
+    InstrData DepTrace<HOST>::__calcInstrWhen_rec(const llvm::BitCastInst& I) const
+    {
+      return __calcInstrWhen_val(*I.getOperand(0));
     }
 
     template<> 

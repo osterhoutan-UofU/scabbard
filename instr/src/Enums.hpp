@@ -11,7 +11,11 @@
 
 #pragma once
 
+#include <llvm/Support/raw_ostream.h>
+
 #include <cstdint>
+#include <bitset>
+#include <sstream>
 
 namespace scabbard {
 namespace instr {
@@ -22,18 +26,19 @@ namespace instr {
     * @brief ENUM BYTE MAP\n
     *   \code{.txt}
     *     0b_0000_0000_0000_0000
-    *         ^ ^ ^ ^  ^^^^ ^^ ^
-    *         | | | |  |||| || L Runtime Conditional
-    *         | | | |  |||| |L Instr in Host (CPU) module
-    *         | | | |  |||| L Instr in Device (GPU) module
-    *         | | | |  |||L Instr as ALLOCATE
-    *         | | | |  ||L Instr as READ
-    *         | | | |  |L Instr as FREE
-    *         | | | |  L Instr as WRITE
-    *         | | | L Instr as ATOMIC
-    *         | | L Instr as MANAGED
-    *         | L Instr DEVICE HEAP memory
-    *         L Instr HOST HEAP memory
+    *         ^^^ ^ ^  ^^^^ ^^ ^
+    *         ||| | |  |||| || L Runtime Conditional
+    *         ||| | |  |||| |L Instr in Host (CPU) module
+    *         ||| | |  |||| L Instr in Device (GPU) module
+    *         ||| | |  |||L Instr as ALLOCATE
+    *         ||| | |  ||L Instr as READ
+    *         ||| | |  |L Instr as FREE
+    *         ||| | |  L Instr as WRITE
+    *         ||| | L Instr as ATOMIC
+    *         ||| L Instr as MANAGED
+    *         ||L Is in DEVICE HEAP memory
+    *         |L Is in UNKNOWN memory
+    *         L Is in HOST HEAP memory
     *   \endcode
     */
   enum InstrData : std::uint16_t {
@@ -65,6 +70,8 @@ namespace instr {
     //
     DEVICE_HEAP           = 1<<12,
     //
+    UNKNOWN_HEAP          = 1<<13,
+    //
     HOST_HEAP             = 1<<14,
   };
 
@@ -76,6 +83,16 @@ namespace instr {
   {
     return (l = (InstrData)(static_cast<std::uint16_t>(l) | static_cast<std::uint16_t>(r)));
   }
+  inline InstrData operator & (InstrData l, InstrData r) 
+  {
+    return (InstrData)(static_cast<std::uint16_t>(l) & static_cast<std::uint16_t>(r));
+  }
+  inline InstrData& operator &= (InstrData& l, InstrData r) 
+  {
+    return (l = (InstrData)(static_cast<std::uint16_t>(l) & static_cast<std::uint16_t>(r)));
+  }
+
+  llvm::raw_ostream& operator << (llvm::raw_ostream& out, const InstrData& data) noexcept;
 
 } //?namespace instr
 } //?namespace scabbard

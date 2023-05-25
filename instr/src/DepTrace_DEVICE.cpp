@@ -41,7 +41,7 @@ namespace scabbard {
       : DepTrace()
     {
       for (const auto& g : M.getGlobalList())
-        if (const auto* mg = M.getNamedGlobal(llvm::Twine(g.getName(), ".managed").getSingleStringRef())) {
+        if (const auto* mg = M.getNamedGlobal(llvm::StringRef(std::string(g.getName().str() + ".managed")))) {
           globalManagedMem.insert(std::make_pair(g.getName(),mg));
         } else if (not g.getName().endswith(".managed")) {
           globalDeviceMem.insert(std::make_pair(g.getName(),&g));
@@ -69,7 +69,7 @@ namespace scabbard {
       InstrData res = __calcInstrWhen_val(*I.getPointerOperand());
       if (res == InstrData::NEVER)
         return InstrData::NEVER;
-      res |= (I.isAtomic()) ? InstrData::ATOMIC : InstrData::NEVER;
+      res |= (I.isAtomic()) ? InstrData::ATOMIC_MEM : InstrData::NEVER;
       return (InstrData)(InstrData::ON_DEVICE | InstrData::READ | res);
 #     else
       return InstrData::NEVER;
@@ -127,6 +127,13 @@ namespace scabbard {
       return __calcInstrWhen_val(*I.getPointerOperand());
     }
 
+    template<> 
+    template<>
+    InstrData DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::BitCastInst& I) const
+    {
+      return __calcInstrWhen_val(*I.getOperand(0));
+    }
+
     template<>
     template<>
     InstrData DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::AllocaInst& I) const
@@ -148,7 +155,10 @@ namespace scabbard {
     template<>
     InstrData DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::Argument& I) const
     { //TODO decide if this is necessary or not
-      return InstrData::ON_DEVICE;
+      const auto* TY = I.getType();
+      if (TY != nullptr && TY->isPointerTy())
+        return InstrData::ON_DEVICE | InstrData::UNKNOWN_HEAP;
+      return InstrData::NEVER;
     }
 
 

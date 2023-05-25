@@ -4,11 +4,64 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        // {
+        //     // run `gdbserver :55556 -args hipcc -fpass-plugin=build/instr/libinstr.so -g -std=c++17 -o test/test.out test/test.cpp` seperatly
+        //     "name": "(gdb-attach) scabbard-instr w/ hipcc on test.cpp",
+        //     "type": "cppdbg",
+        //     "request": "attach",
+        //     "program": "/usr/bin/hipcc",
+        //     "miDebuggerServerAddress": "localhost:5556",
+        //     "miDebuggerPath": "/usr/bin/gdb",
+        //     "useExtendedRemote": true,
+        //     "MIMode": "gdb",
+        //     "setupCommands": [
+        //         {
+        //             "description": "Enable pretty-printing for gdb",
+        //             "text": "-enable-pretty-printing",
+        //             "ignoreFailures": true
+        //         },
+        //         {
+        //             "description": "Set Disassembly Flavor to Intel",
+        //             "text": "-gdb-set disassembly-flavor intel",
+        //             "ignoreFailures": true
+        //         }
+        //     ]
+        // },
+        {
+            "name": "(gdb) scabbard-instr w/ hipcc on test.cpp",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/usr/bin/hipcc", // point to debug build of opt
+            "args": [
+                "-fpass-plugin=${workspaceFolder}/build/instr/libinstr.so", 
+                "-g", "-std=c++17",
+                "-o${workspaceFolder}/test/test.out",
+                "${workspaceFolder}/test/test.cpp",
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "[CMake] build scabbard-instr"
+        },
         {
             "name": "(gdb) scabbard-instr w/ dbg-opt on test.bc",
-            "type": "cppdbg",-
+            "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/../llvm-project/llvm/build/bin/opt", // point to debug build of opt
+            "program": "/opt/rocm/llvm/bin/opt", // point to debug build of opt
             "args": [
                 "-load", "${workspaceFolder}/build/instr/libinstr.so", "-scabbard",
                 "<", "${workspaceFolder}/test/test.bc"
