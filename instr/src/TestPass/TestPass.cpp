@@ -205,6 +205,10 @@ llvm::PassPluginLibraryInfo getTestPassPluginInfo() {
             //     [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
             //       MPM.addPass(scabbard::instr::test::TestPassPlugin("OptimizerEarly"));
             //     });
+            PB.registerFullLinkTimeOptimizationLastEPCallback( // ~can~ find kernel functions (sometimes run's twice)
+                [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
+                  MPM.addPass(scabbard::instr::test::TestPassPlugin("LinkerLast")); // last to run
+                });
             PB.registerOptimizerLastEPCallback( // ~can~ find kernel functions (sometimes run's twice)
                 [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
                   MPM.addPass(scabbard::instr::test::TestPassPlugin("OptimizerLast")); // last to run

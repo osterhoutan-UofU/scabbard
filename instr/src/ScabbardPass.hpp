@@ -20,6 +20,9 @@
 #include <llvm/IR/PassManager.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 
+#include <string>
+#include <memory>
+
 namespace scabbard {
 namespace instr {
 
@@ -42,8 +45,27 @@ namespace instr {
 
   
   
-  struct ScabbardPassPlugin : llvm::PassInfoMixin<ScabbardPassPlugin> {
+  class ScabbardPassPlugin : llvm::PassInfoMixin<ScabbardPassPlugin> {
 
+    // const std::unique_ptr<llvm::Module> INSTR_LIB_DEVICE_MODULE;
+    // const std::unique_ptr<llvm::Module> INSTR_LIB_HOST_MODULE;
+
+    std::string source_loc;
+
+    struct {
+        llvm::Function* trace_append$mem;  
+        llvm::Function* trace_append$mem$cond; 
+      } host;
+    struct {
+        llvm::Function* trace_append$mem;
+      } device;
+
+
+  public:
+
+    // ScabbardPassPlugin();
+    // ScabbardPassPlugin(const std::string& InstrLibLoc);
+    // ~ScabbardPassPlugin() = default;
 
     // /**
     // * @brief \em fn \c run : (llvm::Function& -> bool) \n
@@ -68,10 +90,10 @@ namespace instr {
      * @return \c llvm::PreservedAnalyses - the relevant analysis that are still valid
      */
     llvm::PreservedAnalyses run(llvm::Module &M, llvm::ModuleAnalysisManager &MAM);
-
     
 
   protected:
+
 
     // /**
     //  * @brief Map of functions that exist in scabbard lib that should be inserted into any host module

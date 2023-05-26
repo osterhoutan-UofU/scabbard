@@ -25,6 +25,8 @@ flowchart TB
             %% HT_CallRetTy{"Is the return\ntype a ptr?"}
             HT_InstrWithRuntimeCond0{{"Instr, but with\nruntime conditional call"}}
             HT_InstrWithRuntimeCond{{"Instr, but with\nruntime conditional call"}}
+            HT_AllocTest{"Is this used\nin a func of\ninterest?"}
+            %% HT_AllocTest{"Is this used\nin a func of\ninterest?"}
             %% -- PATH DECL --
             HT_START --> HT_Dep
             HT_Dep --- HT_global(["gloabl (`@`)"]) --> HT_HasManaged
@@ -42,9 +44,14 @@ flowchart TB
             %% HT_FnParamType -- "No" --> HT_NotHeap
             HT_DepTrace --- HT_LoadInstr([" `load` op"]) -.-> HT_Dep
             HT_DepTrace --- HT_AddrCastInstr([" `addrspacecast` op"]) -.-> HT_Dep
+            HT_DepTrace --- HT_BitCastInstr([" `bitcast` op"]) -.-> HT_Dep
             HT_DepTrace --- HT_EmlInstr([" `getelementptr` op"]) -.-> HT_Dep
             HT_DepTrace --- HT_AllocInstr([" `alloca` op"]) --> HT_StackMem
             HT_DepTrace --- HT_CallInstr([" `call` op"]) --> HT_IsItMemCall
+            HT_DepTrace --- HT_I2PInstr([" `inttoptr` op"]) --> HT_UNSUPPORTED((("UNSUPPORED")))
+            HT_DepTrace --- HT_AllocateInstr([" `allocate` op"]) --> HT_AllocTest
+            HT_AllocTest --- HT_Yes4(["Yes"]) --> HT_DevMemCall[["Device/Managed Mem\nOf Interest"]]
+            HT_AllocTest --- HT_No4(["No"]) --> HT_DontCare1((("Don't Care")))
             HT_IsItMemCall --- HT_Yes3(["Yes"]) --> HT_IsMemCall
             %% HT_IsItMemCall --- HT_No3(["No"]) --> HT_IsItPtrTy
             HT_DepTrace --- HT_AtomicInstr([" `atomicrmw` op"]) -.-> HT_Dep
@@ -98,10 +105,13 @@ flowchart TB
             %% DT_FnParamType -- "No" --> DT_NotHeap
             DT_DepTrace --- DT_LoadInstr([" `load` op"]) -.-> DT_Dep
             DT_DepTrace --- DT_AddrCastInstr([" `addrspacecast` op"]) -.-> DT_Dep
+            DT_DepTrace --- DT_BitCastInstr([" `bitcast` op"]) -.-> DT_Dep
             DT_DepTrace --- DT_EmlInstr([" `getelementptr` op"]) -.-> DT_Dep
             DT_DepTrace --- DT_AllocInstr([" `alloca` op"]) --> DT_StackMem
             DT_DepTrace --- DT_CallInstr([" `call` op"]) --> DT_IsPosDeviceMem
             DT_DepTrace --- DT_AtomicInstr([" `atomicrmw` op"]) --> DT_IsPosDeviceMem
+            DT_DepTrace --- DT_I2PInstr([" `inttoptr` op"]) --> DT_UNSUPPORTED((("UNSUPPORED")))
+            DT_DepTrace --- DT_AllocateInstr([" `allocate` op"]) --> DT_UNSUPPORTED((("UNSUPPORED")))
             DT_DepTrace --- DT_PhiInstr([" `phi` op"]) --> DT_PhiSplit -.-> DT_Dep
             %% DT_ARecord[["Record atomic op\n[[ALWAYS]]"]] -.-> DT_Dep
             DT_DepTrace --- DT_ArithInstr(["other op(s)"]) --> DT_BAD_TRACE((("BAD DEP\nTRACE\n[END]")))

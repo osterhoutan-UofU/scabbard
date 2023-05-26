@@ -24,10 +24,23 @@
 namespace scabbard {
   namespace instr {
 
+    const llvm::Value* throughConstExpr(const llvm::Value* V) {
+      if (const auto* CE = llvm::dyn_cast<llvm::ConstantExpr>(V)) {
+        for (const auto& U : CE->operands()) {
+          const llvm::Value* res = throughConstExpr(U.get());
+          if (res != nullptr)
+            return res;
+        }
+      } else if (const auto* I = llvm::dyn_cast<llvm::Instruction>(V)) {
+        return I;
+      }
+      return nullptr;
+    }
+
     typedef std::function<bool(const llvm::Value&,const llvm::CallInst&)> CallCheck_t;
 
     auto BASE_CHECK(const llvm::Value& V, const llvm::CallInst& C) -> bool {
-      return (&V) == C.getArgOperand(0); // compare ptr's and hope llvm does not make copies of IR objects
+      return (&V) == throughConstExpr(C.getArgOperand(0)); // compare ptr's and hope llvm does not make copies of IR objects
     }
     
     const std::unordered_map<std::string, CallCheck_t> funcsOfInterest = {
@@ -40,11 +53,11 @@ namespace scabbard {
               // get which 
               switch (TrTy->getSExtValue()) {
                 case 1: // H->D
-                  return C.getArgOperand(0) == _V;
+                  return throughConstExpr(C.getArgOperand(0)) == _V;
                 case 2: // D->H
-                  return C.getOperand(1) == _V;
+                  return throughConstExpr(C.getOperand(1)) == _V;
                 case 3: // D->D
-                  return (C.getArgOperand(0) == _V) || (C.getArgOperand(1) == _V);
+                  return (throughConstExpr(C.getArgOperand(0)) == _V) || (throughConstExpr(C.getArgOperand(1)) == _V);
                 case 0: // H->H
                 default: // Unknown
                   return false;
@@ -62,21 +75,21 @@ namespace scabbard {
     // << ------------------------------------------------------------------------------------------ >> 
 
     const llvm::Value* get_next(const llvm::Value* V) {
-      if (const auto* BCI = llvm::dyn_cast<llvm::BitCastInst>(V)) {
-        llvm::dbgs() << "\n[scabbard::host::DBG_INFO] traversing through a `bitcast` inst\n";
-        return get_next(BCI->getOperand(0));
-      } else if (const auto* GEPI = llvm::dyn_cast<llvm::GetElementPtrInst>(V)) {
-        llvm::dbgs() << "\n[scabbard::host::DBG_INFO] traversing through a `getelementptr` inst\n";
-        return get_next(GEPI->getPointerOperand());
-      } else if (const auto* ASCI = llvm::dyn_cast<llvm::AddrSpaceCastInst>(V)) {
-        llvm::dbgs() << "\n[scabbard::host::DBG_INFO] traversing through a `addrspacecast` inst\n";
-        return get_next(ASCI->getPointerOperand());
+      // llvm::dbgs() << "\n[scabbard::host::DBG_INFO] traversing `";
+      // V->print(llvm::dbgs());
+      // llvm::dbgs() << "`\n";
+      if (const auto* CE = llvm::dyn_cast<llvm::ConstantExpr>(V)) {
+        for (const auto& U : CE->operands()) {
+          const llvm::Value* res = get_next(U.get());
+          if (res != nullptr)
+            return res;
+        }
       } else if (const auto* GV = llvm::dyn_cast<llvm::GlobalValue>(V)) {
-        llvm::dbgs() << "\n[scabbard::host::DBG_INFO] traversing SUCCESS found a global !!\n";
+        // llvm::dbgs() << "\n[scabbard::host::DBG_INFO] traversing SUCCESS found a global !!\n";
         return GV;
       }
-      llvm::dbgs() << "\n[scabbard::host::DBG_ERROR] traversing FAILURE could not find a global or viable path !!\n";
-      return V;
+      // llvm::dbgs() << "\n[scabbard::host::DBG_ERROR] traversing FAILURE could not find a global or viable path !!\n";
+      return nullptr;
     }
 
     template<>
@@ -84,25 +97,25 @@ namespace scabbard {
       : DepTrace()
     {
       if (const auto* F = llvm::dyn_cast<llvm::Function>(M.getFunction("__hip_module_ctor"))) {
-        llvm::dbgs() << "\n[scabbard::host::DBG_INFO] this module contains a __hip_module_ctor ctor function\n\n";
+        // llvm::dbgs() << "\n[scabbard::host::DBG_INFO] this module contains a __hip_module_ctor ctor function\n\n";
         for (const auto& bb : F->getBasicBlockList())
           for (const auto& i : bb.getInstList())
             if (const auto* call = llvm::dyn_cast<llvm::CallInst>(&i)) {
               if (call->getCalledFunction()->getName() == "__hipRegisterVar") {
-                llvm::dbgs() << "\n[scabbard::host::DBG_INFO] found a `__hipRegisterVar` call!\n";
+                // llvm::dbgs() << "\n[scabbard::host::DBG_INFO] found a `__hipRegisterVar` call!\n";
                 if (const auto* global = llvm::dyn_cast_or_null<llvm::GlobalVariable>(get_next(call->getArgOperand(1)))) {
                   globalDeviceMem.insert(std::make_pair(global->getName(),global));
-                  llvm::dbgs() << "\n[scabbard::host::DBG_INFO] added `" << global->getName() << "` to list of global device mem.\n";
+                  // llvm::dbgs() << "\n[scabbard::host::DBG_INFO] added `" << global->getName() << "` to list of global device mem.\n";
                 } else {
                   llvm::dbgs() << "\n[scabbard::host::DBG_WARN] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterVar` that is not a global variable\n\n";
                 }
               } else if (call->getCalledFunction()->getName() == "__hipRegisterManagedVar") {
-                llvm::dbgs() << "\n[scabbard::host::DBG_INFO] found a `__hipRegisterManagedVar` call!\n";
+                // llvm::dbgs() << "\n[scabbard::host::DBG_INFO] found a `__hipRegisterManagedVar` call!\n";
                 if (const auto* global = llvm::dyn_cast_or_null<llvm::GlobalVariable>(get_next(call->getArgOperand(1)))) {
                   globalManagedMem.insert(std::make_pair(global->getName(),global));
-                  llvm::dbgs() << "\n[scabbard::host::DBG_INFO] added `" << global->getName() << "` to list of global managed mem.\n";
+                  // llvm::dbgs() << "\n[scabbard::host::DBG_INFO] added `" << global->getName() << "` to list of global managed mem.\n";
                 } else {
-                  llvm::dbgs() << "\n[scabbard::host::DBG::WARNING] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterManagedVar` that is not a global variable\n\n";
+                  llvm::dbgs() << "\n[scabbard::host::DBG_WARN] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterManagedVar` that is not a global variable\n\n";
                 }
               }
             }

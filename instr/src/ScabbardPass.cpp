@@ -17,12 +17,24 @@
 #include <llvm/Support/Debug.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/Casting.h>
-#include <llvm/Bitcode/BitcodeReader.h>
-#include <llvm/IRReader/IRReader.h>
+#include <llvm/Support/DynamicLibrary.h>
+#include <llvm/Linker/IRMover.h>
+#include <llvm/Linker/Linker.h>
+#include <llvm/IR/IRBuilder.h>
 
+#define DEBUG_TYPE "scabbard"
 
 namespace scabbard {
 namespace instr {
+
+
+  // ScabbardPassPlugin::ScabbardPassPlugin() {}
+
+  // ScabbardPassPlugin::ScabbardPassPlugin(const std::string& InstrLibLoc)
+  // {
+  //   llvm::Bitecode
+  // }
+
 
   // << ========================================================================================== >> 
   // <<                                       MODULE STUFF                                         >> 
@@ -30,6 +42,7 @@ namespace instr {
 
   llvm::PreservedAnalyses ScabbardPassPlugin::run(llvm::Module &M, llvm::ModuleAnalysisManager &MAM) 
   { 
+    source_loc = M.getSourceFileName();
     const llvm::Triple target(M.getTargetTriple());
     if (target.isAMDGPU())  // checks for both amdgcn & r600 arch(s) (might need to restrict this to just amdgcn with `isAMDGCN()`)
       run_device(M,MAM);    //                                        To support hip on Nvidia GPUs we might need to also run this for nvptx arch(s) (this might be the same as supporting CUDA though)
@@ -86,33 +99,49 @@ namespace instr {
       for (auto& i : bb.getInstList())
         if (DT.calcInstrWhen(i))
         if (auto* store = llvm::dyn_cast<llvm::StoreInst>(&i)) {
-          auto res = DT.calcInstrWhen(*store);
-          if (not res) continue;
-          llvm::errs() << "[scabbard::device] Found a `store` inst to instrument!\n"
-                          "[scabbard::device]    prop: " << res << "\n"
-                          "[scabbard::device]    repr: `";
-          i.print(llvm::errs());
-          llvm::errs() << "`\n[scabbard::device]\n";
-          //TODO instrument store instructions to update trace 
+          auto data = DT.calcInstrWhen(*store);
+          LLVM_DEBUG(
+            if (not data) continue;
+            llvm::errs() << "[scabbard::device] Found a `store` inst to instrument!\n"
+                            "[scabbard::device]    prop: " << data << "\n"
+                            "[scabbard::device]    repr: `";
+            i.print(llvm::errs());
+            llvm::errs() << "`\n[scabbard::device]\n";
+          );
+          //TODO instrument store instructions to update trace
+          auto ci = llvm::CallInst::Create(device.trace_append$mem, llvm::ArrayRef(std::vector<llvm::Value*>{
+                                              llvm::ConstantInt::get(
+                                                llvm::IntegerType::get(F.getContext(),sizeof(InstrData)*8),
+                                                llvm::APInt(sizeof(InstrData)*8,data)
+                                              ),
+                                              &i,
+                                              &i.getDebugLoc()
+                                            })
+                                          );
+          ci->insertAfter(&i);
         } else if (auto* load = llvm::dyn_cast<llvm::LoadInst>(&i)) {
-          auto res = DT.calcInstrWhen(*load);
-          if (not res) continue;
-          llvm::errs() << "[scabbard::device] Found a `load` inst to instrument!\n"
-                          "[scabbard::device]    prop: " << res << "\n"
-                          "[scabbard::device]    repr: `";
-          i.print(llvm::errs());
-          llvm::errs() << "`\n[scabbard::device]\n";
+          auto data = DT.calcInstrWhen(*load);
+          LLVM_DEBUG(
+            if (not data) continue;
+            llvm::errs() << "[scabbard::device] Found a `load` inst to instrument!\n"
+                            "[scabbard::device]    prop: " << data << "\n"
+                            "[scabbard::device]    repr: `";
+            i.print(llvm::errs());
+            llvm::errs() << "`\n[scabbard::device]\n";
+          );
           //TODO instrument load instructions
         } else if (auto* call = llvm::dyn_cast<llvm::CallInst>(&i)) {
           //TODO instrument calls to thread id, block id, etc.
         } else if (auto atomic = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
-          auto res = DT.calcInstrWhen(*atomic);
-          if (not res) continue;
-          llvm::errs() << "[scabbard::device] Found an `atomicrmw` inst to instrument!\n"
-                          "[scabbard::device]    prop: " << res << "\n"
-                          "[scabbard::device]    repr: `";
-          i.print(llvm::errs());
-          llvm::errs() << "`\n[scabbard::device]\n";
+          auto data = DT.calcInstrWhen(*atomic);
+          LLVM_DEBUG(
+            if (not data) continue;
+            llvm::errs() << "[scabbard::device] Found an `atomicrmw` inst to instrument!\n"
+                            "[scabbard::device]    prop: " << data << "\n"
+                            "[scabbard::device]    repr: `";
+            i.print(llvm::errs());
+            llvm::errs() << "`\n[scabbard::device]\n";
+          );
           //TODO instrument atomic readwrite instructions
         }
     return llvm::PreservedAnalyses::all();
@@ -123,33 +152,39 @@ namespace instr {
     for (auto& bb : F.getBasicBlockList())
       for (auto& i : bb.getInstList())
         if (auto* store = llvm::dyn_cast<llvm::StoreInst>(&i)) {
-          auto res = DT.calcInstrWhen(*store);
-          if (not res) continue;
-          llvm::errs() << "[scabbard::host] Found a `store` inst to instrument!\n"
-                          "[scabbard::host]    prop: " << res << "\n"
-                          "[scabbard::host]    repr: `";
-          i.print(llvm::errs());
-          llvm::errs() << "`\n[scabbard::host]\n";
+          auto data = DT.calcInstrWhen(*store);
+          LLVM_DEBUG(
+            if (not data) continue;
+            llvm::errs() << "[scabbard::host] Found a `store` inst to instrument!\n"
+                            "[scabbard::host]    prop: " << data << "\n"
+                            "[scabbard::host]    repr: `";
+            i.print(llvm::errs());
+            llvm::errs() << "`\n[scabbard::host]\n";
+          );
           //TODO instrument store instructions to update trace 
         } else if (auto* load = llvm::dyn_cast<llvm::LoadInst>(&i)) {
-          auto res = DT.calcInstrWhen(*load);
-          if (not res) continue;
-          llvm::errs() << "[scabbard::host] Found a `load` inst to instrument!\n"
-                          "[scabbard::host]    prop: " << res << "\n"
-                          "[scabbard::host]    repr: `";
-          i.print(llvm::errs());
-          llvm::errs() << "`\n[scabbard::host]\n";
+          auto data = DT.calcInstrWhen(*load);
+          LLVM_DEBUG(
+            if (not data) continue;
+            llvm::errs() << "[scabbard::host] Found a `load` inst to instrument!\n"
+                            "[scabbard::host]    prop: " << data << "\n"
+                            "[scabbard::host]    repr: `";
+            i.print(llvm::errs());
+            llvm::errs() << "`\n[scabbard::host]\n";
+          );
           //TODO instrument load instructions
         } else if (auto* call = llvm::dyn_cast<llvm::CallInst>(&i)) {
           //TODO instrument calls to hip malloc, hip copy, kernel launch and stream sync
         } else if (auto atomic = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
-          auto res = DT.calcInstrWhen(*atomic);
-          if (not res) continue;
-          llvm::errs() << "[scabbard::host] Found an `atomicrmw` inst to instrument!\n"
-                          "[scabbard::host]    prop: " << res << "\n"
-                          "[scabbard::host]    repr: `";
-          i.print(llvm::errs());
-          llvm::errs() << "`\n[scabbard::host]\n";
+          auto data = DT.calcInstrWhen(*atomic);
+          LLVM_DEBUG(
+            if (not data) continue;
+            llvm::errs() << "[scabbard::host] Found an `atomicrmw` inst to instrument!\n"
+                            "[scabbard::host]    prop: " << data << "\n"
+                            "[scabbard::host]    repr: `";
+            i.print(llvm::errs());
+            llvm::errs() << "`\n[scabbard::host]\n";
+          );
           //TODO instrument atomic readwrite instructions
         }
     return llvm::PreservedAnalyses::all();
@@ -187,3 +222,4 @@ namespace instr {
 } //?namespace instr
 } //?namespace scabbard
 
+#undef DEBUG_TYPE "scabbard"
