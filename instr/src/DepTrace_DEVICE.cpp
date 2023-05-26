@@ -52,9 +52,9 @@ namespace scabbard {
 
     template<>
     template<>
-    InstrData DepTrace<DEVICE>::calcInstrWhen(const llvm::StoreInst& I) const
+    InstrData DepTrace<DEVICE>::getInstrData(const llvm::StoreInst& I) const
     {
-      InstrData res = __calcInstrWhen_val(*I.getPointerOperand());
+      InstrData res = __getInstrData_val(*I.getPointerOperand());
       if (res == InstrData::NEVER)
         return InstrData::NEVER;
       res |= (I.isAtomic()) ? InstrData::ATOMIC_MEM : InstrData::NEVER;
@@ -63,10 +63,10 @@ namespace scabbard {
 
     template<>
     template<>
-    InstrData DepTrace<DEVICE>::calcInstrWhen(const llvm::LoadInst& I) const
+    InstrData DepTrace<DEVICE>::getInstrData(const llvm::LoadInst& I) const
     {
 #     ifdef __SCABBARD_TRACE_HOST_WRITE_TO_GPU_READ
-      InstrData res = __calcInstrWhen_val(*I.getPointerOperand());
+      InstrData res = __getInstrData_val(*I.getPointerOperand());
       if (res == InstrData::NEVER)
         return InstrData::NEVER;
       res |= (I.isAtomic()) ? InstrData::ATOMIC_MEM : InstrData::NEVER;
@@ -78,14 +78,14 @@ namespace scabbard {
 
     // template<>
     // template<>
-    // InstrData DepTrace<DEVICE>::calcInstrWhen(const llvm::CallInst& I) const
+    // InstrData DepTrace<DEVICE>::getInstrData(const llvm::CallInst& I) const
     // {
     //   return InstrData::NEVER;
     // }
 
     template<>
     template<>
-    InstrData DepTrace<DEVICE>::calcInstrWhen(const llvm::AtomicRMWInst& I) const
+    InstrData DepTrace<DEVICE>::getInstrData(const llvm::AtomicRMWInst& I) const
     {
       return (InstrData)(InstrData::ATOMIC_MEM | InstrData::ON_DEVICE | InstrData::READ | InstrData::WRITE);  // this means that the mem is device heap (shared or global doesn't matter)
     }
@@ -94,49 +94,49 @@ namespace scabbard {
 
     template<>
     template<>
-    InstrData DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::LoadInst& I) const
+    InstrData DepTrace<DEVICE>::__getInstrData_rec(const llvm::LoadInst& I) const
     {
-      return __calcInstrWhen_val(*I.getPointerOperand());
+      return __getInstrData_val(*I.getPointerOperand());
     }
 
     template<>
     template<>
-    InstrData DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::CallInst& I) const
+    InstrData DepTrace<DEVICE>::__getInstrData_rec(const llvm::CallInst& I) const
     {
       return InstrData::NEVER; // TODO
     }
 
     template<>
     template<>
-    InstrData DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::AtomicRMWInst& I) const
+    InstrData DepTrace<DEVICE>::__getInstrData_rec(const llvm::AtomicRMWInst& I) const
     {
       return InstrData::NEVER;
     }
 
     template<>
     template<>
-    InstrData DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::AddrSpaceCastInst& I) const
+    InstrData DepTrace<DEVICE>::__getInstrData_rec(const llvm::AddrSpaceCastInst& I) const
     {
-      return __calcInstrWhen_val(*I.getPointerOperand());
+      return __getInstrData_val(*I.getPointerOperand());
     }
 
     template<>
     template<>
-    InstrData DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::GetElementPtrInst& I) const
+    InstrData DepTrace<DEVICE>::__getInstrData_rec(const llvm::GetElementPtrInst& I) const
     {
-      return __calcInstrWhen_val(*I.getPointerOperand());
+      return __getInstrData_val(*I.getPointerOperand());
     }
 
     template<> 
     template<>
-    InstrData DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::BitCastInst& I) const
+    InstrData DepTrace<DEVICE>::__getInstrData_rec(const llvm::BitCastInst& I) const
     {
-      return __calcInstrWhen_val(*I.getOperand(0));
+      return __getInstrData_val(*I.getOperand(0));
     }
 
     template<>
     template<>
-    InstrData DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::AllocaInst& I) const
+    InstrData DepTrace<DEVICE>::__getInstrData_rec(const llvm::AllocaInst& I) const
     {
       //check if this is used in a hipMalloc
       // for (const auto& U : I.users()) {
@@ -153,7 +153,7 @@ namespace scabbard {
 
     template<>
     template<>
-    InstrData DepTrace<DEVICE>::__calcInstrWhen_rec(const llvm::Argument& I) const
+    InstrData DepTrace<DEVICE>::__getInstrData_rec(const llvm::Argument& I) const
     { //TODO decide if this is necessary or not
       const auto* TY = I.getType();
       if (TY != nullptr && TY->isPointerTy())
@@ -166,16 +166,16 @@ namespace scabbard {
 
     template<>
     template<>
-    InstrData DepTrace<DEVICE>::calcInstrWhen(const llvm::Instruction& i) const
+    InstrData DepTrace<DEVICE>::getInstrData(const llvm::Instruction& i) const
     {
       if (auto* _i = llvm::dyn_cast<llvm::StoreInst>(&i)) {
-        return calcInstrWhen(*_i);
+        return getInstrData(*_i);
       } else if (auto* _i = llvm::dyn_cast<llvm::LoadInst>(&i)) {
-        return calcInstrWhen(*_i);
+        return getInstrData(*_i);
       // } else if (auto* _i = llvm::dyn_cast<llvm::CallInst>(&i)) {
-      //   return calcInstrWhen(*_i);
+      //   return getInstrData(*_i);
       } else if (auto _i = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
-        return calcInstrWhen(*_i);
+        return getInstrData(*_i);
       }
       return InstrData::NEVER;
     }

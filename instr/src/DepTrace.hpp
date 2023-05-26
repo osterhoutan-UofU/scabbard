@@ -55,43 +55,43 @@ namespace scabbard {
        * @return \c InstrData -
        */
       template<class InstrT>
-      InstrData calcInstrWhen(const InstrT&) const;
+      InstrData getInstrData(const InstrT&) const;
 
     private:
-      // InstrData __calcInstrWhen_inst(const llvm::Instruction& I) const;
-      InstrData __calcInstrWhen_inst(const llvm::Instruction& i) const
+      // InstrData __getInstrData_inst(const llvm::Instruction& I) const;
+      InstrData __getInstrData_inst(const llvm::Instruction& i) const
       {
         if (const auto* _i = llvm::dyn_cast<llvm::StoreInst>(&i)) {
-          return __calcInstrWhen_rec(*_i);
+          return __getInstrData_rec(*_i);
         } else if (const auto* _i = llvm::dyn_cast<llvm::LoadInst>(&i)) {
-          return __calcInstrWhen_rec(*_i);
+          return __getInstrData_rec(*_i);
         } else if (const auto* _i = llvm::dyn_cast<llvm::CallInst>(&i)) {
-          return __calcInstrWhen_rec(*_i);
+          return __getInstrData_rec(*_i);
         } else if (const auto* _i = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
-          return __calcInstrWhen_rec(*_i);
+          return __getInstrData_rec(*_i);
         } else if (const auto* _i = llvm::dyn_cast<llvm::AddrSpaceCastInst>(&i)) {
-          return __calcInstrWhen_rec(*_i);
+          return __getInstrData_rec(*_i);
         } else if (const auto* _i = llvm::dyn_cast<llvm::GetElementPtrInst>(&i)) {
-          return __calcInstrWhen_rec(*_i);
+          return __getInstrData_rec(*_i);
         } else if (const auto* _i = llvm::dyn_cast<llvm::BitCastInst>(&i)) {
-          return __calcInstrWhen_rec(*_i);
+          return __getInstrData_rec(*_i);
         } else if (const auto* _i = llvm::dyn_cast<llvm::AllocaInst>(&i)) {
-          return __calcInstrWhen_rec(*_i);
+          return __getInstrData_rec(*_i);
         } else if (const auto* _i = llvm::dyn_cast<llvm::PHINode>(&i)) {
-          return __calcInstrWhen_phi(*_i);
+          return __getInstrData_phi(*_i);
         }
         return InstrData::NEVER;
       }
-      // InstrData __calcInstrWhen_phi(const llvm::PHINode& PHI) const;
-      InstrData __calcInstrWhen_phi(const llvm::PHINode& PHI) const
+      // InstrData __getInstrData_phi(const llvm::PHINode& PHI) const;
+      InstrData __getInstrData_phi(const llvm::PHINode& PHI) const
       {
         InstrData res = InstrData::NEVER;
         for (const auto& U : PHI.incoming_values())
-          res |= __calcInstrWhen_val(*U.get());
+          res |= __getInstrData_val(*U.get());
         return res;
       }
-      // InstrData __calcInstrWhen_val(const llvm::Value& V) const;
-      InstrData __calcInstrWhen_val(const llvm::Value& V) const
+      // InstrData __getInstrData_val(const llvm::Value& V) const;
+      InstrData __getInstrData_val(const llvm::Value& V) const
       {
         // handle globals
         // if (const auto* _g = llvm::dyn_cast<llvm::GlobalVariable>(&V)) {
@@ -106,17 +106,17 @@ namespace scabbard {
         } else
           // handle local function args/registers
           if (const auto* _A = llvm::dyn_cast<llvm::Argument>(&V)) {
-            return __calcInstrWhen_rec(*_A);
+            return __getInstrData_rec(*_A);
           }
         // handle derived values (aka instructions)
         if (const auto* _I = llvm::dyn_cast<llvm::Instruction>(&V)) {
-          return __calcInstrWhen_inst(*_I);
+          return __getInstrData_inst(*_I);
         }
         // unknown Value type...
         return InstrData::NEVER;
       }
       template<class InstrT>
-      InstrData __calcInstrWhen_rec(const InstrT& I) const;
+      InstrData __getInstrData_rec(const InstrT& I) const;
 
     };
 

@@ -45,19 +45,16 @@ namespace instr {
 
   
   
-  class ScabbardPassPlugin : llvm::PassInfoMixin<ScabbardPassPlugin> {
-
-    // const std::unique_ptr<llvm::Module> INSTR_LIB_DEVICE_MODULE;
-    // const std::unique_ptr<llvm::Module> INSTR_LIB_HOST_MODULE;
-
-    std::string source_loc;
+  struct ScabbardPassPlugin : llvm::PassInfoMixin<ScabbardPassPlugin> {
+  protected:
+    std::string source_loc = "";
 
     struct {
-        llvm::Function* trace_append$mem;  
-        llvm::Function* trace_append$mem$cond; 
+        llvm::Function* trace_append$mem = nullptr;  
+        llvm::Function* trace_append$mem$cond = nullptr; 
       } host;
     struct {
-        llvm::Function* trace_append$mem;
+        llvm::Function* trace_append$mem = nullptr;
       } device;
 
 
@@ -123,15 +120,26 @@ namespace instr {
      * @param FAM \c llvm::FunctionAnalysisManager& - The Analysis Manager for the function
      * @return \c llvm::PreservedAnalyses - what has changed and what has not changed.
      */
-    auto run_device(llvm::Function& F, llvm::FunctionAnalysisManager &FAM, const DepTraceDevice& DT) -> llvm::PreservedAnalyses;
+    auto run_device(llvm::Function& F, llvm::FunctionAnalysisManager &FAM, const DepTraceDevice& DT) -> void;
     /**
      * @brief just run coded specifically for host/CPU functions
      * @param F \c llvm::Function& - The device side function to instrument
      * @param FAM \c llvm::FunctionAnalysisManager& - The Analysis Manager for the function
      * @return \c llvm::PreservedAnalyses - what has changed and what has not changed.
      */
-    auto run_host(llvm::Function& F, llvm::FunctionAnalysisManager &FAM, const DepTraceHost& DT) -> llvm::PreservedAnalyses;
+    auto run_host(llvm::Function& F, llvm::FunctionAnalysisManager &FAM, const DepTraceHost& DT) -> void;
 
+
+    auto add_instr_funcs_device(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
+    auto add_instr_funcs_host(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
+
+    
+    auto instr$mem_func_device(llvm::Function& F, 
+                               llvm::Instruction& I, llvm::Value* V, 
+                               const InstrData& data, bool InsertAfter=true) -> void;
+    auto instr$mem_func_host(llvm::Function& F, 
+                              llvm::Instruction& I, llvm::Value* V, 
+                              const InstrData& data, bool InsertAfter=true) -> void;
     
   };//?END class ScabbardPassPlugin
 

@@ -15,16 +15,16 @@
 
 
 __global__ void __d_increment(int* d_mem) {
-    size_t i = threadIdx.x;
+    auto Id = threadIdx;
     int tmp;
-    if (i == 0) {
+    if (Id.x == 0) {
       tmp = 0;
     } else {
-      tmp = d_mem[i-1];
+      tmp = d_mem[Id.x-1];
     }
     __syncthreads();
     tmp += 1;
-    d_mem[i] = tmp;
+    d_mem[Id.x] = tmp;
 }
 
 
