@@ -170,7 +170,7 @@ namespace scabbard {
             llvm::errs() << "`\n[scabbard::device]\n";
             );
             //instrument store instructions to update trace
-            instr$mem_func_device(F, i, store->getPointerOperand(), data);
+            instr_mem_func_device(F, i, store->getPointerOperand(), data);
           } else if (auto* load = llvm::dyn_cast<llvm::LoadInst>(&i)) {
             auto data = DT.getInstrData(*load);
             if (not data) continue;
@@ -182,9 +182,10 @@ namespace scabbard {
             llvm::errs() << "`\n[scabbard::device]\n";
             );
             //instrument load instructions
-            instr$mem_func_device(F, i, load->getPointerOperand(), data);
+            instr_mem_func_device(F, i, load->getPointerOperand(), data);
           } else if (auto* call = llvm::dyn_cast<llvm::CallInst>(&i)) {
-            //instrument calls to thread id, block id, etc.
+            //TODO instrument calls to thread id, block id, etc.
+            instr_call_device(F, call);
           } else if (auto atomic = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
             auto data = DT.getInstrData(*atomic);
             LLVM_DEBUG(
@@ -196,12 +197,12 @@ namespace scabbard {
             llvm::errs() << "`\n[scabbard::device]\n";
             );
             //instrument atomic readwrite instructions
-            instr$mem_func_device(F, i, atomic->getPointerOperand(), data);
+            instr_mem_func_device(F, i, atomic->getPointerOperand(), data);
           }
           // return llvm::PreservedAnalyses::all();
     }
 
-    void ScabbardPassPlugin::instr$mem_func_device(llvm::Function& F, 
+    void ScabbardPassPlugin::instr_mem_func_device(const llvm::Function& F, 
                                                     llvm::Instruction& I, llvm::Value* V,
                                                     const InstrData& data, bool InsertAfter)
     {
@@ -224,6 +225,11 @@ namespace scabbard {
         ci->insertBefore(&I);
     }
 
+    void ScabbardPassPlugin::instr_call_device(const llvm::Function& F, llvm::CallInst* ci)
+    {
+      //TODO
+    }
+
 
     // << ========================================= Host =========================================== >> 
 
@@ -243,7 +249,7 @@ namespace scabbard {
             llvm::errs() << "`\n[scabbard::host]\n";
             );
             // instrument store instructions to update trace 
-            instr$mem_func_host(F, i, store->getPointerOperand(), data);
+            instr_mem_func_host(F, i, store->getPointerOperand(), data);
           } else if (auto* load = llvm::dyn_cast<llvm::LoadInst>(&i)) {
             auto data = DT.getInstrData(*load);
             LLVM_DEBUG(
@@ -255,9 +261,10 @@ namespace scabbard {
             llvm::errs() << "`\n[scabbard::host]\n";
             );
             // instrument load instructions
-            instr$mem_func_host(F, i, load->getPointerOperand(), data);
+            instr_mem_func_host(F, i, load->getPointerOperand(), data);
           } else if (auto* call = llvm::dyn_cast<llvm::CallInst>(&i)) {
             //TODO instrument calls to hip malloc, hip copy, kernel launch and stream sync
+            instr_call_host(F, call);
           } else if (auto atomic = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
             auto data = DT.getInstrData(*atomic);
             LLVM_DEBUG(
@@ -269,12 +276,12 @@ namespace scabbard {
             llvm::errs() << "`\n[scabbard::host]\n";
             );
             //instrument atomic readwrite instructions
-            instr$mem_func_host(F, i, atomic->getPointerOperand(), data);
+            instr_mem_func_host(F, i, atomic->getPointerOperand(), data);
           }
           // return llvm::PreservedAnalyses::all();
     }
 
-    void ScabbardPassPlugin::instr$mem_func_host(llvm::Function& F, 
+    void ScabbardPassPlugin::instr_mem_func_host(const llvm::Function& F, 
                                                 llvm::Instruction& I, llvm::Value* V,
                                                 const InstrData& data, bool InsertAfter)
     {
@@ -295,6 +302,36 @@ namespace scabbard {
         ci->insertAfter(&I);
       else
         ci->insertBefore(&I);
+    }
+
+    void ScabbardPassPlugin::instr_call_host(const llvm::Function& F, llvm::CallInst* ci)
+    {
+      const auto& fn = *ci->getCalledFunction();
+      const auto& fnTy = *fn.getFunctionType();
+      const auto fnName = fn.getName();
+      if (fnName.startswith("hipMemcpy")) { // deal with the various hipMemcpy funcs
+        //TODO
+      } else if (fnName.startswith("hipMemset")) { // deal with the various hipMemset funcs
+        //TODO
+      } else if (fnName.startswith("hipMalloc")) { // deal with the various hipMalloc funcs 
+        //TODO
+      } else if (fnName.startswith("hipFree")) { // deal with the various hipFree funcs 
+        //TODO
+      } else if (fnName == "hipLaunchKernel") { // deal with kernel launch funcs
+        //TODO
+      } else if (fnName.startswith("hipHostMemcpy")) { // deal with the various hipHostMemcpy funcs
+        //TODO
+      } else if (fnName.startswith("hipHostMemset")) { // deal with the various hipHostMemset funcs
+        //TODO
+      } else if (fnName.startswith("hipHostMalloc")) { // deal with the various hipHostMalloc funcs 
+        //TODO
+      } else if (fnName.startswith("hipHostFree")) { // deal with the various hipHostFree funcs 
+        //TODO
+      } else if (fnName.startswith("hipHostRegister")) { // deal with the various hipHostRegister funcs
+        //TODO
+      } else if (fnName.startswith("hipHostUnregister")) { // deal with the various hipHostUnregister funcs
+        //TODO
+      }
     }
 
     // const llvm::ImmutableMap<std::string, llvm::Function> ScabbardPassPlugin::HostInstrLibFuncs = {
@@ -329,4 +366,4 @@ namespace scabbard {
   } //?namespace instr
 } //?namespace scabbard
 
-#undef DEBUG_TYPE "scabbard"
+#undef DEBUG_TYPE // "scabbard"

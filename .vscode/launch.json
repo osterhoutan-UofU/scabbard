@@ -4,29 +4,6 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        // {
-        //     // run `gdbserver :55556 -args hipcc -fpass-plugin=build/instr/libinstr.so -g -std=c++17 -o test/test.out test/test.cpp` seperatly
-        //     "name": "(gdb-attach) scabbard-instr w/ hipcc on test.cpp",
-        //     "type": "cppdbg",
-        //     "request": "attach",
-        //     "program": "/usr/bin/hipcc",
-        //     "miDebuggerServerAddress": "localhost:5556",
-        //     "miDebuggerPath": "/usr/bin/gdb",
-        //     "useExtendedRemote": true,
-        //     "MIMode": "gdb",
-        //     "setupCommands": [
-        //         {
-        //             "description": "Enable pretty-printing for gdb",
-        //             "text": "-enable-pretty-printing",
-        //             "ignoreFailures": true
-        //         },
-        //         {
-        //             "description": "Set Disassembly Flavor to Intel",
-        //             "text": "-gdb-set disassembly-flavor intel",
-        //             "ignoreFailures": true
-        //         }
-        //     ]
-        // },
         {
             "name": "(gdb) scabbard-instr w/ hipcc on test.cpp",
             "type": "cppdbg",
@@ -63,7 +40,42 @@
             "request": "launch",
             "program": "/opt/rocm-5.4.3/llvm/bin/clang-15", // point to debug build of opt
             "args": [
-                "-cc1","-triple","x86_64-unknown-linux-gnu","-aux-triple","amdgcn-amd-amdhsa","-emit-llvm","-disable-free","-clear-ast-before-backend","-disable-llvm-verifier","-discard-value-names","-main-file-name","test.cpp","-mrelocation-model","static","-mframe-pointer=none","-fmath-errno","-fno-rounding-math","-mconstructor-aliases","-funwind-tables=2","-target-cpu","x86-64","-tune-cpu","generic","-mllvm","-treat-scalable-fixed-error-as-warning","-debug-info-kind=constructor","-dwarf-version=5","-debugger-tuning=gdb","-v","-fcoverage-compilation-dir=/home/oster/repos/scabbard","-resource-dir","/opt/rocm-5.4.3/llvm/lib/clang/15.0.0","-internal-isystem","/opt/rocm-5.4.3/llvm/lib/clang/15.0.0/include/cuda_wrappers","-idirafter","/opt/rocm-5.4.3/include","-include","__clang_hip_runtime_wrapper.h","-isystem","/opt/rocm-5.4.3/llvm/lib/clang/15.0.0/include/..","-isystem","/opt/rocm-5.4.3/hsa/include","-isystem","/opt/rocm-5.4.3/include","-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12","-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12","-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/backward","-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12","-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12","-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/backward","-internal-isystem","/opt/rocm-5.4.3/llvm/lib/clang/15.0.0/include","-internal-isystem","/usr/local/include","-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../x86_64-linux-gnu/include","-internal-externc-isystem","/usr/include/x86_64-linux-gnu","-internal-externc-isystem","/include","-internal-externc-isystem","/usr/include","-internal-isystem","/opt/rocm-5.4.3/llvm/lib/clang/15.0.0/include","-internal-isystem","/usr/local/include","-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../x86_64-linux-gnu/include","-internal-externc-isystem","/usr/include/x86_64-linux-gnu","-internal-externc-isystem","/include","-internal-externc-isystem","/usr/include","-O3","-std=c++17","-fdeprecated-macro","-fdebug-compilation-dir=/home/oster/repos/scabbard","-ferror-limit","19","-fhip-new-launch-api","-fgnuc-version=4.2.1","-no-opaque-pointers","-fcxx-exceptions","-fexceptions","-fcolor-diagnostics","-vectorize-loops","-vectorize-slp","-fpass-plugin=build/instr/libinstr.so","-mllvm","-amdgpu-early-inline-all=true","-mllvm","-amdgpu-function-calls=false","-cuid=433677c6144bdd1a","-fcuda-allow-variadic-functions","-faddrsig","-D__GCC_HAVE_DWARF2_CFI_ASM=1","-o","/tmp/test-14eca3.ll","-x","hip","test/test.cpp"
+                "-cc1","-triple","x86_64-unknown-linux-gnu","-aux-triple","amdgcn-amd-amdhsa",
+                "-emit-llvm","-disable-free","-clear-ast-before-backend","-disable-llvm-verifier",
+                "-discard-value-names","-main-file-name","test.cpp","-mrelocation-model","static",
+                "-mframe-pointer=none","-fmath-errno","-fno-rounding-math","-mconstructor-aliases",
+                "-funwind-tables=2","-target-cpu","x86-64","-tune-cpu","generic",
+                "-mllvm","-treat-scalable-fixed-error-as-warning",
+                "-debug-info-kind=constructor","-dwarf-version=5","-debugger-tuning=gdb","-v",
+                "-fcoverage-compilation-dir=/home/oster/repos/scabbard",
+                "-resource-dir","/opt/rocm-5.4.3/llvm/lib/clang/15.0.0",
+                "-internal-isystem","/opt/rocm-5.4.3/llvm/lib/clang/15.0.0/include/cuda_wrappers",
+                "-idirafter","/opt/rocm-5.4.3/include","-include","__clang_hip_runtime_wrapper.h",
+                "-isystem","/opt/rocm-5.4.3/llvm/lib/clang/15.0.0/include/..",
+                "-isystem","/opt/rocm-5.4.3/hsa/include","-isystem","/opt/rocm-5.4.3/include",
+                "-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12",
+                "-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12",
+                "-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/backward",
+                "-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12","-internal-isystem",
+                "/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12",
+                "-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/backward",
+                "-internal-isystem","/opt/rocm-5.4.3/llvm/lib/clang/15.0.0/include",
+                "-internal-isystem","/usr/local/include",
+                "-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../x86_64-linux-gnu/include",
+                "-internal-externc-isystem","/usr/include/x86_64-linux-gnu",
+                "-internal-externc-isystem","/include","-internal-externc-isystem","/usr/include",
+                "-internal-isystem","/opt/rocm-5.4.3/llvm/lib/clang/15.0.0/include",
+                "-internal-isystem","/usr/local/include",
+                "-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../x86_64-linux-gnu/include",
+                "-internal-externc-isystem","/usr/include/x86_64-linux-gnu",
+                "-internal-externc-isystem","/include","-internal-externc-isystem","/usr/include",
+                "-O3","-std=c++17","-fdeprecated-macro","-fdebug-compilation-dir=/home/oster/repos/scabbard",
+                "-ferror-limit","19","-fhip-new-launch-api","-fgnuc-version=4.2.1","-no-opaque-pointers",
+                "-fcxx-exceptions","-fexceptions","-fcolor-diagnostics","-vectorize-loops","-vectorize-slp",
+                "-fpass-plugin=build/instr/libinstr.so","-mllvm","-amdgpu-early-inline-all=true",
+                "-mllvm","-amdgpu-function-calls=false","-cuid=433677c6144bdd1a",
+                "-fcuda-allow-variadic-functions","-faddrsig","-D__GCC_HAVE_DWARF2_CFI_ASM=1",
+                "-o","/tmp/test-14eca3.ll","-x","hip","test/test.cpp"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -111,7 +123,30 @@
                 }
             ],
             "preLaunchTask": "[CMake] build scabbard-instr"
-        }
-
+        },
+        {
+            "name": "(gdb) Launch current cpp",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${fileDirname}/${fileBasenameNoExtension}.out",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
     ]
 }

@@ -67,9 +67,19 @@
     <br/><br/>
 
 
- 5. **Q:** How to deal with runtime memory property accesses?
+ 6. **Q:** How to deal with runtime memory property accesses?
           (through use of [`hipHostMalloc()`](https://docs.amd.com/bundle/HIP_API_5/page/group___memory.html#gaad40bc7d97ccc799403ef5a9a8c246e1), [`hipHostRegister()`](https://docs.amd.com/bundle/HIP_API_5/page/group___memory.html#gab8258f051e1a1f7385f794a15300e674),  [`hipHostUnregister()`](https://docs.amd.com/bundle/HIP_API_5/page/group___memory.html#ga4c9e1810b9f5858d36c4d28c91c86924), _etc_)
     - **A:** ...
+
+    <br/><br/>
+
+
+ 7. **Q:** Will mem addresses be the same on host and the various devices?
+    - **A:** Depends _(see conditions below)_ 
+      - **Managed Mem:** yes (though the global will contain a pointer to the managed mem which will be the same on both host and devices, but that global's address will be different on host and devices)
+      - **Registered Host Mem:** System dependent \[[doc](https://docs.amd.com/bundle/HIP_API_5/page/group___memory.html#gab8258f051e1a1f7385f794a15300e674)\]
+      - **Device Mem:** Yes always
+      - **Device Shared Mem:** Yes always
 
     <br/><br/>
 

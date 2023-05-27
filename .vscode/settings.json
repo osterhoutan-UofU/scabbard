@@ -101,6 +101,7 @@
         "endswith",
         "hipcc",
         "Instramentable",
+        "startswith",
         "unifmem"
     ]
 }

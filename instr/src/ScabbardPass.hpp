@@ -133,11 +133,15 @@ namespace instr {
     auto add_instr_funcs_device(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
     auto add_instr_funcs_host(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
 
+
+    auto instr_call_device(const llvm::Function& F, llvm::CallInst* ci) -> void;
+    auto instr_call_host(const llvm::Function& F, llvm::CallInst* ci) -> void;
+
     
-    auto instr$mem_func_device(llvm::Function& F, 
+    auto instr_mem_func_device(const llvm::Function& F, 
                                llvm::Instruction& I, llvm::Value* V, 
                                const InstrData& data, bool InsertAfter=true) -> void;
-    auto instr$mem_func_host(llvm::Function& F, 
+    auto instr_mem_func_host(const llvm::Function& F, 
                               llvm::Instruction& I, llvm::Value* V, 
                               const InstrData& data, bool InsertAfter=true) -> void;
     
