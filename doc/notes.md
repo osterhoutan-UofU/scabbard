@@ -34,7 +34,7 @@
 
  3. **Q:** How to identify where memory is stored for device function parameters?
     - **A:** two ways one runtime and one static 
-       1. There exists a hip/cuda function called [`hipPointerAttributes()`](https://rocm-developer-tools.github.io/HIP/group__Memory.html#ga7c3e8663feebb7be9fd3a1e5139bcefc) that can retrieve a [`hipPointerAttribute_t`](https://rocm-developer-tools.github.io/HIP/structhipPointerAttribute__t.html) which contains the following information:
+       1. There exists a hip/cuda function called [`hipPointerGetAttributes()`](https://rocm-developer-tools.github.io/HIP/group__Memory.html#ga7c3e8663feebb7be9fd3a1e5139bcefc) that can retrieve a [`hipPointerAttribute_t`](https://rocm-developer-tools.github.io/HIP/structhipPointerAttribute__t.html) which contains the following information:
           ```cpp
           // summarized from hip_runtime_api.h 
           struct hipPointerAttribute {
@@ -80,6 +80,18 @@
       - **Registered Host Mem:** System dependent \[[doc](https://docs.amd.com/bundle/HIP_API_5/page/group___memory.html#gab8258f051e1a1f7385f794a15300e674)\]
       - **Device Mem:** Yes always
       - **Device Shared Mem:** Yes always
+
+    <br/><br/>
+
+
+ 8. **Q:** How to deal with async operations (_aka_ [`hipMemcpyAsync()`](https://docs.amd.com/bundle/HIP_API_5/page/group___memory.html#d189e8922))
+    - **A:** ...
+
+    <br/><br/>
+
+
+ 9. **Q:** How to deal with multiple streams (for trace gen data structures)
+    - **A:** ...
 
     <br/><br/>
 

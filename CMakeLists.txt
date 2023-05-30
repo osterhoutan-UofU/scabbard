@@ -1,6 +1,27 @@
 cmake_minimum_required(VERSION 3.16)
 project(scabbard VERSION 0.1)
 
+# we need rocm and hip paths to be defined
+if (DEFINED ENV{ROCM_PATH} OR DEFINED ENV{HIP_PATH})
+    if (NOT DEFINED ENV{ROCM_PATH})
+        set(ENV{ROCM_PATH} "$ENV{HIP_PATH}/..")
+    elseif (NOT DEFINED ENV{HIP_PATH} AND EXISTS )
+        set(ENV{HIP_PATH} "$ENV{ROCM_PATH}/hip")
+    endif()
+elseif (EXISTS "/opt/rocm") # if both are nto defined define them if possible
+    set(ENV{ROCM_PATH} "/opt/rocm")
+    set(ENV{HIP_PATH} "$ENV{ROCM_PATH}/hip")
+else ()
+    message(FATAL_ERROR "[ERROR] hip/rocm could not be found try defining $HIP_PATH and $ROCM_PATH\n")
+endif()
+list(APPEND CMAKE_PREFIX_PATH $ENV{HIP_PATH} $ENV{ROCM_PATH})
+if (NOT DEFINED ENV{ROCM_DIR})
+    set(ENV{ROCM_DIR} $ENV{ROCM_PATH}/lib/cmake)
+endif()
+if (NOT DEFINED ENV{HIP_DIR})
+    set(ENV{HIP_DIR} $ENV{ROCM_DIR}/hip)
+endif()
+
 # we need LLVM_HOME in order to automatically set LLVM_DIR
 if(NOT DEFINED ENV{LLVM_HOME})
     message(WARNING "$LLVM_HOME was not defined (looking for valid values)")
@@ -9,10 +30,10 @@ if(NOT DEFINED ENV{LLVM_HOME})
         set(ENV{LLVM_HOME} "../../llvm-project")
         message("[NOTE] $LLVM_HOME was set to `../llvm-project` for a local debug build of llvm\n")
     else()
-        if (EXISTS "/opt/rocm/llvm") # try to use the default rocm llvm install
-            set(CMAKE_CXX_COMPILER "/opt/rocm/llvm/bin/clang++" CACHE FILEPATH "path to rocm clang++" FORCE)
-            set(ENV{LLVM_HOME} "/opt/rocm/llvm")
-            message("[NOTE] $LLVM_HOME was set to `/opt/rocm/llvm` for a version of amd-llvm\n")
+        # define teh ROCM and HIP path variables
+        if (EXISTS "$ENV{ROCM_PATH}/llvm") # try to use the default rocm llvm install
+            set(ENV{LLVM_HOME} "$ENV{ROCM_PATH}/llvm")
+            message("[NOTE] $LLVM_HOME was set to `$ENV{ROCM_PATH}/llvm` for a version of amd-llvm\n")
         else() # try using a normal llvm install
             # list instead of range to select prefered values (15 or 12) before other/future values
             foreach(I IN ITEMS 15 16 17 18 19 20 21 22 23 24 25 12 14 13 11 10) 
@@ -41,6 +62,10 @@ if (${LLVM_VERSION_MAJOR} VERSION_GREATER_EQUAL 10)
     set(CMAKE_CXX_STANDARD 17)
 endif()
 
-# add_subdirectory(lib) # might neeed this might not
+set(CMAKE_C_COMPILER $ENV{LLVM_HOME}/bin/clang-15)
+set(CMAKE_CXX_COMPILER $ENV{LLVM_HOME}/bin/clang-15)
+
+add_subdirectory(lib) # might neeed this might not
+add_subdirectory(instrlib) # might neeed this might not
 add_subdirectory(instr)
 add_subdirectory(verif) # will need this latter

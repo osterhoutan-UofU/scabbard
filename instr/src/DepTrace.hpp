@@ -10,7 +10,7 @@
  */
 #pragma once
 
-#include "Enums.hpp"
+#include <scabbard/Enums.hpp>
 
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/IR/SymbolTableListTraits.h>

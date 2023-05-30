@@ -111,14 +111,14 @@ namespace scabbard {
         llvm::FunctionType::get(
           llvm::Type::getVoidTy(M.getContext()),
           llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
-        llvm::IntegerType::get(M.getContext(), sizeof(InstrData) * 8),
-          llvm::PointerType::get(M.getContext(), 0u), //WARN: This constant 0u might need to be dynamicly decided for host modules
-          llvm::Type::getMetadataTy(M.getContext())
-      }),
+              llvm::IntegerType::get(M.getContext(), sizeof(InstrData) * 8),
+              llvm::PointerType::get(M.getContext(), 0u), //WARN: This constant 0u might need to be dynamicly decided for host modules
+              llvm::Type::getMetadataTy(M.getContext())
+            }),
           false
         ),
         llvm::GlobalValue::LinkageTypes::AvailableExternallyLinkage,
-        "scabbard::lib::host.trace_append$mem",
+        "scabbard::instr::host.trace_append$mem",
         M
       );
       host.trace_append$mem$cond = llvm::Function::Create(
@@ -132,7 +132,7 @@ namespace scabbard {
           false
         ),
         llvm::GlobalValue::LinkageTypes::AvailableExternallyLinkage,
-        "scabbard::lib::host.trace_append$mem$cond",
+        "scabbard::instr::host.trace_append$mem$cond",
         M
       );
     }
@@ -304,34 +304,55 @@ namespace scabbard {
         ci->insertBefore(&I);
     }
 
+
     void ScabbardPassPlugin::instr_call_host(const llvm::Function& F, llvm::CallInst* ci)
     {
       const auto& fn = *ci->getCalledFunction();
       const auto& fnTy = *fn.getFunctionType();
       const auto fnName = fn.getName();
-      if (fnName.startswith("hipMemcpy")) { // deal with the various hipMemcpy funcs
+      if (fnName.startswith("hip") || fnName.startswith("cuda")) {
+        if (fnName.contains("Host")) { // deal with all host specific functions separately (for organizational purposes)
+          instr_host_call_host(F,ci,fnTy,fnName);
+        } else if (fnName.contains("Stream")) { // deal with all host specific functions separately (for organizational purposes)
+          instr_stream_call_host(F, ci,fnTy,fnName); 
+        } else if (fnName.contains("Memcpy")) { // deal with all various hipMemcpy specific fn's separately (for organizational purposes)
+          instr_memcpy_call_host(F,ci,fnTy,fnName);
+        } else if (fnName.contains("Memset")) { // deal with the various hipMemset funcs
+          //TODO
+        } else if (fnName.contains("Malloc")) { // deal with the various hipMalloc funcs 
+          //TODO
+        } else if (fnName.contains("Free")) { // deal with the various hipFree funcs 
+          //TODO
+        } else if (fnName.contains("LaunchKernel")) { // deal with kernel launch funcs (this one is complicated)
+          //TODO
+        }
+      }
+    }
+    
+    void ScabbardPassPlugin::instr_stream_call_host(const llvm::Function& F, llvm::CallInst* ci,
+                                                    const llvm::FunctionType& FnTy, const llvm::StringRef FnName) 
+    {
+      if (FnName.contains("Create")) { // handle stream creation
         //TODO
-      } else if (fnName.startswith("hipMemset")) { // deal with the various hipMemset funcs
+      } else if (FnName.contains("Destroy")) { // handle stream forced destruction
         //TODO
-      } else if (fnName.startswith("hipMalloc")) { // deal with the various hipMalloc funcs 
-        //TODO
-      } else if (fnName.startswith("hipFree")) { // deal with the various hipFree funcs 
-        //TODO
-      } else if (fnName == "hipLaunchKernel") { // deal with kernel launch funcs
-        //TODO
-      } else if (fnName.startswith("hipHostMemcpy")) { // deal with the various hipHostMemcpy funcs
-        //TODO
-      } else if (fnName.startswith("hipHostMemset")) { // deal with the various hipHostMemset funcs
-        //TODO
-      } else if (fnName.startswith("hipHostMalloc")) { // deal with the various hipHostMalloc funcs 
-        //TODO
-      } else if (fnName.startswith("hipHostFree")) { // deal with the various hipHostFree funcs 
-        //TODO
-      } else if (fnName.startswith("hipHostRegister")) { // deal with the various hipHostRegister funcs
-        //TODO
-      } else if (fnName.startswith("hipHostUnregister")) { // deal with the various hipHostUnregister funcs
+      } else if (FnName.contains("Synchronize")) { // handle the stream synchronize event
+        //TODO very important 
+      }
+    }
+    
+    void ScabbardPassPlugin::instr_host_call_host(const llvm::Function& F, llvm::CallInst* ci,
+                                                  const llvm::FunctionType& FnTy, const llvm::StringRef FnName) 
+    {
+      if (FnName.contains("Register")) {
         //TODO
       }
+    }
+
+    void ScabbardPassPlugin::instr_memcpy_call_host(const llvm::Function& F, llvm::CallInst* ci,
+                                                    const llvm::FunctionType& FnTy, const llvm::StringRef FnName) 
+    {
+      //TODO
     }
 
     // const llvm::ImmutableMap<std::string, llvm::Function> ScabbardPassPlugin::HostInstrLibFuncs = {

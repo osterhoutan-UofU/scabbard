@@ -136,6 +136,13 @@ namespace instr {
 
     auto instr_call_device(const llvm::Function& F, llvm::CallInst* ci) -> void;
     auto instr_call_host(const llvm::Function& F, llvm::CallInst* ci) -> void;
+    
+    auto instr_stream_call_host(const llvm::Function& F, llvm::CallInst* ci,
+                                const llvm::FunctionType& FnTy, const llvm::StringRef FnName) -> void;
+    auto instr_host_call_host(const llvm::Function& F, llvm::CallInst* ci,
+                                const llvm::FunctionType& FnTy, const llvm::StringRef FnName) -> void;
+    auto instr_memcpy_call_host(const llvm::Function& F, llvm::CallInst* ci,
+                                const llvm::FunctionType& FnTy, const llvm::StringRef FnName) -> void;
 
     
     auto instr_mem_func_device(const llvm::Function& F, 
