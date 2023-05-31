@@ -15,6 +15,8 @@
 #include <scabbard/instr/AsyncQueue.hpp>
 #include <scabbard/instr/TraceWriter.hpp>
 
+#include <hip/hip_ext.h>
+
 #include <thread>
 
 namespace scabbard {

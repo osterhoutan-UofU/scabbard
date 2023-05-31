@@ -86,12 +86,20 @@
 
  8. **Q:** How to deal with async operations (_aka_ [`hipMemcpyAsync()`](https://docs.amd.com/bundle/HIP_API_5/page/group___memory.html#d189e8922))
     - **A:** ...
+      - NOTE: when called with blocking `hipLaunchKernel()` it does not call the device stub,
+        however it will call the device stub if it is called from a work stream's queue.
+        - This means I might be able to handle memory allocation and free-ing from
+          instrumented predecessor and post-cessor functions on the host,
+          and more importantly do it per kernel call.
+        - This still requires getting wither the device id or stream id on the kernel to interface
+          with heterogeneous memory 
 
     <br/><br/>
 
 
  9. **Q:** How to deal with multiple streams (for trace gen data structures)
     - **A:** ...
+      
 
     <br/><br/>
 

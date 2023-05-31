@@ -28,7 +28,7 @@ target_link_libraries(instrlib
 target_include_directories(instrlib
     PRIVATE
     src
-    ${CMAKE_CURRENT_BINARY_DIR}/../lib/include
+    ../lib/include
   )
 
 install(TARGETS instrlib EXPORT libinstrlibConfig

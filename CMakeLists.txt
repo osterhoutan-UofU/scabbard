@@ -62,8 +62,12 @@ if (${LLVM_VERSION_MAJOR} VERSION_GREATER_EQUAL 10)
     set(CMAKE_CXX_STANDARD 17)
 endif()
 
-set(CMAKE_C_COMPILER $ENV{LLVM_HOME}/bin/clang-15)
-set(CMAKE_CXX_COMPILER $ENV{LLVM_HOME}/bin/clang-15)
+set(CMAKE_C_COMPILER $ENV{ROCM_PATH}/llvm/bin/clang-15 CACHE FILEPATH "set C compiler to amd-clang" FORCE)
+set(CMAKE_CXX_COMPILER $ENV{ROCM_PATH}/llvm/bin/clang-15 CACHE FILEPATH "set C++ compiler to amd-clang" FORCE)
+
+set(CMAKE_INSTALL_LIBDIR /opt/scabbard/lib)
+set(CMAKE_INSTALL_BINDIR /opt/scabbard/bin)
+set(CMAKE_INSTALL_INCLUDEDIR /opt/scabbard/include)
 
 add_subdirectory(lib) # might neeed this might not
 add_subdirectory(instrlib) # might neeed this might not
