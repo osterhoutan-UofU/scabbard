@@ -1,6 +1,6 @@
 /**
  * @file globals.hpp
- * @author osterhoutan (osterhoutan@gmail.com)
+ * @author osterhoutan (osterhoutan+scabbard@gmail.com)
  * @brief Instrumentation globals extern definitions
  * @version alpha 0.0.1
  * @date 2023-05-30
@@ -18,7 +18,7 @@
 namespace scabbard {
   namespace instr {
   
-    
+    extern AsyncQueue* TRACE_LOGGER;
   
   } //?namespace instr
 } //?namespace scabbard

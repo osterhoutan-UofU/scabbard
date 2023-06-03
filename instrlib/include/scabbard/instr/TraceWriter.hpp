@@ -1,6 +1,6 @@
 /**
  * @file TraceWriter.hpp
- * @author osterhoutan (osterhoutan@gmail.com)
+ * @author osterhoutan (osterhoutan+scabbard@gmail.com)
  * @brief The utility to write the trace files.
  * @version alpha 0.0.1
  * @date 2023-05-30
@@ -11,6 +11,10 @@
 
 #pragma once
 
+#include <scabbard/TraceData.hpp>
+
+#include <string>
+
 
 namespace scabbard {
   namespace instr {
@@ -18,6 +22,10 @@ namespace scabbard {
 
     class TraceWriter {
       //TODO
+
+    public:
+      TraceWriter(const std::string& trace_filepath_);
+      ~TraceWriter();
     };
     
   

@@ -1,6 +1,6 @@
 /**
  * @file ScabbardLinkPass.hpp
- * @author osterhoutan (osterhoutan@gmail.com)
+ * @author osterhoutan (osterhoutan+scabbard@gmail.com)
  * @brief Link time pass manager for inserting references to external library
  * @version alpha 0.0.1
  * @date 2023-05-22

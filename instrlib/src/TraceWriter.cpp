@@ -1,6 +1,6 @@
 /**
  * @file TraceWriter.hpp
- * @author osterhoutan (osterhoutan@gmail.com)
+ * @author osterhoutan (osterhoutan+scabbard@gmail.com)
  * @brief The utility to write the trace files.
  * @version alpha 0.0.1
  * @date 2023-05-30

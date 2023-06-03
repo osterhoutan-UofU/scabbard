@@ -1,6 +1,6 @@
 /**
  * @file calls.cpp
- * @author osterhoutan (osterhoutan@gmail.com)
+ * @author osterhoutan (osterhoutan+scabbard@gmail.com)
  * @brief implementation of the scabbard/instr/calls.hpp 
  *        and the scabbard/instr/globals.hpp include files
  * @version alpha 0.0.1
@@ -18,6 +18,7 @@
 #include <hip/hip_ext.h>
 
 #include <thread>
+#include <cstdlib>
 
 namespace scabbard {
   namespace instr {
@@ -27,7 +28,7 @@ namespace scabbard {
     // <<                                          GLOBALS                                           >> 
     // << ========================================================================================== >> 
 
-    
+    AsyncQueue TRACE_LOGGER; // created in scabbard init
 
 
 
@@ -40,6 +41,10 @@ namespace scabbard {
     __host__ 
     void __scabbard_init() 
     {
+      const auto TRACE_FILE = std::getenv("_SCABBARD_TRACE_FILE")
+      if (TRACE_FILE != nullptr) {
+      } else {
+      }
       //TODO setup basics for scabbard trace
     }
     

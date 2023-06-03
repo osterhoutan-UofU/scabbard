@@ -1,6 +1,6 @@
 /**
  * @file TestPass.hpp
- * @author osterhoutan (osterhoutan@gmail.com)
+ * @author osterhoutan (osterhoutan+scabbard@gmail.com)
  * @brief Header file for the test pass
  * 
  * @version alpha 0.0.1

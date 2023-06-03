@@ -1,6 +1,6 @@
 /**
  * @file InstrProp.hpp
- * @author osterhoutan (osterhoutan@gmail.com)
+ * @author osterhoutan (osterhoutan+scabbard@gmail.com)
  * @brief Properties concerned with when/how an instruction is instrumented. 
  * @version alpha 0.0.1
  * @date 2023-05-19

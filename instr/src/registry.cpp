@@ -1,6 +1,6 @@
 /**
  * @file registry.cpp
- * @author osterhoutan (osterhoutan@gmail.com)
+ * @author osterhoutan (osterhoutan+scabbard@gmail.com)
  * @brief This is where the messy code for registering a pass resides
  * 
  * @version alpha 0.0.1

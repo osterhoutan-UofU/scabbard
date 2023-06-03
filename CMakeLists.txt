@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(scabbard VERSION 0.1)
 
+include(GNUInstallDirs)
+
 # we need rocm and hip paths to be defined
 if (DEFINED ENV{ROCM_PATH} OR DEFINED ENV{HIP_PATH})
     if (NOT DEFINED ENV{ROCM_PATH})
@@ -65,9 +67,9 @@ endif()
 set(CMAKE_C_COMPILER $ENV{ROCM_PATH}/llvm/bin/clang-15 CACHE FILEPATH "set C compiler to amd-clang" FORCE)
 set(CMAKE_CXX_COMPILER $ENV{ROCM_PATH}/llvm/bin/clang-15 CACHE FILEPATH "set C++ compiler to amd-clang" FORCE)
 
-set(CMAKE_INSTALL_LIBDIR /opt/scabbard/lib)
-set(CMAKE_INSTALL_BINDIR /opt/scabbard/bin)
-set(CMAKE_INSTALL_INCLUDEDIR /opt/scabbard/include)
+set(CMAKE_INSTALL_LIBDIR ${ROCM_PATH}/lib)
+# set(CMAKE_INSTALL_BINDIR ${ROCM_PATH}/bin)
+set(CMAKE_INSTALL_INCLUDEDIR ${ROCM_PATH}/include)
 
 add_subdirectory(lib) # might neeed this might not
 add_subdirectory(instrlib) # might neeed this might not

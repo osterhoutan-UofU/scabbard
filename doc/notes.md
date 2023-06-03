@@ -18,90 +18,167 @@
  Questions (& Answers)
 ----------------------------------------------------------------------------------------------------
 
- 1. **Q:** How does the IR denote host memory on the device? (also when it does it do it if inconsistent)
-    - **A:** It depends on what the classification of the memory is. 
+### **Q1:** How does the IR denote host memory on the device? 
+  (also when it does it do it if inconsistent)
+
+
+#### **A:** It depends on what the classification of the memory is. 
+  [_See unified memory attributes section below:_](#unified-memory-attributes)
+
+
+  <br/><br/>
+  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+
+
+### **Q2:** How does the IR denote device memory on the host? 
+  (also when it does it do it if inconsistent)
+
+
+#### **A:** It depends on what the classification of the memory is. 
       [ _See unified memory attributes section below:_](#unified-memory-attributes)
 
-    <br/><br/>
+
+  <br/><br/>
+  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 
- 2. **Q:** How does the IR denote device memory on the host? (also when it does it do it if inconsistent)
-    - **A:** It depends on what the classification of the memory is. 
-      [ _See unified memory attributes section below:_](#unified-memory-attributes)
 
-    <br/><br/>
+### **Q3:** How to identify where memory is stored for device function parameters?
 
 
- 3. **Q:** How to identify where memory is stored for device function parameters?
-    - **A:** two ways one runtime and one static 
-       1. There exists a hip/cuda function called [`hipPointerGetAttributes()`](https://rocm-developer-tools.github.io/HIP/group__Memory.html#ga7c3e8663feebb7be9fd3a1e5139bcefc) that can retrieve a [`hipPointerAttribute_t`](https://rocm-developer-tools.github.io/HIP/structhipPointerAttribute__t.html) which contains the following information:
-          ```cpp
-          // summarized from hip_runtime_api.h 
-          struct hipPointerAttribute {
-            enum hipMemoryType {hipMemoryTypeHost,hipMemoryTypeDevice} memoryType; // enum for what pointer will be valid
-            int device;           // id of the device
-            void* devicePointer;  // pointer to mem location on device
-            void* hostPointer;    // pointer to mem location on host
-            int isManaged;        // if the mem is managed by linux's HMM system
-            unsigned int allocationFlags;  // general allocation flags
-          };
-          ```
-          This is runtime only, and costly in runtime to branch on this every time, but possibly even more costly in storage space for trace (and compression cycles) to output with every trace event to avoid branching.
-          (also might not be callable from the GPU) <br/><br/>
+#### **A:** two ways one runtime and one static 
+   1. There exists a hip/cuda function called [`hipPointerGetAttributes()`](https://rocm-developer-tools.github.io/HIP/group__Memory.html#ga7c3e8663feebb7be9fd3a1e5139bcefc) that can retrieve a [`hipPointerAttribute_t`](https://rocm-developer-tools.github.io/HIP/structhipPointerAttribute__t.html) which contains the following information:
+      ```cpp
+        // summarized from hip_runtime_api.h 
+        struct hipPointerAttribute {
+          enum hipMemoryType {hipMemoryTypeHost,hipMemoryTypeDevice} memoryType; // enum for what pointer will be valid
+          int device;           // id of the device
+          void* devicePointer;  // pointer to mem location on device
+          void* hostPointer;    // pointer to mem location on host
+          int isManaged;        // if the mem is managed by linux's HMM system
+          unsigned int allocationFlags;  // general allocation flags
+        };
+      ```
+      This is runtime only, and costly in runtime to branch on this every time, but possibly even more costly in storage space for trace (and compression cycles) to output with every trace event to avoid branching.
+      (also might not be callable from the GPU) <br/><br/>
 
-       2. To figure out where memory probably is during compile-time (_aka_ during our instrumentation pass) except for some 
-          - in host kernel you can identify global device & managed mem by looking in the `@__hip_module_ctor` function
-
-    <br/><br/>
+   2. To figure out where memory probably is during compile-time (_aka_ during our instrumentation pass) except for some 
+      - in host kernel you can identify global device & managed mem by looking in the `@__hip_module_ctor` function
 
 
- 4. **Q:** How to instrument external modules and libs into an llvm IR module?
-    - **A:** ... 
-
-    <br/><br/>
+  <br/><br/>
+  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 
- 5. **Q:** How to deal with the use of external device side library calls?
-    - **A:** ...
 
-    <br/><br/>
+### **Q4:** How to instrument external modules and libs into an llvm IR module?
 
 
- 6. **Q:** How to deal with runtime memory property accesses?
-          (through use of [`hipHostMalloc()`](https://docs.amd.com/bundle/HIP_API_5/page/group___memory.html#gaad40bc7d97ccc799403ef5a9a8c246e1), [`hipHostRegister()`](https://docs.amd.com/bundle/HIP_API_5/page/group___memory.html#gab8258f051e1a1f7385f794a15300e674),  [`hipHostUnregister()`](https://docs.amd.com/bundle/HIP_API_5/page/group___memory.html#ga4c9e1810b9f5858d36c4d28c91c86924), _etc_)
-    - **A:** ...
-
-    <br/><br/>
+#### **A:** ... 
 
 
- 7. **Q:** Will mem addresses be the same on host and the various devices?
-    - **A:** Depends _(see conditions below)_ 
-      - **Managed Mem:** yes (though the global will contain a pointer to the managed mem which will be the same on both host and devices, but that global's address will be different on host and devices)
-      - **Registered Host Mem:** System dependent \[[doc](https://docs.amd.com/bundle/HIP_API_5/page/group___memory.html#gab8258f051e1a1f7385f794a15300e674)\]
-      - **Device Mem:** Yes always
-      - **Device Shared Mem:** Yes always
-
-    <br/><br/>
+  <br/><br/>
+  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 
- 8. **Q:** How to deal with async operations (_aka_ [`hipMemcpyAsync()`](https://docs.amd.com/bundle/HIP_API_5/page/group___memory.html#d189e8922))
-    - **A:** ...
-      - NOTE: when called with blocking `hipLaunchKernel()` it does not call the device stub,
-        however it will call the device stub if it is called from a work stream's queue.
-        - This means I might be able to handle memory allocation and free-ing from
-          instrumented predecessor and post-cessor functions on the host,
-          and more importantly do it per kernel call.
-        - This still requires getting wither the device id or stream id on the kernel to interface
-          with heterogeneous memory 
 
-    <br/><br/>
+### **Q5:** How to deal with the use of external device side library calls?
 
 
- 9. **Q:** How to deal with multiple streams (for trace gen data structures)
-    - **A:** ...
-      
+#### **A:** ...
 
-    <br/><br/>
+
+  <br/><br/>
+  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+
+
+### **Q6:** How to deal with runtime memory property accesses?
+  (through use of [`hipHostMalloc()`](https://docs.amd.com/bundle/HIP_API_5/page/group___memory.html#gaad40bc7d97ccc799403ef5a9a8c246e1), [`hipHostRegister()`](https://docs.amd.com/bundle/HIP_API_5/page/group___memory.html#gab8258f051e1a1f7385f794a15300e674),  [`hipHostUnregister()`](https://docs.amd.com/bundle/HIP_API_5/page/group___memory.html#ga4c9e1810b9f5858d36c4d28c91c86924), _etc_)
+
+
+#### **A:** ...
+
+
+  <br/><br/>
+  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+
+
+### **Q7:** Will mem addresses be the same on host and the various devices?
+
+
+#### **A:** Depends _(see conditions below)_ 
+  - **Managed Mem:** yes (though the global will contain a pointer to the managed mem which will be the same on both host and devices, but that global's address will be different on host and devices)
+  - **Registered Host Mem:** System dependent \[[doc](https://docs.amd.com/bundle/HIP_API_5/page/group___memory.html#gab8258f051e1a1f7385f794a15300e674)\]
+  - **Device Mem:** Yes always
+  - **Device Shared Mem:** Yes always
+
+
+  <br/><br/>
+  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+
+### **Q8:** How to deal with async operations 
+  (_aka_ [`hipMemcpyAsync()`](https://docs.amd.com/bundle/HIP_API_5/page/group___memory.html#d189e8922))
+
+
+#### **A:** ...
+  - NOTE: when called with blocking `hipLaunchKernel()` it does not call the device stub,
+    however it will call the device stub if it is called from a work stream's queue.
+    - This means I might be able to handle memory allocation and free-ing from
+      instrumented predecessor and post-cessor functions on the host,
+      and more importantly do it per kernel call.
+    - This still requires getting wither the device id or stream id on the kernel to interface
+      with heterogeneous memory 
+
+
+  <br/><br/>
+  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+
+
+### **Q9:** How to deal with multiple concurrent streams to avoid data-races in trace buffers?
+  There is no builtin way in hip (or cuda) to from the device at runtime get any notion of what stream,
+  or other facility controls you, or even what device in a multi-device infrastructure you are running on.
+
+#### **A:** several _**possible**_ options:
+  NOTE: all options below have some design feature that prevents data-races from occurring, but they might have other slowdowns.
+
+  WARNING: if you have concurrent streams that are running or using the same kernel code, there will be no way to differentiate which kernel launch they came from (so that is still a problem).
+
+   1. \
+      Setup a single global trace buffer in global memory, to some scale of .
+      By making the next slot variable atomic we can prevent concurrent threads from getting the same offset when writing into the memory space.
+        - PRO: easiest to implement
+        - PRO: small (relatively) constant order of memory usage (probs $O(1)$)
+        - PRO: Fixed sized buffer means it can be contiguous and therefore easy single copying to host reducing memory sync slowdowns.
+        - CON: might cause **major** slowdowns in multiGPU environments
+        - CON: during branch fragmentation, the excess memory slowdown and lane overlap will cause major slowdowns. (branch fragmentation is when a kernel branches to the degree where members of a warp are not adjacent threads anymore)
+   2. \
+      Same as option 1 but at kernel launch expand and contract the number of lanes in the device buffer,
+      by a proportion of the active streams, say $warpSize\cdot(N_{streams}+1)$ buffer lanes, of constant size addressed by the modulo of the block and thread id's then let the thread/block id's offset everything.
+      - PRO: small (relatively) order $O(n)$ memory usage (where $n$ is the number of instantiated streams)
+      - PRO: easy to implement (compared to the others)
+      - CON: being able to dynamically change the buffer means that it will need to be fragmented, slowing down and fragmenting copy operations and introducing complexity that could result in unknown behavior.
+      - CON: if users aren't destroying unused streams memory could ballon, 
+        copying the buffers could take up more time locking down memory,
+        and 
+   3. \
+      Similar to options 1 & 2, 
+      but expand and contract the device queues based upon kernel launches and the requisite sizes of the blocks and grids.
+        - PRO: Possible to implement 
+        - PRO: No need to encode thread or block id's
+        - CON: more memory usage when doing larger launches
+   4. _¿posible?_\
+    Find a way to make all threads in a warp write to adjacent shared memory, then write the address of the shared memory to a common place.
+      - CON: no way to identify an offset inside a warp, especially when branching gets messy
+   5. \
+    Instrument every function in every device module not marked `available_externally` to accept a new first argument, and make that argument be the address to launch specific device side implementation of the trace buffer.
+   6. ...
+
+  <br/><br/>
 
 
 

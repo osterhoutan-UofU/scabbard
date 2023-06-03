@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(instr VERSION 0.1)
 
-include(GNUInstallDirs)
 
 
 add_library(instr MODULE
@@ -24,6 +23,12 @@ target_include_directories(instr
     PRIVATE
     src
     ${CMAKE_CURRENT_BINARY_DIR}/../lib/include
+  )
+
+target_link_libraries(instr
+    PRIVATE
+    libscabbard
+    instrlib
   )
 
 target_compile_features(instr PRIVATE cxx_range_for cxx_auto_type)

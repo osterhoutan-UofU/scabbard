@@ -1,6 +1,6 @@
 /**
  * @file Enums.hpp
- * @author osterhoutan (osterhoutan@gmail.com)
+ * @author osterhoutan (osterhoutan+scabbard@gmail.com)
  * @brief Convenient place to put shared enums
  * @version alpha 0.0.1
  * @date 2023-05-16
@@ -14,13 +14,16 @@
 #include <llvm/Support/raw_ostream.h>
 
 #include <cstdint>
-#include <bitset>
+#include <ostream>
 #include <sstream>
+#include <bitset>
 
 namespace scabbard {
 namespace instr {
 
     enum ModuleType { HOST=0, DEVICE=1, UNKNOWN_MODULE=-1 };
+
+} //?namespace instr
 
    /**
     * @brief ENUM BYTE MAP\n
@@ -92,7 +95,6 @@ namespace instr {
     return (l = (InstrData)(static_cast<std::uint16_t>(l) & static_cast<std::uint16_t>(r)));
   }
 
-  llvm::raw_ostream& operator << (llvm::raw_ostream& out, const InstrData& data) noexcept;
+  std::ostream& operator << (std::ostream& out, const InstrData& data) noexcept;
 
-} //?namespace instr
 } //?namespace scabbard

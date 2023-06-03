@@ -1,5 +1,6 @@
 {
     "doxdocgen.file.versionTag": "@version alpha 0.0.1",
+    "doxdocgen.generic.authorEmail": "osterhoutan+scabbard@gmailcom",
     "cmake.generator": "Ninja",
     "cmake.parallelJobs": 6,
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",

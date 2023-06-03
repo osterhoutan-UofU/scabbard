@@ -1,6 +1,6 @@
 /**
  * @file unifmem_test.cpp
- * @author osterhoutan (osterhoutan@gmail.com)
+ * @author osterhoutan (osterhoutan+scabbard@gmail.com)
  * @brief A simple program that uses unified memory for testing how the IR and races can be monitored.
  *        This is mostly meant just as a way to see the IR, 
  *         but latter might be reused/extended to test runtime impacts of accessing unified memory addresses

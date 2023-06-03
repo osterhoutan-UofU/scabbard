@@ -1,6 +1,6 @@
 /**
  * @file DepTrace_DEVICE.cpp
- * @author osterhoutan (osterhoutan@gmail.com)
+ * @author osterhoutan (osterhoutan+scabbard@gmail.com)
  * @brief A object that is meant to allow the specific dep trace that scabbard requires to occur
  * @version alpha 0.0.1
  * @date 2023-05-16
