@@ -18,7 +18,8 @@
 namespace scabbard {
   namespace instr {
   
-    extern AsyncQueue* TRACE_LOGGER;
+    extern AsyncQueue TRACE_LOGGER;
+    extern __device__ DeviceAsyncQueue DEVICE_TRACE_LOGGER;
   
   } //?namespace instr
 } //?namespace scabbard

@@ -93,7 +93,10 @@
         "__split_buffer": "cpp",
         "__tree": "cpp",
         "unordered_set": "cpp",
-        "__hash_table": "cpp"
+        "__hash_table": "cpp",
+        "stop_token": "cpp",
+        "numbers": "cpp",
+        "__mutex_base": "cpp"
     },
     "cSpell.words": [
         "amdgcn",

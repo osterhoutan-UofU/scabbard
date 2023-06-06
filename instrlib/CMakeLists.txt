@@ -5,6 +5,8 @@ find_package(hip)
 
 add_library(instrlib STATIC
     src/defs.cpp
+    src/AsyncQueue.cpp
+    src/TraceWriter.cpp
   )
 
 set_property(TARGET instrlib PROPERTY HIP_STANDARD 17)

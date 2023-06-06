@@ -29,7 +29,7 @@ namespace scabbard {
     // << ========================================================================================== >> 
 
     AsyncQueue TRACE_LOGGER; // created in scabbard init
-
+    __device__ DeviceAsyncQueue* DEVICE_TRACE_LOGGER;
 
 
 
@@ -41,10 +41,20 @@ namespace scabbard {
     __host__ 
     void __scabbard_init() 
     {
-      const auto TRACE_FILE = std::getenv("_SCABBARD_TRACE_FILE")
+      const auto TRACE_FILE = std::getenv("_SCABBARD_TRACE_FILE");
       if (TRACE_FILE != nullptr) {
       } else {
       }
+      DeviceAsyncQueue* tmp1;
+      if (hipMalloc(&tmp1, sizeof(DeviceAsyncQueue)) != hipSuccess) {
+        //TODO handle error
+      }
+      DeviceAsyncQueue tmp2;
+      if (hipMemcpy(tmp1, &tmp2, sizeof(DeviceAsyncQueue), hipMemcpyHostToDevice)
+            != hipSuccess) {
+        //TODO Handle error
+      }
+      DEVICE_TRACE_LOGGER = (TRACE_LOGGER.deviceQ = tmp1);
       //TODO setup basics for scabbard trace
     }
     
@@ -55,7 +65,7 @@ namespace scabbard {
       __device__ 
       void trace_append$mem(InstrData data, const void* PTR, const void* METADATA)
       {
-        //TODO
+        DEVICE_TRACE_LOGGER->append(TraceData(data,PTR,METADATA));
       }
 
 
@@ -68,7 +78,7 @@ namespace scabbard {
       __host__ 
       void trace_append$mem(InstrData data, const void* PTR, const void* METADATA)
       {
-        //TODO
+        TRACE_LOGGER.append(TraceData(data, PTR, METADATA));
       }
 
       __host__ 

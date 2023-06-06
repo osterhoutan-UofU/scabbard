@@ -17,6 +17,7 @@
 #include <cstdint>
 #include <thread>
 #include <type_traits>
+#include <new>
 
 
 namespace scabbard {
@@ -73,17 +74,33 @@ struct DeviceThreadId {
 union ThreadId {
   HostThreadId host;
   DeviceThreadId device;
+  __device__ ThreadId() { new(&device) DeviceThreadId(); }
+  __host__ ThreadId() { this->host = ::std::this_thread::get_id(); }
 };
 ::std::static_assert(sizeof(ThreadId) <= sizeof(size_t)*2, "ThreadID is of the correct size");
 
 
 struct TraceData {
-  InstrData     data;
-  ThreadId      threadId;
-  void*         ptr;
-  void*         metadata; //TODO update this with whatever type llvm metadata ends up having
-  long long     time_stamp;
+  const InstrData     data;
+  const ThreadId      threadId;
+  const void*         ptr;
+  const void*         metadata; //TODO update this with whatever type llvm metadata ends up having
+  const size_t        time_stamp;
   const size_t  buffer = 0ul;
+  __device__ TraceData(InstrData data_, const void* ptr_, const void* metadata_)
+    : data(data_), threadId(), ptr(ptr_), metadata(metadata_)
+  {
+    time_stamp = clock64();
+  }
+  __host__ TraceData(InstrData data_, const void* ptr_, const void* metadata_)
+    : data(data_), threadId(), ptr(ptr_), metadata(metadata_), 
+      time_stamp(std::chrono::high_resolution_clock::now().time_since_epoch().count())
+  {}
+  __host__ TraceData(InstrData data_, const ThreadId& threadId_,
+                     void* ptr_, void* metadata_, size_t time_stamp_)
+    : data(data_), threadId(threadId_),
+      ptr(ptr_), metadata(metadata_), time_stamp(time_stamp_)
+  {}
 };
 
 

@@ -16,7 +16,7 @@
 #include <hip/hip_runtime.h>
 
 #include <string>
-#include <map>
+#include <queue>
 #include <atomic>
 
 #define WARP_SIZE (size_t(32ul))
@@ -28,6 +28,9 @@
 
 namespace scabbard {
   namespace instr {
+
+    struct DeviceAsyncQueue;
+    class HostAsyncQueue;
   
 
     /**
@@ -36,63 +39,51 @@ namespace scabbard {
      *        primarily between host and device for a CPU/GPU setup. \n
      *        NOTE: the subsidiary queues are not updated to reflect changes
      *        provided by other threads, it's a one way relationship.
+     *        WARNING: this class is designed to only have one instantiation in an entire program.
      */
     class AsyncQueue {
-
-    protected:
-      struct DeviceAsyncQueue;
-      class HostAsyncQueue;
-
-    private:
-      std::map<size_t,DeviceAsyncQueue*> deviceQs;
-      std::map<size_t,HostAsyncQueue*> hostQs;
-
-      _Atomic(size_t) next_kernel_id = ((size_t)0ul);
+      DeviceAsyncQueue* deviceQ = nullptr;        // NOTE: this is a device ptr and is set during __scabbard_init()
+      size_t device_last_read[SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT];
+      DeviceAsyncQueue _device_buffer;
       
     public:
 
-      AsyncQueue();
-      ~AsyncQueue();
+      __host__ AsyncQueue();
+      __host__ ~AsyncQueue();
 
-      /**
-       * @brief Register a kernel so that the Async Queue can be set up for the kernel launch
-       * 
-       * @param gridDim 
-       * @param blockDim 
-       * @param sharedMemSize (might be modified)
-       * @param stream 
-       * @return \c size_t - the ID that can be used to identify this kernel
-       */
-      size_t registerKernel(const dim3* gridDim, const dim3* blockDim, size_t sharedMemSize, const hipStream_t* stream);
-      
-      /**
-       * @brief Unregister a kernel after it finishes operations
-       * @param ID - the ID that can be used to identify this kernel
-       */
-      void unregisterKernel(size_t ID);
+      __host__ void append(TraceData tData);
 
 
     protected:
 
-      /**
-       * @brief Just a lazy holder of reference pointers that will be handled with 
-       *        external functions.
-       */
-      class DeviceAsyncQueue {
-        class Lane {
-          _Atomic(size_t) next = 0ul;
-          TraceData data[SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH];
-        };
-        Lane data[SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT];
-      public:
-        __device__ void append(InstrData data, const void* ptr);
-      };
+      __host__ void process_device();
 
-      class HostAsyncQueue {
+      friend void ::scabbard::instr::__scabbard_init();
 
+    };
+
+    /**
+     * @brief Just a lazy holder of reference pointers that will be handled with 
+     *        external functions.
+     */
+    class DeviceAsyncQueue {
+      struct Lane {
+        _Atomic(size_t) next = 0ul;
+        TraceData data[SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH];
+        __host__ Lane();
       };
+      Lane data[SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT];
+    public:
+      __device__ inline void append(TraceData tData);
+      __host__ DeviceAsyncQueue();
+    protected:
+      __device__ __forceinline__ size_t getLaneId() const;
+    };
+
+    class HostAsyncQueue {
 
     };
   
+    
   } //?namespace instr
 } //?namespace scabbard
