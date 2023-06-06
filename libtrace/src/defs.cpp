@@ -1,8 +1,8 @@
 /**
  * @file calls.cpp
  * @author osterhoutan (osterhoutan+scabbard@gmail.com)
- * @brief implementation of the scabbard/instr/calls.hpp 
- *        and the scabbard/instr/globals.hpp include files
+ * @brief implementation of the scabbard/trace/calls.hpp 
+ *        and the scabbard/trace/globals.hpp include files
  * @version alpha 0.0.1
  * @date 2023-05-30
  * 
@@ -10,18 +10,29 @@
  * 
  */
 
-#include <scabbard/instr/calls.hpp>
-#include <scabbard/instr/globals.hpp>
-#include <scabbard/instr/AsyncQueue.hpp>
-#include <scabbard/instr/TraceWriter.hpp>
+#include <scabbard/trace/calls.hpp>
+#include <scabbard/trace/globals.hpp>
+#include <scabbard/trace/AsyncQueue.hpp>
+#include <scabbard/trace/TraceWriter.hpp>
 
 #include <hip/hip_ext.h>
 
 #include <thread>
 #include <cstdlib>
+#include <iostream>
+
+
+#ifdef __cpp_lib_filesystem
+# include <filesystem>
+#else
+# include <experimental/filesystem>
+  namespace std { namespace filesystem = experimental::filesystem;}
+#endif
+namespace { std::string __getExePath(); } //?namespace
+
 
 namespace scabbard {
-  namespace instr {
+  namespace trace {
 
 
     // << ========================================================================================== >> 
@@ -41,18 +52,23 @@ namespace scabbard {
     __host__ 
     void __scabbard_init() 
     {
-      const auto TRACE_FILE = std::getenv("_SCABBARD_TRACE_FILE");
-      if (TRACE_FILE != nullptr) {
-      } else {
-      }
+      const auto _TRACE_FILE = std::getenv("SCABBARD_TRACE_FILE");
+      const std::string TRACE_FILE = ((_TRACE_FILE) 
+                                      ? std::string(_TRACE_FILE) 
+                                      : __getExePath());
+      //TODO set up TraceWriter
       DeviceAsyncQueue* tmp1;
       if (hipMalloc(&tmp1, sizeof(DeviceAsyncQueue)) != hipSuccess) {
-        //TODO handle error
+        std::cerr << "\n[scabbard::trace::init::ERROR] could not allocate space for the device side async queue!\n" 
+                  << std::endl;
+        exit(EXIT_FAILURE);
       }
       DeviceAsyncQueue tmp2;
       if (hipMemcpy(tmp1, &tmp2, sizeof(DeviceAsyncQueue), hipMemcpyHostToDevice)
             != hipSuccess) {
-        //TODO Handle error
+        std::cerr << "\n[scabbard::trace::init::ERROR] failed to copy the initial device side async queue to the device(s)!\n" 
+                  << std::endl;
+        exit(EXIT_FAILURE);
       }
       DEVICE_TRACE_LOGGER = (TRACE_LOGGER.deviceQ = tmp1);
       //TODO setup basics for scabbard trace
@@ -62,7 +78,7 @@ namespace scabbard {
     // << ======================================== Device ========================================== >> 
     namespace device {
       
-      __device__ 
+      __device__
       void trace_append$mem(InstrData data, const void* PTR, const void* METADATA)
       {
         DEVICE_TRACE_LOGGER->append(TraceData(data,PTR,METADATA));
@@ -103,5 +119,29 @@ namespace scabbard {
     } // namespace host
   
   
-  } //?namespace instr
+  } //?namespace trace
 } //?namespace scabbard
+
+
+#ifdef _WIN32
+# include <windows.h>    //GetModuleFileNameW
+#else
+# include <limits.h>
+# include <unistd.h>     //readlink
+#endif
+
+namespace { 
+  std::string __GetExePath()
+  {
+#   ifdef _WIN32
+      wchar_t path[MAX_PATH] = { 0 };
+      GetModuleFileNameW(NULL, path, MAX_PATH);
+      return path;
+#   else
+      char result[PATH_MAX];
+      ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+      return std::string(result, (count > 0) ? count : 0);
+    #endif
+  }
+
+} //?namespace

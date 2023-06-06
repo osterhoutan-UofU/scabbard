@@ -27,10 +27,10 @@
 
 
 namespace scabbard {
-  namespace instr {
+  namespace trace {
 
     struct DeviceAsyncQueue;
-    class HostAsyncQueue;
+    // class HostAsyncQueue; // not needed
   
 
     /**
@@ -58,7 +58,7 @@ namespace scabbard {
 
       __host__ void process_device();
 
-      friend void ::scabbard::instr::__scabbard_init();
+      friend void ::scabbard::trace::__scabbard_init();
 
     };
 
@@ -85,5 +85,5 @@ namespace scabbard {
     };
   
     
-  } //?namespace instr
+  } //?namespace trace
 } //?namespace scabbard

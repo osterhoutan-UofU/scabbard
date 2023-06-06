@@ -11,15 +11,14 @@
 
 #pragma once
 
-#include <scabbard/instr/AsyncQueue.hpp>
-#include <scabbard/instr/TraceWriter.hpp>
-
+#include <scabbard/trace/AsyncQueue.hpp>
+#include <scabbard/trace/TraceWriter.hpp>
 
 namespace scabbard {
-  namespace instr {
-  
+  namespace trace {
+
     extern AsyncQueue TRACE_LOGGER;
     extern __device__ DeviceAsyncQueue DEVICE_TRACE_LOGGER;
   
-  } //?namespace instr
+  } //?namespace trace
 } //?namespace scabbard

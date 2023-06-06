@@ -62,16 +62,17 @@ include_directories(${LLVM_INCLUDE_DIRS})
 link_directories(${LLVM_LIBRARY_DIRS})
 if (${LLVM_VERSION_MAJOR} VERSION_GREATER_EQUAL 10)
     set(CMAKE_CXX_STANDARD 17)
+    message("[NOTE] $LLVM_HOME version was greater than 10 => compiling with C++17\n")
 endif()
 
 set(CMAKE_C_COMPILER $ENV{ROCM_PATH}/llvm/bin/clang-15 CACHE FILEPATH "set C compiler to amd-clang" FORCE)
 set(CMAKE_CXX_COMPILER $ENV{ROCM_PATH}/llvm/bin/clang-15 CACHE FILEPATH "set C++ compiler to amd-clang" FORCE)
 
-set(CMAKE_INSTALL_LIBDIR ${ROCM_PATH}/lib)
+set(CMAKE_INSTALL_LIBDIR ${ROCM_PATH}/lib/scabbard)
 # set(CMAKE_INSTALL_BINDIR ${ROCM_PATH}/bin)
 set(CMAKE_INSTALL_INCLUDEDIR ${ROCM_PATH}/include)
 
 add_subdirectory(lib) # might neeed this might not
-add_subdirectory(instrlib) # might neeed this might not
+add_subdirectory(libtrace) # might neeed this might not
 add_subdirectory(instr)
 add_subdirectory(verif) # will need this latter

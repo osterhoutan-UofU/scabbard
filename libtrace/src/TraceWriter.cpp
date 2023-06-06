@@ -9,25 +9,17 @@
  * 
  */
 
-#pragma once
-
-#include <scabbard/TraceData.hpp>
-
-#include <string>
+#include <scabbard/trace/TraceWriter.hpp>
 
 
 namespace scabbard {
-  namespace instr {
+  namespace trace {
   
 
     class TraceWriter {
       //TODO
-
-    public:
-      TraceWriter(const std::string& trace_filepath_);
-      ~TraceWriter();
     };
     
   
-  } //?namespace instr
+  } //?namespace trace
 } //?namespace scabbard

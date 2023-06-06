@@ -18,7 +18,7 @@
 
 
 namespace scabbard {
-  namespace instr {
+  namespace trace {
   
     /**
      * @brief setup the scabbard system.
@@ -47,5 +47,5 @@ namespace scabbard {
     } // namespace host
     
 
-  } //?namespace instr
+  } //?namespace trace
 } //?namespace scabbard
