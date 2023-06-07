@@ -22,11 +22,13 @@
 #include <iostream>
 
 
+
+// for getting the name of the executing program
 #ifdef __cpp_lib_filesystem
 # include <filesystem>
 #else
 # include <experimental/filesystem>
-  namespace std { namespace filesystem = experimental::filesystem;}
+  namespace std { namespace filesystem = experimental::filesystem; } //?namespace std
 #endif
 namespace { std::string __getExePath(); } //?namespace
 
@@ -55,7 +57,7 @@ namespace scabbard {
       const auto _TRACE_FILE = std::getenv("SCABBARD_TRACE_FILE");
       const std::string TRACE_FILE = ((_TRACE_FILE) 
                                       ? std::string(_TRACE_FILE) 
-                                      : __getExePath());
+                                      : __getExePath() + ".scabbard.trace");
       //TODO set up TraceWriter
       DeviceAsyncQueue* tmp1;
       if (hipMalloc(&tmp1, sizeof(DeviceAsyncQueue)) != hipSuccess) {
@@ -123,6 +125,7 @@ namespace scabbard {
 } //?namespace scabbard
 
 
+// for getting the name of the executing program
 #ifdef _WIN32
 # include <windows.h>    //GetModuleFileNameW
 #else
@@ -130,6 +133,7 @@ namespace scabbard {
 # include <unistd.h>     //readlink
 #endif
 
+// for getting the name of the executing program
 namespace { 
   std::string __GetExePath()
   {

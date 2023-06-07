@@ -26,6 +26,8 @@ namespace scabbard {
     public:
       TraceWriter(const std::string& trace_filepath_);
       ~TraceWriter();
+
+      friend TraceWriter& operator << (TraceWriter& out, const TraceData& data);
     };
     
   

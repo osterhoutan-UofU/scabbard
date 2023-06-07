@@ -12,6 +12,7 @@
 #pragma once
 
 #include <scabbard/TraceData.hpp>
+#include <scabbard/trace/TraceWriter.hpp>
 
 #include <hip/hip_runtime.h>
 
@@ -42,9 +43,18 @@ namespace scabbard {
      *        WARNING: this class is designed to only have one instantiation in an entire program.
      */
     class AsyncQueue {
-      DeviceAsyncQueue* deviceQ = nullptr;        // NOTE: this is a device ptr and is set during __scabbard_init()
+      
+      /// @brief host side storage of the device ptr where the device side.
+      ///        NOTE: this is a device ptr and is set during __scabbard_init()
+      DeviceAsyncQueue* deviceQ = nullptr;        
+      
+      /// @brief array of the last place we read from when processing the device side async queue
       size_t device_last_read[SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT];
-      DeviceAsyncQueue _device_buffer;
+
+      /// @brief aka \c _device_buffer - local place to store the device side async queue during processing
+      DeviceAsyncQueue _db;
+
+      
       
     public:
 
@@ -56,7 +66,9 @@ namespace scabbard {
 
     protected:
 
-      __host__ void process_device();
+      __host__ void async_process(TraceWriter& tw);
+      __host__ void process_device(TraceWriter& tw);
+      __host__ void process_host(TraceWriter& tw);
 
       friend void ::scabbard::trace::__scabbard_init();
 
@@ -66,18 +78,25 @@ namespace scabbard {
      * @brief Just a lazy holder of reference pointers that will be handled with 
      *        external functions.
      */
-    class DeviceAsyncQueue {
+    struct DeviceAsyncQueue {
       struct Lane {
         _Atomic(size_t) next = 0ul;
         TraceData data[SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH];
-        __host__ Lane();
+        __host__ Lane() = default;
+        __device__ __forceinline__ TraceData& operator [] (size_t j);
+        __host__ __forceinline__ const TraceData& operator [] (size_t j) const;
+        friend class AsyncQueue;
       };
+    private:
       Lane data[SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT];
     public:
       __device__ inline void append(TraceData tData);
-      __host__ DeviceAsyncQueue();
+      __host__ DeviceAsyncQueue() = default;
+      __device__ __forceinline__ Lane& operator [] (size_t i);
+      __host__ __forceinline__ const Lane& operator [] (size_t i) const;
     protected:
       __device__ __forceinline__ size_t getLaneId() const;
+      friend class AsyncQueue;
     };
 
     class HostAsyncQueue {

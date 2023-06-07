@@ -74,19 +74,27 @@ struct DeviceThreadId {
 union ThreadId {
   HostThreadId host;
   DeviceThreadId device;
+  void* _NONE_;
   __device__ ThreadId() { new(&device) DeviceThreadId(); }
   __host__ ThreadId() { this->host = ::std::this_thread::get_id(); }
+  __host__ __device__ ThreadId(void* _) { this->_NONE_ = nullptr; }
+  // __host__ __device__ bool ok() const { return this->_NONE_ != nullptr; } 
 };
 ::std::static_assert(sizeof(ThreadId) <= sizeof(size_t)*2, "ThreadID is of the correct size");
 
 
 struct TraceData {
-  const InstrData     data;
-  const ThreadId      threadId;
-  const void*         ptr;
-  const void*         metadata; //TODO update this with whatever type llvm metadata ends up having
-  const size_t        time_stamp;
-  const size_t  buffer = 0ul;
+  // DATA
+  const InstrData     data        = InstrData::NEVER;
+  const ThreadId      threadId    = ((void*)nullptr);
+  const void*         ptr         = nullptr;
+  const void*         metadata    = nullptr; //TODO update this with whatever type llvm metadata ends up having
+  const size_t        time_stamp  = 0ul;
+  const size_t        _BUFFER     = 0ul;
+
+  // Constructors
+  __device__ __host__ TraceData() = default;
+  __host__ __device__ TraceData(const TraceData& other) = default;
   __device__ TraceData(InstrData data_, const void* ptr_, const void* metadata_)
     : data(data_), threadId(), ptr(ptr_), metadata(metadata_)
   {
@@ -101,6 +109,9 @@ struct TraceData {
     : data(data_), threadId(threadId_),
       ptr(ptr_), metadata(metadata_), time_stamp(time_stamp_)
   {}
+  // Explicit operators
+  __host__ __device__ inline TraceData& operator = (const TraceData& other) = default;
+  __host__ __device__ inline operator bool () const { return data != InstrData::NEVER; }
 };
 
 
