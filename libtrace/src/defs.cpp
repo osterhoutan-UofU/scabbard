@@ -19,6 +19,7 @@
 
 #include <thread>
 #include <cstdlib>
+#include <chrono>
 #include <iostream>
 
 
@@ -26,11 +27,17 @@
 // for getting the name of the executing program
 #ifdef __cpp_lib_filesystem
 # include <filesystem>
+  // using filesystem = std::filesystem;
+  using namespace std::filesystem;
 #else
 # include <experimental/filesystem>
-  namespace std { namespace filesystem = experimental::filesystem; } //?namespace std
+  // namespace std { namespace filesystem = std::experimental::filesystem; } //?namespace std
+  // using filesystem = std::experimental::filesystem;
+  using namespace std::experimental::filesystem;
 #endif
-namespace { std::string __getExePath(); } //?namespace
+// namespace { std::filesystem::path __getExePath(); } //?namespace
+// namespace { filesystem::path __getExePath(); } //?namespace
+namespace { path __getExePath(); } //?namespace
 
 
 namespace scabbard {
@@ -55,10 +62,13 @@ namespace scabbard {
     void __scabbard_init() 
     {
       const auto _TRACE_FILE = std::getenv("SCABBARD_TRACE_FILE");
+      const path _EXE_PATH = __getExePath();
       const std::string TRACE_FILE = ((_TRACE_FILE) 
                                       ? std::string(_TRACE_FILE) 
-                                      : __getExePath() + ".scabbard.trace");
-      //TODO set up TraceWriter
+                                      : "./" + _EXE_PATH.filename().string() + ".scabbard.trace");
+      TRACE_LOGGER.set_trace_writer(TRACE_FILE, _EXE_PATH.string(), 
+                                    std::chrono::system_clock::now().time_since_epoch().count());
+
       DeviceAsyncQueue* tmp1;
       if (hipMalloc(&tmp1, sizeof(DeviceAsyncQueue)) != hipSuccess) {
         std::cerr << "\n[scabbard::trace::init::ERROR] could not allocate space for the device side async queue!\n" 
@@ -72,7 +82,8 @@ namespace scabbard {
                   << std::endl;
         exit(EXIT_FAILURE);
       }
-      DEVICE_TRACE_LOGGER = (TRACE_LOGGER.deviceQ = tmp1);
+      DEVICE_TRACE_LOGGER = tmp1;
+      TRACE_LOGGER.set_device_queue(tmp1);
       //TODO setup basics for scabbard trace
     }
     
@@ -83,7 +94,10 @@ namespace scabbard {
       __device__
       void trace_append$mem(InstrData data, const void* PTR, const void* METADATA)
       {
-        DEVICE_TRACE_LOGGER->append(TraceData(data,PTR,METADATA));
+        DEVICE_TRACE_LOGGER->append(TraceData(data,
+                                              blockIdx, threadIdx,
+                                              PTR, METADATA, 
+                                              clock64()));
       }
 
 
@@ -107,18 +121,25 @@ namespace scabbard {
         if (status == hipSuccess) {
           if (attrs->isManaged) {
             data |= InstrData::MANAGED_MEM;
-          } else if (attrs->device == 0) {
+          } else if (attrs->devicePointer == nullptr) {
             data |= InstrData::HOST_HEAP;
           } else {
             data |= InstrData::DEVICE_HEAP;
           }
           trace_append$mem(data,PTR,METADATA);
         } else {
-          //TODO handle the error
+          std::cerr << "\n[scabbard::trace::cond::ERROR] could not get the properties of a pointer with `hipPointerGetAttributes()`!\n"
+                    << std::endl;
+#         ifdef DEBUG
+            exit(EXIT_FAILURE);
+#         endif
         }
       }
       
     } // namespace host
+
+
+    
   
   
   } //?namespace trace
@@ -135,16 +156,16 @@ namespace scabbard {
 
 // for getting the name of the executing program
 namespace { 
-  std::string __GetExePath()
+  path __getExePath()
   {
 #   ifdef _WIN32
-      wchar_t path[MAX_PATH] = { 0 };
-      GetModuleFileNameW(NULL, path, MAX_PATH);
-      return path;
+      wchar_t _path[MAX_PATH] = { 0 };
+      GetModuleFileNameW(NULL, _path, MAX_PATH);
+      return path(_path);
 #   else
       char result[PATH_MAX];
       ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
-      return std::string(result, (count > 0) ? count : 0);
+      return path(std::string(result, (count > 0) ? count : 0));
     #endif
   }
 

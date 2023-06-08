@@ -1,6 +1,6 @@
 {
     "doxdocgen.file.versionTag": "@version alpha 0.0.1",
-    "doxdocgen.generic.authorEmail": "osterhoutan+scabbard@gmailcom",
+    "doxdocgen.generic.authorEmail": "osterhoutan+scabbard@gmail.com",
     "cmake.generator": "Ninja",
     "cmake.parallelJobs": 6,
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
@@ -96,7 +96,8 @@
         "__hash_table": "cpp",
         "stop_token": "cpp",
         "numbers": "cpp",
-        "__mutex_base": "cpp"
+        "__mutex_base": "cpp",
+        "*.config": "cpp"
     },
     "cSpell.words": [
         "amdgcn",

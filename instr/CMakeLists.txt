@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
-project(instr VERSION 0.1)
+project(instr VERSION 0.1.0)
 
-
+configure_file(${CMAKE_SOURCE_DIR}/sub-version.h.config
+                ./src/version.h)
 
 add_library(instr MODULE
     src/ScabbardPass.cpp

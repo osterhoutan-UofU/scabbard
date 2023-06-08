@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
-project(libtrace VERSION 0.1)
+project(libtrace VERSION 0.1.0)
 
 find_package(hip)
+
+configure_file(${CMAKE_SOURCE_DIR}/sub-version.h.config
+                ./src/version.h)
 
 add_library(trace STATIC
     src/defs.cpp
@@ -25,8 +28,8 @@ target_link_libraries(trace
     PUBLIC
     hip::host 
     hip::device
-    PRIVATE
-    libscabbard
+    # PRIVATE
+    # libscabbard
   )
 
 

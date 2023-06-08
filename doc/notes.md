@@ -178,7 +178,17 @@
     Instrument every function in every device module not marked `available_externally` to accept a new first argument, and make that argument be the address to launch specific device side implementation of the trace buffer.
    6. ...
 
+
   <br/><br/>
+  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+
+
+### **Q10:** how to deal with host/device clock mismatches?
+I have to use the high resolution clock for both devices, but they don't technically have to give me
+time in the same units let alone be synced at their resolution to any standard epoch.
+
+#### **A:** ...
 
 
 

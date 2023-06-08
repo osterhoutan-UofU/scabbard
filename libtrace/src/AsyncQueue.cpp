@@ -13,6 +13,7 @@
 
 #include <cstring>
 #include <iostream>
+#include <deque>
 
 
 namespace scabbard {
@@ -35,21 +36,54 @@ namespace scabbard {
     __host__ 
     AsyncQueue::~AsyncQueue()
     {
-      hipFree(deviceQ);
+      if (deviceQ != nullptr)
+        hipFree(deviceQ);
+      if (tw != nullptr) {
+        tw->finalize();
+        tw->close();
+        delete tw;
+      }
     }
-
 
     __host__ 
-    void AsyncQueue::async_process(TraceWriter& tw)
+    void AsyncQueue::set_trace_writer(const std::string& file_path, const std::string& exe_path, std::time_t start_time)
     {
-      //TODO
+      if (tw != nullptr) {
+        tw->finalize();
+        tw->close();
+        delete tw;
+      }
+      tw = new TraceWriter(file_path);
+      tw->init(exe_path, start_time);
     }
+
+    __host__ 
+    void AsyncQueue::set_device_queue(DeviceAsyncQueue* dq_)
+    {
+      if (dq_ == nullptr)
+        return;
+      if (deviceQ != nullptr)
+        hipFree(deviceQ);
+      deviceQ = dq_;
+    }
+
 
 
     __host__ 
     void AsyncQueue::append(TraceData tData)
     {
-      //TODO 
+      mx_hostQ.lock();
+      hostQ.push(tData);
+      mx_hostQ.unlock();
+    }
+
+
+
+    __host__ 
+    void AsyncQueue::async_process()
+    {
+      process_device(*tw);
+      process_host(*tw);
     }
 
     __host__ 
@@ -72,17 +106,21 @@ namespace scabbard {
         for (size_t i = device_last_read[lID]; 
               i != LANE_NEXT && ii < SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH;
               (++i) + (++ii)) {
-          if (LANE[i])
+          if (not LANE[i].empty())
             tw << LANE[i];
         }
       }
     }
 
-
     __host__ 
     void AsyncQueue::process_host(TraceWriter& tw)
     {
-
+      mx_hostQ.lock();
+      while (not hostQ.empty()) {
+        tw << hostQ.front();
+        hostQ.pop();
+      }
+      mx_hostQ.unlock();
     }
 
 
@@ -91,18 +129,18 @@ namespace scabbard {
     // << ========================================================================================== >> 
 
 
-    __device__ __forceinline__ 
+    __device__ inline 
     DeviceAsyncQueue::Lane& DeviceAsyncQueue::operator [] (size_t i) { return data[i]; }
-    __host__ __forceinline__ 
+    __host__ inline 
     const DeviceAsyncQueue::Lane& DeviceAsyncQueue::operator [] (size_t i) const { return data[i]; }
 
-    __device__ __forceinline__ 
+    __device__ inline 
     TraceData& DeviceAsyncQueue::Lane::operator [] (size_t j) { return data[j]; }
-    __host__ __device__ __forceinline__ 
+    __host__ inline 
     const TraceData& DeviceAsyncQueue::Lane::operator [] (size_t j) const { return data[j]; }
 
 
-    __device__ __forceinline__ 
+    __device__ inline 
     size_t DeviceAsyncQueue::getLaneId() const
     {
       return (size_t)(((blockDim.x*blockIdx.x) + (blockDim.y*blockIdx.y) + (blockDim.z*blockIdx.z)

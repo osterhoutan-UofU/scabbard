@@ -18,6 +18,7 @@
 #include <sstream>
 #include <bitset>
 
+
 namespace scabbard {
 namespace instr {
 
