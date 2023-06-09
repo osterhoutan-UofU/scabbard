@@ -50,11 +50,14 @@ namespace instr {
     std::string source_loc = "";
 
     struct {
-        llvm::Function* trace_append$mem = nullptr;  
+        llvm::Function* trace_append$mem = nullptr;
+        const std::string trace_append$mem_name = "_ZN8scabbard5trace4host16trace_append$memENS_9InstrDataEPKvS4_";
         llvm::Function* trace_append$mem$cond = nullptr; 
+        const std::string trace_append$mem$cond_name = "_ZN8scabbard5trace4host21trace_append$mem$condENS_9InstrDataEPKvS4_";
       } host;
     struct {
         llvm::Function* trace_append$mem = nullptr;
+        const std::string trace_append$mem_name = "_ZN8scabbard5trace4host16trace_append$memENS_9InstrDataEPKvS4_";
       } device;
 
 
