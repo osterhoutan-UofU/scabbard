@@ -11,9 +11,13 @@
 
 #include <scabbard/trace/AsyncQueue.hpp>
 
+#include <hip/hip_ext.h>
+#include <hip/hip_runtime_api.h>
+
 #include <cstring>
 #include <iostream>
 #include <deque>
+#include <thread>
 
 
 namespace scabbard {
@@ -36,14 +40,49 @@ namespace scabbard {
     __host__ 
     AsyncQueue::~AsyncQueue()
     {
+      stop();
       if (deviceQ != nullptr)
-        hipFree(deviceQ);
+        if (hipFree(deviceQ) != hipSuccess)
+          std::cerr << "\n[scabbard::trace::dtor::ERROR] could not deallocate device side buffer!\n" 
+                    << std::endl;
       if (tw != nullptr) {
         tw->finalize();
         tw->close();
         delete tw;
       }
     }
+
+
+    __host__
+    void AsyncQueue::start()
+    {
+      stop();
+      run_worker = true;
+      worker_thread = new std::thread([&,this]() -> void {
+                                        while (this->run_worker) {
+                                          std::this_thread::sleep_for(this->delay);
+                                          this->async_process();
+                                        }
+                                      });
+    }
+
+    __host__
+    void AsyncQueue::stop()
+    {
+      if (worker_thread != nullptr) {
+        run_worker = false;
+        worker_thread->join();
+        delete worker_thread;
+      }
+    }
+
+    template<class Rep, class Period>
+    __host__ 
+    void AsyncQueue::set_delay(const std::chrono::duration<Rep,Period>& delay_)
+    {
+      delay = delay_;
+    }
+
 
     __host__ 
     void AsyncQueue::set_trace_writer(const std::string& file_path, const std::string& exe_path, std::time_t start_time)
@@ -63,7 +102,11 @@ namespace scabbard {
       if (dq_ == nullptr)
         return;
       if (deviceQ != nullptr)
-        hipFree(deviceQ);
+        if (hipFree(deviceQ) != hipSuccess) {
+          std::cerr << "\n[scabbard::trace::AsyncQueue::ERROR] could not properly deallocate device side buffer!\n"
+                    << std::endl;
+          exit(EXIT_FAILURE);
+        }
       deviceQ = dq_;
     }
 
@@ -90,7 +133,7 @@ namespace scabbard {
     void AsyncQueue::process_device(TraceWriter& tw)
     {
       using Lane = ::scabbard::trace::DeviceAsyncQueue::Lane;
-      if (hipMemcpy(_db, deviceQ, sizeof(DeviceAsyncQueue), hipMemcpyDeviceToHost) 
+      if (hipMemcpy(&_db, deviceQ, sizeof(DeviceAsyncQueue), hipMemcpyDeviceToHost) 
             != hipSuccess) {
         std::cerr << "\n[scabbard::trace::ERROR] failed to copy the device side of the AsyncQueue for processing!\n";
 #       ifdef DEBUG
@@ -129,31 +172,39 @@ namespace scabbard {
     // << ========================================================================================== >> 
 
 
-    __device__ inline 
-    DeviceAsyncQueue::Lane& DeviceAsyncQueue::operator [] (size_t i) { return data[i]; }
+    // __device__ inline 
+    // DeviceAsyncQueue::Lane& DeviceAsyncQueue::operator [] (size_t i) { return data[i]; }
     __host__ inline 
     const DeviceAsyncQueue::Lane& DeviceAsyncQueue::operator [] (size_t i) const { return data[i]; }
 
-    __device__ inline 
-    TraceData& DeviceAsyncQueue::Lane::operator [] (size_t j) { return data[j]; }
+    // __device__ inline 
+    // TraceData& DeviceAsyncQueue::Lane::operator [] (size_t j) { return data[j]; }
     __host__ inline 
     const TraceData& DeviceAsyncQueue::Lane::operator [] (size_t j) const { return data[j]; }
 
 
-    __device__ inline 
-    size_t DeviceAsyncQueue::getLaneId() const
-    {
-      return (size_t)(((blockDim.x*blockIdx.x) + (blockDim.y*blockIdx.y) + (blockDim.z*blockIdx.z)
-              + threadIdx.x + threadIdx.y + threadIdx.z) % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT);
-    }
+    // __device__ inline 
+    // size_t DeviceAsyncQueue::getLaneId() // const
+    // {
+    //   return (size_t)(((blockDim.x*blockIdx.x) + (blockDim.y*blockIdx.y) + (blockDim.z*blockIdx.z)
+    //           + threadIdx.x + threadIdx.y + threadIdx.z) % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT);
+    // }
 
-    __device__ 
-    inline void DeviceAsyncQueue::append(TraceData tData)
-    {
-      const size_t lId = getLaneId();
-      data[lId][(++data[lId].next)  // atomic so increment should happen at same time as load/copy
-                % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH] = tData;
-    }
+    // __device__ 
+    // inline void DeviceAsyncQueue::append(TraceData tData)
+    // {
+    //   const size_t lId = getLaneId();
+    //   data[lId][(++data[lId].next)  // atomic so increment should happen at same time as load/copy
+    //             % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH] = tData;
+    // }
+    // __device__ __host__ 
+    // inline DeviceAsyncQueue&  DeviceAsyncQueue::operator += (const TraceData& tData)
+    // {
+    //   const size_t lId = getLaneId();
+    //   data[lId][(++data[lId].next)  // atomic so increment should happen at same time as load/copy
+    //             % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH] = tData;
+    // }
+
 
     // __host__ 
     // DeviceAsyncQueue::DeviceAsyncQueue()

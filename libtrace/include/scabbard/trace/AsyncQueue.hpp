@@ -11,15 +11,24 @@
 
 #pragma once
 
-#include <scabbard/trace/TraceData.hpp>
-#include <scabbard/trace/TraceWriter.hpp>
+// trun on hip components when importing from libscabbard
+#ifndef __scabbard_hip_compile
+# define __scabbard_hip_compile (1u)
+#endif
 
+#include <scabbard/TraceData.hpp>
+#include <scabbard/trace/TraceWriter.hpp>
+#include <scabbard/trace/calls.hpp>
+
+#include <hip/hip_ext.h>
 #include <hip/hip_runtime.h>
 
 #include <string>
 #include <queue>
 #include <mutex>
 #include <atomic>
+#include <thread>
+#include <chrono>
 
 #define WARP_SIZE (size_t(32ul))
 
@@ -39,21 +48,23 @@ namespace scabbard {
       struct Lane {
         _Atomic(size_t) next = 0ul;
         TraceData data[SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH];
-        __host__ Lane() = default;
-        __device__ __forceinline__ TraceData& operator [] (size_t j);
-        __host__ __forceinline__ const TraceData& operator [] (size_t j) const;
+        __host__ __device__ Lane() = default;
+        // __device__ inline TraceData& operator [] (size_t j);
+        __host__ inline const TraceData& operator [] (size_t j) const;
         friend class AsyncQueue;
       };
     private:
       Lane data[SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT];
     public:
-      __device__ inline void append(TraceData tData);
-      __host__ DeviceAsyncQueue() = default;
-      __device__ __forceinline__ Lane& operator [] (size_t i);
-      __host__ __forceinline__ const Lane& operator [] (size_t i) const;
+      // __device__ inline void append(TraceData tData);
+      __host__ __device__ DeviceAsyncQueue() = default;
+      // __host__ __device__ inline DeviceAsyncQueue& operator += (const TraceData& tData);
+      // __device__ inline Lane& operator [] (size_t i);
+      __host__ inline const Lane& operator [] (size_t i) const;
     protected:
-      __device__ __forceinline__ size_t getLaneId() const;
+      // __device__ static inline size_t getLaneId(); // const;
       friend class AsyncQueue;
+      friend __device__ void scabbard::trace::device::trace_append$mem(InstrData data, const void* PTR, const void* METADATA);
     };
   
 
@@ -85,6 +96,15 @@ namespace scabbard {
 
       /// @brief the output of the async queue (has ownership of the pointer)
       TraceWriter* tw = nullptr;
+
+      /// @brief the worker thread for the async queue
+      std::thread* worker_thread = nullptr;
+
+      /// @brief way to get worker to stop so it can be joined latter
+      bool run_worker = false;
+
+      /// @brief delay between processes of the various buffers
+      std::chrono::high_resolution_clock::duration delay = std::chrono::milliseconds(2);
       
       
     public:
@@ -92,12 +112,32 @@ namespace scabbard {
       __host__ AsyncQueue();
       __host__ ~AsyncQueue();
 
+      /**
+       * @brief start the async process
+       */
+      __host__ void start();
+
+      /**
+       * @brief stop the async process
+       */
+      __host__ void stop();
+
 
       /**
        * @brief how the host will append its traces data to the trace.
        * @param tData the trace data to append
        */
       __host__ void append(TraceData tData);
+
+      /**
+       * @brief Set the delay between processing(s) of the buffers
+       * @tparam Rep - an arithmetic type representing the number of ticks
+       * @tparam Period - a std::ratio representing the tick period 
+       *                  (i.e. the number of second's fractions per tick)
+       * @param delay_ - the new delay value
+       */
+      template<class Rep, class Period = std::ratio<1>>
+      __host__ void set_delay(const std::chrono::duration<Rep,Period>& delay_);
 
       /**
        * @brief Set the device queue object (takes ownership of the pointer)

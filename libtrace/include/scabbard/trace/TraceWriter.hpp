@@ -10,8 +10,11 @@
  */
 
 #pragma once
-
-#include <scabbard/trace/TraceData.hpp>
+// trun on hip components when importing from libscabbard
+#ifndef __scabbard_hip_compile
+# define __scabbard_hip_compile (1u)
+#endif
+#include <scabbard/TraceData.hpp>
 
 #include <fstream>
 #include <string>
@@ -66,7 +69,13 @@ namespace scabbard {
        */
       __host__ inline bool is_open() const;
 
-      friend inline TraceWriter& operator << (TraceWriter& out, const TraceData& data);
+      friend __host__ inline TraceWriter& operator << (TraceWriter& out, const TraceData& data)
+      {
+        out.out.write(reinterpret_cast<const char*>(&data), sizeof(TraceData));
+        if ((sizeof(TraceData) % TraceWriter::WORD_LEN) > 0)
+          out.out.write(TraceWriter::BUF, sizeof(TraceData) % TraceWriter::WORD_LEN);
+        return out;
+      }
     };
     
   

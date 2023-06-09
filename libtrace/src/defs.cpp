@@ -16,6 +16,7 @@
 #include <scabbard/trace/TraceWriter.hpp>
 
 #include <hip/hip_ext.h>
+#include <hip/hip_runtime_api.h>
 
 #include <thread>
 #include <cstdlib>
@@ -85,19 +86,37 @@ namespace scabbard {
       DEVICE_TRACE_LOGGER = tmp1;
       TRACE_LOGGER.set_device_queue(tmp1);
       //TODO setup basics for scabbard trace
+      TRACE_LOGGER.start();
     }
     
     
     // << ======================================== Device ========================================== >> 
     namespace device {
+
+      __device__ inline 
+      size_t getLaneId() // const
+      {
+        return (size_t)(((blockDim.x*blockIdx.x) + (blockDim.y*blockIdx.y) + (blockDim.z*blockIdx.z)
+                + threadIdx.x + threadIdx.y + threadIdx.z) % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT);
+      }
       
       __device__
       void trace_append$mem(InstrData data, const void* PTR, const void* METADATA)
       {
-        DEVICE_TRACE_LOGGER->append(TraceData(data,
-                                              blockIdx, threadIdx,
-                                              PTR, METADATA, 
-                                              clock64()));
+        const size_t lId = getLaneId();
+        DEVICE_TRACE_LOGGER->data[lId].data[(++(DEVICE_TRACE_LOGGER->data[lId].next))  // atomic so increment should happen at same time as load/copy
+                  % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH] = TraceData(data,
+                                                                          blockIdx, threadIdx,
+                                                                          PTR, METADATA, 
+                                                                          clock64());
+        // *DEVICE_TRACE_LOGGER += TraceData(data,
+        //                                   blockIdx, threadIdx,
+        //                                   PTR, METADATA, 
+        //                                   clock64());
+        // DEVICE_TRACE_LOGGER->append(TraceData(data,
+        //                                       blockIdx, threadIdx,
+        //                                       PTR, METADATA, 
+        //                                       clock64()));
       }
 
 
