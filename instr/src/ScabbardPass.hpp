@@ -57,7 +57,7 @@ namespace instr {
       } host;
     struct {
         llvm::Function* trace_append$mem = nullptr;
-        const std::string trace_append$mem_name = "_ZN8scabbard5trace4host16trace_append$memENS_9InstrDataEPKvS4_";
+        const std::string trace_append$mem_name = "_ZN8scabbard5trace6device16trace_append$memENS_9InstrDataEPKvS4_";
       } device;
 
 

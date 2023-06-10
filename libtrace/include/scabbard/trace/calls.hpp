@@ -31,7 +31,7 @@ namespace scabbard {
 
     namespace device {
       
-      __device__ 
+      __device__ __noinline__
       void trace_append$mem(InstrData data, const void* PTR, const void* METADATA);
 
 

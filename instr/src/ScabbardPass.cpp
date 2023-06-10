@@ -81,7 +81,7 @@ namespace scabbard {
           false
         ),
         llvm::GlobalValue::LinkageTypes::AvailableExternallyLinkage,
-        "scabbard::trace::device.trace_append$mem",
+        device.trace_append$mem_name,  //"scabbard::trace::device.trace_append$mem",
         M
       );
     }
@@ -118,7 +118,7 @@ namespace scabbard {
           false
         ),
         llvm::GlobalValue::LinkageTypes::AvailableExternallyLinkage,
-        "scabbard::trace::host.trace_append$mem",
+        host.trace_append$mem$cond_name,  // "scabbard::trace::host.trace_append$mem",
         M
       );
       host.trace_append$mem$cond = llvm::Function::Create(
@@ -132,7 +132,7 @@ namespace scabbard {
           false
         ),
         llvm::GlobalValue::LinkageTypes::AvailableExternallyLinkage,
-        "scabbard::trace::host.trace_append$mem$cond",
+        host.trace_append$mem$cond_name,  // "scabbard::trace::host.trace_append$mem$cond",
         M
       );
     }

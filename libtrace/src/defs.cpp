@@ -100,7 +100,7 @@ namespace scabbard {
                 + threadIdx.x + threadIdx.y + threadIdx.z) % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT);
       }
       
-      __device__
+      __device__ __noinline__
       void trace_append$mem(InstrData data, const void* PTR, const void* METADATA)
       {
         const size_t lId = getLaneId();
@@ -156,6 +156,31 @@ namespace scabbard {
       }
       
     } // namespace host
+
+
+
+    // << ========================================================================================== >> 
+    // <<                                        GLOBAL TAGS                                         >> 
+    // << ========================================================================================== >> 
+
+    namespace {
+
+      /**
+       * @brief waisted space used to that the device side function does not optimized out
+       *        from not being called from inside teh device space
+       */
+      __global__ 
+      void call_for_looks(InstrData tmp, void* ptr, void* meta)
+      {
+        ::scabbard::trace::device::trace_append$mem(tmp,ptr,meta);
+      }
+
+      // __global__ void call_for_differentiation(InstrData tmp, void* ptr, void* meta)
+      // {
+      //   ::scabbard::trace::device::trace_append$mem((InstrData)((InstrData)tmp | InstrData::FREE),ptr,meta);
+      // }
+
+    }
 
 
     
