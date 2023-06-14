@@ -93,7 +93,8 @@ namespace instr {
   llvm::raw_ostream& operator << (llvm::raw_ostream& out, const InstrData& data) noexcept 
   {
     std::stringstream _out;
-    return out << (_out << data).str();
+    _out << data;
+    return (out << _out.str());
   }
 
 

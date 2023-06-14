@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(scabbard VERSION 0.1.0)
 
 include(GNUInstallDirs)
-configure_file(${CMAKE_SOURCE_DIR}/version.h.config
+configure_file(${CMAKE_SOURCE_DIR}/config/version.h.config
                 ${CMAKE_SOURCE_DIR}/lib/include/scabbard/version.h)
 
 # we need rocm and hip paths to be defined

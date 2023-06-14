@@ -60,7 +60,7 @@ namespace scabbard {
     // << ========================================================================================== >> 
 
     __host__ 
-    void __scabbard_init() 
+    void scabbard_init()
     {
       const auto _TRACE_FILE = std::getenv("SCABBARD_TRACE_FILE");
       const path _EXE_PATH = __getExePath();
@@ -88,39 +88,47 @@ namespace scabbard {
       //TODO setup basics for scabbard trace
       TRACE_LOGGER.start();
     }
+
+    __host__ 
+    void scabbard_close()
+    {
+      //TODO
+    }
     
     
     // << ======================================== Device ========================================== >> 
-    namespace device {
 
-      __device__ inline 
-      size_t getLaneId() // const
-      {
-        return (size_t)(((blockDim.x*blockIdx.x) + (blockDim.y*blockIdx.y) + (blockDim.z*blockIdx.z)
-                + threadIdx.x + threadIdx.y + threadIdx.z) % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT);
-      }
+    //NOTE: moved to device-defs.cpp for crosswise compilation
+    // namespace device {
+
+    //   __device__ inline 
+    //   size_t getLaneId() // const
+    //   {
+    //     return (size_t)(((blockDim.x*blockIdx.x) + (blockDim.y*blockIdx.y) + (blockDim.z*blockIdx.z)
+    //             + threadIdx.x + threadIdx.y + threadIdx.z) % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT);
+    //   }
       
-      __device__ __noinline__
-      void trace_append$mem(InstrData data, const void* PTR, const void* METADATA)
-      {
-        const size_t lId = getLaneId();
-        DEVICE_TRACE_LOGGER->data[lId].data[(++(DEVICE_TRACE_LOGGER->data[lId].next))  // atomic so increment should happen at same time as load/copy
-                  % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH] = TraceData(data,
-                                                                          blockIdx, threadIdx,
-                                                                          PTR, METADATA, 
-                                                                          clock64());
-        // *DEVICE_TRACE_LOGGER += TraceData(data,
-        //                                   blockIdx, threadIdx,
-        //                                   PTR, METADATA, 
-        //                                   clock64());
-        // DEVICE_TRACE_LOGGER->append(TraceData(data,
-        //                                       blockIdx, threadIdx,
-        //                                       PTR, METADATA, 
-        //                                       clock64()));
-      }
+    //   __device__ __noinline__
+    //   void trace_append$mem(InstrData data, const void* PTR, const void* METADATA)
+    //   {
+    //     const size_t lId = getLaneId();
+    //     DEVICE_TRACE_LOGGER->data[lId].data[(++(DEVICE_TRACE_LOGGER->data[lId].next))  // atomic so increment should happen at same time as load/copy
+    //               % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH] = TraceData(data,
+    //                                                                       blockIdx, threadIdx,
+    //                                                                       PTR, METADATA, 
+    //                                                                       clock64());
+    //     // *DEVICE_TRACE_LOGGER += TraceData(data,
+    //     //                                   blockIdx, threadIdx,
+    //     //                                   PTR, METADATA, 
+    //     //                                   clock64());
+    //     // DEVICE_TRACE_LOGGER->append(TraceData(data,
+    //     //                                       blockIdx, threadIdx,
+    //     //                                       PTR, METADATA, 
+    //     //                                       clock64()));
+    //   }
 
 
-    } //?namespace device
+    // } //?namespace device
 
 
     // << ========================================= Host =========================================== >> 

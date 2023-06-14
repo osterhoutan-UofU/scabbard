@@ -58,7 +58,7 @@ namespace scabbard {
 
     void ScabbardPassPlugin::run_device(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
     {
-      add_instr_funcs_device(M, MAM);
+      instrCallbacks_device(M, MAM);
       //TODO process and store dgb metadata tables (or skip this and just read directly from binary latter)
       llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
         .getManager();
@@ -68,16 +68,16 @@ namespace scabbard {
           run_device(f, fam, dt);
     }
 
-    void ScabbardPassPlugin::add_instr_funcs_device(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
+    void ScabbardPassPlugin::instrCallbacks_device(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
     {
       device.trace_append$mem = llvm::Function::Create(
         llvm::FunctionType::get(
           llvm::Type::getVoidTy(M.getContext()),
           llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
         llvm::IntegerType::get(M.getContext(), sizeof(InstrData) * 8),
-          llvm::PointerType::get(M.getContext(), 1u), //WARN: This constant 1u might need to be dynamicly decided for kernel modules
-          llvm::Type::getMetadataTy(M.getContext())
-      }),
+              llvm::PointerType::get(M.getContext(), 1u), //WARN: This constant 1u might need to be dynamicly decided for kernel modules
+              llvm::Type::getMetadataTy(M.getContext())
+          }),
           false
         ),
         llvm::GlobalValue::LinkageTypes::AvailableExternallyLinkage,
@@ -91,49 +91,68 @@ namespace scabbard {
     void ScabbardPassPlugin::run_host(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
     {
       //TODO make any necessary additions to the Module (i.e.inserting globals and linking references)
-      add_instr_funcs_host(M, MAM);
+      instrCallbacks_host(M, MAM);
       //TODO process and store dgb metadata tables (or skip this and just read directly from binary latter)
       llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
         .getManager();
-      // M.getOrInsertFunction()
+      // instrument if module contains main
+      if (auto f = M.getFunction("main"))
+        instr_mainFunc_host(*f, fam);
       DepTraceHost dt(M);
       for (auto& f : M.getFunctionList())
         run_host(f, fam, dt);
     }
 
-    void ScabbardPassPlugin::add_instr_funcs_host(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
+    void ScabbardPassPlugin::instrCallbacks_host(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
     {
       // don't bother with host modules without hip components
       //WARN: this might break linking (or break linking if this isn't here IDK yet)
-      if (M.getFunction("__hip_module_ctor") == nullptr)
-        return;
-      host.trace_append$mem = llvm::Function::Create(
-        llvm::FunctionType::get(
-          llvm::Type::getVoidTy(M.getContext()),
-          llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
-              llvm::IntegerType::get(M.getContext(), sizeof(InstrData) * 8),
-              llvm::PointerType::get(M.getContext(), 0u), //WARN: This constant 0u might need to be dynamicly decided for host modules
-              llvm::Type::getMetadataTy(M.getContext())
-            }),
-          false
-        ),
-        llvm::GlobalValue::LinkageTypes::AvailableExternallyLinkage,
-        host.trace_append$mem$cond_name,  // "scabbard::trace::host.trace_append$mem",
-        M
-      );
-      host.trace_append$mem$cond = llvm::Function::Create(
-        llvm::FunctionType::get(
-          llvm::Type::getVoidTy(M.getContext()),
-          llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
-        llvm::IntegerType::get(M.getContext(), sizeof(InstrData) * 8),
-          llvm::PointerType::get(M.getContext(), 0u), //WARN: This constant 0u might need to be dynamicly decided for host modules
-          llvm::Type::getMetadataTy(M.getContext())
-      }),
-          false
-        ),
-        llvm::GlobalValue::LinkageTypes::AvailableExternallyLinkage,
-        host.trace_append$mem$cond_name,  // "scabbard::trace::host.trace_append$mem$cond",
-        M
+      // if (M.getFunction("__hip_module_ctor") == nullptr)
+      //   return;
+      if (M.getFunction("main") != nullptr)
+        host.scabbard_init = M.getOrInsertFunction(
+            host.scabbard_init_name,
+            llvm::FunctionType::get(
+                llvm::Type::getVoidTy(M.getContext()),
+                llvm::ArrayRef<llvm::Type*>(std::array<llvm::Type*,1>{
+                    llvm::Type::getVoidTy(M.getContext()),
+                  }),
+                false
+              )
+          );
+      // host.scabbard_close = M.getOrInsertFunction(
+      //     host.scabbard_close_name,
+      //     llvm::FunctionType::get(
+      //         llvm::Type::getVoidTy(M.getContext()),
+      //         llvm::ArrayRef<llvm::Type*>(std::array<llvm::Type*,1>{
+      //             llvm::Type::getVoidTy(M.getContext()),
+      //           }),
+      //         false
+      //       )
+      //   );
+      host.trace_append$mem = M.getOrInsertFunction(
+          host.trace_append$mem_name,
+          llvm::FunctionType::get(
+              llvm::Type::getVoidTy(M.getContext()),
+              llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
+                  llvm::IntegerType::get(M.getContext(), sizeof(InstrData) * 8),
+                  llvm::PointerType::get(M.getContext(), 0u), //WARN: This constant 0u might need to be dynamicly decided for host modules
+                  llvm::Type::getMetadataTy(M.getContext())
+                }),
+              false
+            )
+        );
+      host.trace_append$mem$cond = M.getOrInsertFunction(
+          host.trace_append$mem_name,
+          llvm::FunctionType::get(
+              llvm::Type::getVoidTy(M.getContext()),
+              llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
+                  llvm::IntegerType::get(M.getContext(), sizeof(InstrData) * 8),
+                  llvm::PointerType::get(M.getContext(), 0u), //WARN: This constant 0u might need to be dynamicly decided for host modules
+                  llvm::Type::getMetadataTy(M.getContext())
+                }),
+              false
+            )
       );
     }
 
@@ -185,7 +204,7 @@ namespace scabbard {
             instr_mem_func_device(F, i, load->getPointerOperand(), data);
           } else if (auto* call = llvm::dyn_cast<llvm::CallInst>(&i)) {
             //TODO instrument calls to thread id, block id, etc.
-            instr_call_device(F, call);
+            // instr_call_device(F, call);
           } else if (auto atomic = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
             auto data = DT.getInstrData(*atomic);
             LLVM_DEBUG(
@@ -264,7 +283,7 @@ namespace scabbard {
             instr_mem_func_host(F, i, load->getPointerOperand(), data);
           } else if (auto* call = llvm::dyn_cast<llvm::CallInst>(&i)) {
             //TODO instrument calls to hip malloc, hip copy, kernel launch and stream sync
-            instr_call_host(F, call);
+            // instr_call_host(F, call);
           } else if (auto atomic = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
             auto data = DT.getInstrData(*atomic);
             LLVM_DEBUG(
@@ -280,6 +299,16 @@ namespace scabbard {
           }
           // return llvm::PreservedAnalyses::all();
     }
+
+
+    void ScabbardPassPlugin::instr_mainFunc_host(llvm::Function& MAIN, llvm::FunctionAnalysisManager &FAM)
+    {
+      // auto BB = llvm::BasicBlock::Create(MAIN.getContext(), "_BBscabbard_init");
+      auto CI = llvm::CallInst::Create(host.scabbard_init, "");
+      CI->insertBefore(&(*(MAIN.getEntryBlock().getFirstInsertionPt())));
+      // BB->insertInto(&MAIN, &MAIN.getEntryBlock());
+    }
+
 
     void ScabbardPassPlugin::instr_mem_func_host(const llvm::Function& F, 
                                                 llvm::Instruction& I, llvm::Value* V,

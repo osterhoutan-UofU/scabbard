@@ -1,0 +1,25 @@
+/**
+ * @file instr-names.def
+ * @author osterhoutan (osterhoutan+scabbard@gmail.com)
+ * @brief definitions that contain the static names of the instrumentation callback functions
+ * @version alpha 0.0.1
+ * @date 2023-06-14
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
+
+#ifndef _SCABBARD_INSTR_NAMES_DEF
+#define _SCABBARD_INSTR_NAMES_DEF
+
+#define SCABBARD_CALLBACK_INIT_NAME "scabbard::trace::scabbard_init"
+#define SCABBARD_CALLBACK_CLOSE_NAME "scabbard::trace::scabbard_close"
+
+#define SCABBARD_DEVICE_CALLBACK_APPEND_MEM_NAME "scabbard::trace::device::trace_append$mem"
+
+
+#define SCABBARD_HOST_CALLBACK_APPEND_MEM_NAME "scabbard::trace::host::trace_append$mem"
+#define SCABBARD_HOST_CALLBACK_APPEND_MEM_COND_NAME "scabbard::trace::host::trace_append$mem$cond"
+
+
+#endif

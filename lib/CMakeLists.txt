@@ -10,7 +10,7 @@ target_include_directories(scabbard
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     PRIVATE
-   ./include
+    ./include
     src
   )
 install(TARGETS scabbard EXPORT libscabbardConfig

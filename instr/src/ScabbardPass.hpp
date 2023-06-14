@@ -14,6 +14,8 @@
 
 #include "DepTrace.hpp"
 
+#include <scabbard/instr-names.def>
+
 #include <llvm/Pass.h> 
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Function.h>
@@ -50,14 +52,18 @@ namespace instr {
     std::string source_loc = "";
 
     struct {
-        llvm::Function* trace_append$mem = nullptr;
-        const std::string trace_append$mem_name = "_ZN8scabbard5trace4host16trace_append$memENS_9InstrDataEPKvS4_";
-        llvm::Function* trace_append$mem$cond = nullptr; 
-        const std::string trace_append$mem$cond_name = "_ZN8scabbard5trace4host21trace_append$mem$condENS_9InstrDataEPKvS4_";
+        llvm::FunctionCallee scabbard_init;
+        const std::string scabbard_init_name = SCABBARD_CALLBACK_INIT_NAME;
+        // llvm::FunctionCallee scabbard_close;
+        // const std::string scabbard_close_name = SCABBARD_CALLBACK_CLOSE_NAME;
+        llvm::FunctionCallee trace_append$mem;
+        const std::string trace_append$mem_name = SCABBARD_HOST_CALLBACK_APPEND_MEM_NAME;
+        llvm::FunctionCallee trace_append$mem$cond; 
+        const std::string trace_append$mem$cond_name = SCABBARD_HOST_CALLBACK_APPEND_MEM_COND_NAME;
       } host;
     struct {
-        llvm::Function* trace_append$mem = nullptr;
-        const std::string trace_append$mem_name = "_ZN8scabbard5trace6device16trace_append$memENS_9InstrDataEPKvS4_";
+        llvm::FunctionCallee trace_append$mem;
+        const std::string trace_append$mem_name = SCABBARD_DEVICE_CALLBACK_APPEND_MEM_NAME;
       } device;
 
 
@@ -107,35 +113,47 @@ namespace instr {
 
     /**
      * @brief just run coded specifically for kernel/device Modules
-     * @param F \c llvm::Module& - The device side Module to instrument
-     * @param FAM \c llvm::ModuleAnalysisManager& - The Analysis Manager for the Module
+     * @param M \c llvm::Module& - The device side Module to instrument
+     * @param MAM \c llvm::ModuleAnalysisManager& - The Analysis Manager for the Module
      */
     auto run_device(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
     /**
      * @brief just run coded specifically for host/CPU Modules
-     * @param F \c llvm::Module& - The device side Module to instrument
-     * @param FAM \c llvm::ModuleAnalysisManager& - The Analysis Manager for the Module
+     * @param M \c llvm::Module& - The device side Module to instrument
+     * @param MAM \c llvm::ModuleAnalysisManager& - The Analysis Manager for the Module
      */
     auto run_host(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
     /**
      * @brief just run coded specifically for kernel/device functions
      * @param F \c llvm::Function& - The device side function to instrument
      * @param FAM \c llvm::FunctionAnalysisManager& - The Analysis Manager for the function
-     * @return \c llvm::PreservedAnalyses - what has changed and what has not changed.
      */
     auto run_device(llvm::Function& F, llvm::FunctionAnalysisManager &FAM, const DepTraceDevice& DT) -> void;
     /**
      * @brief just run coded specifically for host/CPU functions
      * @param F \c llvm::Function& - The device side function to instrument
      * @param FAM \c llvm::FunctionAnalysisManager& - The Analysis Manager for the function
-     * @return \c llvm::PreservedAnalyses - what has changed and what has not changed.
      */
     auto run_host(llvm::Function& F, llvm::FunctionAnalysisManager &FAM, const DepTraceHost& DT) -> void;
 
-
-    auto add_instr_funcs_device(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
-    auto add_instr_funcs_host(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
-
+    /**
+     * @brief Instrument device module to have all necessary callback functions
+     * @param M \c llvm::Module& - The device side Module to instrument
+     * @param MAM \c llvm::ModuleAnalysisManager& - The Analysis Manager for the Module
+     */
+    auto instrCallbacks_device(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
+    /**
+     * @brief Instrument host module to have all necessary callback functions
+     * @param M \c llvm::Module& - The host side Module to instrument
+     * @param MAM \c llvm::ModuleAnalysisManager& - The Analysis Manager for the Module
+     */
+    auto instrCallbacks_host(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
+    /**
+     * @brief 
+     * @param F \c llvm::Function& - The device side function to instrument
+     * @param FAM \c llvm::FunctionAnalysisManager& - The Analysis Manager for the function
+     */
+    auto instr_mainFunc_host(llvm::Function& F, llvm::FunctionAnalysisManager &FAM) -> void;
 
     auto instr_call_device(const llvm::Function& F, llvm::CallInst* ci) -> void;
     auto instr_call_host(const llvm::Function& F, llvm::CallInst* ci) -> void;

@@ -27,7 +27,7 @@ define protected amdgpu_kernel void @_Z13__d_incrementPi(i32 addrspace(1)* nocap
   %12 = zext i32 %2 to i64, !dbg !1791
   %13 = getelementptr inbounds i32, i32 addrspace(1)* %0, i64 %12, !dbg !1791
   store i32 %11, i32 addrspace(1)* %13, align 4, !dbg !1792, !tbaa !1765
-  call void @"scabbard::instr::device.trace_append$mem"(i16 8324, i32 addrspace(1)* %13, metadata !1792)
+  call void @"scabbard::trace::device::trace_append$mem"(i16 8324, i32 addrspace(1)* %13, metadata !1792)
   ret void, !dbg !1793
 }
 
@@ -37,7 +37,7 @@ declare void @llvm.amdgcn.s.barrier() #1
 ; Function Attrs: mustprogress nofree nosync nounwind readnone speculatable willreturn
 declare i32 @llvm.amdgcn.workitem.id.x() #2
 
-declare available_externally void @"scabbard::instr::device.trace_append$mem"(i16, ptr addrspace(1), metadata)
+declare available_externally void @"scabbard::trace::device::trace_append$mem"(i16, ptr addrspace(1), metadata)
 
 attributes #0 = { convergent mustprogress norecurse nounwind willreturn "amdgpu-flat-work-group-size"="1,1024" "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="gfx1030" "target-features"="+16-bit-insts,+ci-insts,+dl-insts,+dot1-insts,+dot2-insts,+dot5-insts,+dot6-insts,+dot7-insts,+dpp,+flat-address-space,+gfx10-3-insts,+gfx10-insts,+gfx8-insts,+gfx9-insts,+s-memrealtime,+s-memtime-inst" "uniform-work-group-size"="true" }
 attributes #1 = { convergent mustprogress nounwind willreturn }
@@ -2069,11 +2069,11 @@ define dso_local void @_Z14norm_incrementPiS_m(i32* nocapture noundef writeonly 
   %26 = getelementptr inbounds i32, i32* %1, i64 %24, !dbg !2100
   %27 = bitcast i32* %26 to <4 x i32>*, !dbg !2100
   %28 = load <4 x i32>, <4 x i32>* %27, align 4, !dbg !2100, !tbaa !2101
-  call void @"scabbard::lib::host.trace_append$mem$cond"(i16 41, <4 x i32>* %27, metadata !2100)
+  call void @"scabbard::trace::host::trace_append$mem"(i16 41, <4 x i32>* %27, metadata !2100)
   %29 = getelementptr inbounds i32, i32* %26, i64 4, !dbg !2100
   %30 = bitcast i32* %29 to <4 x i32>*, !dbg !2100
   %31 = load <4 x i32>, <4 x i32>* %30, align 4, !dbg !2100, !tbaa !2101
-  call void @"scabbard::lib::host.trace_append$mem$cond"(i16 41, <4 x i32>* %30, metadata !2100)
+  call void @"scabbard::trace::host::trace_append$mem"(i16 41, <4 x i32>* %30, metadata !2100)
   %32 = add nsw <4 x i32> %28, <i32 1, i32 1, i32 1, i32 1>, !dbg !2103
   %33 = add nsw <4 x i32> %31, <i32 1, i32 1, i32 1, i32 1>, !dbg !2103
   %34 = or i64 %24, 1, !dbg !2099
@@ -2087,11 +2087,11 @@ define dso_local void @_Z14norm_incrementPiS_m(i32* nocapture noundef writeonly 
   %40 = getelementptr inbounds i32, i32* %1, i64 %39, !dbg !2100
   %41 = bitcast i32* %40 to <4 x i32>*, !dbg !2100
   %42 = load <4 x i32>, <4 x i32>* %41, align 4, !dbg !2100, !tbaa !2101
-  call void @"scabbard::lib::host.trace_append$mem$cond"(i16 41, <4 x i32>* %41, metadata !2100)
+  call void @"scabbard::trace::host::trace_append$mem"(i16 41, <4 x i32>* %41, metadata !2100)
   %43 = getelementptr inbounds i32, i32* %40, i64 4, !dbg !2100
   %44 = bitcast i32* %43 to <4 x i32>*, !dbg !2100
   %45 = load <4 x i32>, <4 x i32>* %44, align 4, !dbg !2100, !tbaa !2101
-  call void @"scabbard::lib::host.trace_append$mem$cond"(i16 41, <4 x i32>* %44, metadata !2100)
+  call void @"scabbard::trace::host::trace_append$mem"(i16 41, <4 x i32>* %44, metadata !2100)
   %46 = add nsw <4 x i32> %42, <i32 1, i32 1, i32 1, i32 1>, !dbg !2103
   %47 = add nsw <4 x i32> %45, <i32 1, i32 1, i32 1, i32 1>, !dbg !2103
   %48 = or i64 %24, 9, !dbg !2099
@@ -2115,11 +2115,11 @@ define dso_local void @_Z14norm_incrementPiS_m(i32* nocapture noundef writeonly 
   %60 = getelementptr inbounds i32, i32* %1, i64 %57, !dbg !2100
   %61 = bitcast i32* %60 to <4 x i32>*, !dbg !2100
   %62 = load <4 x i32>, <4 x i32>* %61, align 4, !dbg !2100, !tbaa !2101
-  call void @"scabbard::lib::host.trace_append$mem$cond"(i16 41, <4 x i32>* %61, metadata !2100)
+  call void @"scabbard::trace::host::trace_append$mem"(i16 41, <4 x i32>* %61, metadata !2100)
   %63 = getelementptr inbounds i32, i32* %60, i64 4, !dbg !2100
   %64 = bitcast i32* %63 to <4 x i32>*, !dbg !2100
   %65 = load <4 x i32>, <4 x i32>* %64, align 4, !dbg !2100, !tbaa !2101
-  call void @"scabbard::lib::host.trace_append$mem$cond"(i16 41, <4 x i32>* %64, metadata !2100)
+  call void @"scabbard::trace::host::trace_append$mem"(i16 41, <4 x i32>* %64, metadata !2100)
   %66 = add nsw <4 x i32> %62, <i32 1, i32 1, i32 1, i32 1>, !dbg !2103
   %67 = add nsw <4 x i32> %65, <i32 1, i32 1, i32 1, i32 1>, !dbg !2103
   %68 = or i64 %57, 1, !dbg !2099
@@ -2150,7 +2150,7 @@ define dso_local void @_Z14norm_incrementPiS_m(i32* nocapture noundef writeonly 
   call void @llvm.dbg.value(metadata i64 %83, metadata !2092, metadata !DIExpression()), !dbg !2095
   %85 = getelementptr inbounds i32, i32* %1, i64 %83, !dbg !2100
   %86 = load i32, i32* %85, align 4, !dbg !2100, !tbaa !2101
-  call void @"scabbard::lib::host.trace_append$mem$cond"(i16 41, i32* %85, metadata !2100)
+  call void @"scabbard::trace::host::trace_append$mem"(i16 41, i32* %85, metadata !2100)
   %87 = add nsw i32 %86, 1, !dbg !2103
   %88 = add nuw i64 %83, 1, !dbg !2099
   %89 = getelementptr inbounds i32, i32* %0, i64 %88, !dbg !2104
@@ -2173,7 +2173,7 @@ define dso_local void @_Z14norm_incrementPiS_m(i32* nocapture noundef writeonly 
   call void @llvm.dbg.value(metadata i64 %97, metadata !2092, metadata !DIExpression()), !dbg !2095
   %98 = getelementptr inbounds i32, i32* %1, i64 %97, !dbg !2100
   %99 = load i32, i32* %98, align 4, !dbg !2100, !tbaa !2101
-  call void @"scabbard::lib::host.trace_append$mem$cond"(i16 41, i32* %98, metadata !2100)
+  call void @"scabbard::trace::host::trace_append$mem"(i16 41, i32* %98, metadata !2100)
   %100 = add nsw i32 %99, 1, !dbg !2103
   %101 = add nuw i64 %97, 1, !dbg !2099
   %102 = getelementptr inbounds i32, i32* %0, i64 %101, !dbg !2104
@@ -2182,7 +2182,7 @@ define dso_local void @_Z14norm_incrementPiS_m(i32* nocapture noundef writeonly 
   call void @llvm.dbg.value(metadata i64 %101, metadata !2092, metadata !DIExpression()), !dbg !2095
   %103 = getelementptr inbounds i32, i32* %1, i64 %101, !dbg !2100
   %104 = load i32, i32* %103, align 4, !dbg !2100, !tbaa !2101
-  call void @"scabbard::lib::host.trace_append$mem$cond"(i16 41, i32* %103, metadata !2100)
+  call void @"scabbard::trace::host::trace_append$mem"(i16 41, i32* %103, metadata !2100)
   %105 = add nsw i32 %104, 1, !dbg !2103
   %106 = add nuw i64 %97, 2, !dbg !2099
   %107 = getelementptr inbounds i32, i32* %0, i64 %106, !dbg !2104
@@ -2191,7 +2191,7 @@ define dso_local void @_Z14norm_incrementPiS_m(i32* nocapture noundef writeonly 
   call void @llvm.dbg.value(metadata i64 %106, metadata !2092, metadata !DIExpression()), !dbg !2095
   %108 = getelementptr inbounds i32, i32* %1, i64 %106, !dbg !2100
   %109 = load i32, i32* %108, align 4, !dbg !2100, !tbaa !2101
-  call void @"scabbard::lib::host.trace_append$mem$cond"(i16 41, i32* %108, metadata !2100)
+  call void @"scabbard::trace::host::trace_append$mem"(i16 41, i32* %108, metadata !2100)
   %110 = add nsw i32 %109, 1, !dbg !2103
   %111 = add nuw i64 %97, 3, !dbg !2099
   %112 = getelementptr inbounds i32, i32* %0, i64 %111, !dbg !2104
@@ -2200,7 +2200,7 @@ define dso_local void @_Z14norm_incrementPiS_m(i32* nocapture noundef writeonly 
   call void @llvm.dbg.value(metadata i64 %111, metadata !2092, metadata !DIExpression()), !dbg !2095
   %113 = getelementptr inbounds i32, i32* %1, i64 %111, !dbg !2100
   %114 = load i32, i32* %113, align 4, !dbg !2100, !tbaa !2101
-  call void @"scabbard::lib::host.trace_append$mem$cond"(i16 41, i32* %113, metadata !2100)
+  call void @"scabbard::trace::host::trace_append$mem"(i16 41, i32* %113, metadata !2100)
   %115 = add nsw i32 %114, 1, !dbg !2103
   %116 = add nuw i64 %97, 4, !dbg !2099
   %117 = getelementptr inbounds i32, i32* %0, i64 %116, !dbg !2104
@@ -2212,6 +2212,7 @@ define dso_local void @_Z14norm_incrementPiS_m(i32* nocapture noundef writeonly 
 
 ; Function Attrs: norecurse uwtable
 define dso_local noundef i32 @main() local_unnamed_addr #3 !dbg !2114 {
+  call void @"scabbard::trace::scabbard_init"()
   call void @llvm.dbg.value(metadata i64 16384, metadata !2116, metadata !DIExpression()), !dbg !2131
   call void @llvm.dbg.value(metadata i64 16384, metadata !2117, metadata !DIExpression()), !dbg !2131
   %1 = tail call noalias noundef nonnull dereferenceable(65536) i8* @_Znam(i64 noundef 65536) #13, !dbg !2132, !heapallocsite !125
@@ -2520,7 +2521,9 @@ declare void @llvm.dbg.value(metadata, metadata, metadata) #10
 ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
 declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #11
 
-declare available_externally void @"scabbard::lib::host.trace_append$mem$cond"(i16, ptr, metadata)
+declare void @"scabbard::trace::scabbard_init"(void)
+
+declare void @"scabbard::trace::host::trace_append$mem"(i16, ptr, metadata)
 
 attributes #0 = { "frame-pointer"="none" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #1 = { nounwind "frame-pointer"="none" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }

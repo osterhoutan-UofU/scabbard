@@ -75,7 +75,25 @@
 ### **Q4:** How to instrument external modules and libs into an llvm IR module?
 
 
-#### **A:** ... 
+#### **A:** 
+  Looked into how Address Sanitizer works and they utilizes the builtin llvm 
+  [`compiler-rt`](https://github.com/llvm/llvm-project/tree/main/compiler-rt)
+  which we can't do until we are ready and sure this tool is worth upstream-ing.
+
+  The Breakdown of how `compiler-rt` supposedly works, 
+  is that it is a single library that gets compiled down to all supported architectures
+  (presumably as a static link library; _aka_ a library compiled to native code that is folded into 
+  the executable at compile time and not linked to dynamically for runtime linking).
+  Then during linking it is auto-magically included as a library to link to.
+
+  I am unsure if manually telling the compiler to link to our library is exactly replicating this process.
+  There are several reasons why:
+  - it is hard to tell from their cmake file if the compile to a static library
+  - when I compile our lib clang's C/C++ options mangle the names with the namespace 
+    and rest of the function signature 
+    (I have found a way to counter act this 
+    \[[stack-overflow](https://stackoverflow.com/questions/524633/how-can-i-avoid-name-mangling)\])
+  - 
 
 
   <br/><br/>

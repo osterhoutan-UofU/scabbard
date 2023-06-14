@@ -79,7 +79,7 @@ namespace scabbard {
     class AsyncQueue {
       
       /// @brief host side storage of the device ptr where the device side.
-      ///        NOTE: this is a device ptr and is set during __scabbard_init()
+      ///        NOTE: this is a device ptr and is set during scabbard_init()
       DeviceAsyncQueue* deviceQ = nullptr;        
       
       /// @brief array of the last place we read from when processing the device side async queue

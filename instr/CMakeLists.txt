@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(instr VERSION 0.1.0)
 
-configure_file(${CMAKE_SOURCE_DIR}/sub-version.h.config
+configure_file(${CMAKE_SOURCE_DIR}/config/sub-version.h.config
                 ./src/version.h)
 
 add_library(instr MODULE
@@ -11,6 +11,8 @@ add_library(instr MODULE
     src/DepTrace_DEVICE.cpp
     src/registry.cpp
   )
+add_dependencies(instr trace-device)
+
 add_library(testpass MODULE
     src/TestPass/TestPass.cpp
   )
@@ -21,15 +23,19 @@ add_library(testpass MODULE
 
 # add lib instr
 target_include_directories(instr
+    PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     PRIVATE
     src
-    ${CMAKE_CURRENT_BINARY_DIR}/../lib/include
+    ./include
+    ../lib/include
   )
 
 target_link_libraries(instr
-    PRIVATE
-    libscabbard
-    instrlib
+    PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../lib/libscabbard.so>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/libscabbard.so>
   )
 
 target_compile_features(instr PRIVATE cxx_range_for cxx_auto_type)
