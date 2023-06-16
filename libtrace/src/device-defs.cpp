@@ -41,22 +41,26 @@ namespace scabbard {
       }
       
       __device__ __noinline__
-      void trace_append$mem(InstrData data, const void* PTR, const void* METADATA)
+      void trace_append$mem(InstrData data, const void* PTR, const std::uint32_t* src_id, std::uint32_t line, std::uint32_t col)
       {
         const size_t lId = getLaneId();
         DEVICE_TRACE_LOGGER->data[lId].data[(++(DEVICE_TRACE_LOGGER->data[lId].next))  // atomic so increment should happen at same time as load/copy
-                  % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH] = TraceData(data,
+                  % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH] = TraceData(clock64(), data,
                                                                           blockIdx, threadIdx,
-                                                                          PTR, METADATA, 
-                                                                          clock64());
-        // *DEVICE_TRACE_LOGGER += TraceData(data,
-        //                                   blockIdx, threadIdx,
-        //                                   PTR, METADATA, 
-        //                                   clock64());
-        // DEVICE_TRACE_LOGGER->append(TraceData(data,
-        //                                       blockIdx, threadIdx,
-        //                                       PTR, METADATA, 
-        //                                       clock64()));
+                                                                          PTR, 
+                                                                         *src_id, line, col);
+      }
+
+      __device__ __noinline__
+      void trace_append$alloc(InstrData data, const void* PTR, const std::uint32_t* src_id, std::uint32_t line, std::uint32_t col, std::size_t size)
+      {
+        const size_t lId = getLaneId();
+        DEVICE_TRACE_LOGGER->data[lId].data[(++(DEVICE_TRACE_LOGGER->data[lId].next))  // atomic so increment should happen at same time as load/copy
+                  % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH] = TraceData(clock64(), data,
+                                                                          blockIdx, threadIdx,
+                                                                          PTR, 
+                                                                          *src_id, line, col, 
+                                                                          size);
       }
 
 

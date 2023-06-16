@@ -17,7 +17,7 @@
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [],
+            "environment": [{"name": "SCABBARD_PATH", "value":"${workspaceFolder}/build/libtrace"}],
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
@@ -41,7 +41,7 @@
             "program": "/opt/rocm-5.4.3/llvm/bin/clang-15", // point to debug build of opt
             "args": [
                 "-cc1","-triple","x86_64-unknown-linux-gnu","-aux-triple","amdgcn-amd-amdhsa",
-                "-emit-llvm","-disable-free","-clear-ast-before-backend","-disable-llvm-verifier",
+                "-disable-free","-clear-ast-before-backend","-disable-llvm-verifier",
                 "-discard-value-names","-main-file-name","test.cpp","-mrelocation-model","static",
                 "-mframe-pointer=none","-fmath-errno","-fno-rounding-math","-mconstructor-aliases",
                 "-funwind-tables=2","-target-cpu","x86-64","-tune-cpu","generic",
@@ -72,14 +72,15 @@
                 "-O3","-std=c++17","-fdeprecated-macro","-fdebug-compilation-dir=/home/oster/repos/scabbard",
                 "-ferror-limit","19","-fhip-new-launch-api","-fgnuc-version=4.2.1","-no-opaque-pointers",
                 "-fcxx-exceptions","-fexceptions","-fcolor-diagnostics","-vectorize-loops","-vectorize-slp",
-                "-fpass-plugin=build/instr/libinstr.so","-mllvm","-amdgpu-early-inline-all=true",
-                "-mllvm","-amdgpu-function-calls=false","-cuid=433677c6144bdd1a",
+                "-mllvm","-amdgpu-early-inline-all=true","-mllvm","-amdgpu-function-calls=false","-cuid=433677c6144bdd1a",
                 "-fcuda-allow-variadic-functions","-faddrsig","-D__GCC_HAVE_DWARF2_CFI_ASM=1",
-                "-o","/tmp/test-14eca3.ll","-x","hip","test/test.cpp"
+                "-fpass-plugin=build/instr/libinstr.so",
+                "-WL,-L${workspaceFolder}/build/libtrace",
+                "-o","${workspaceFolder}/test/test.instr.out","-x","hip","test/test.cpp"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [],
+            "environment": [{"name": "SCABBARD_PATH", "value":"${workspaceFolder}/build/libtrace"}],
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
@@ -107,7 +108,7 @@
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [],
+            "environment": [{"name": "SCABBARD_PATH", "value":"${workspaceFolder}/build/libtrace"}],
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [

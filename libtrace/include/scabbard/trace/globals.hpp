@@ -12,13 +12,14 @@
 #pragma once
 
 #include <scabbard/trace/AsyncQueue.hpp>
-#include <scabbard/trace/TraceWriter.hpp>
+#include <scabbard/trace/MetadataStrore.hpp>
 
 namespace scabbard {
   namespace trace {
 
     extern AsyncQueue TRACE_LOGGER;
     extern __device__ DeviceAsyncQueue* DEVICE_TRACE_LOGGER;
+    extern MetadataStore METADATA_STORE;
   
   } //?namespace trace
 } //?namespace scabbard

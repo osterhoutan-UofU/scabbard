@@ -128,6 +128,10 @@
 
 
 #### **A:** Depends _(see conditions below)_ 
+
+  Dependent on class of memory and the prescribed address space 
+  \[[doc](https://llvm.org/docs/AMDGPUUsage.html#address-spaces)\].
+
   - **Managed Mem:** yes (though the global will contain a pointer to the managed mem which will be the same on both host and devices, but that global's address will be different on host and devices)
   - **Registered Host Mem:** System dependent \[[doc](https://docs.amd.com/bundle/HIP_API_5/page/group___memory.html#gab8258f051e1a1f7385f794a15300e674)\]
   - **Device Mem:** Yes always

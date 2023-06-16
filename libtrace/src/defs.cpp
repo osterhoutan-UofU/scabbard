@@ -14,6 +14,7 @@
 #include <scabbard/trace/globals.hpp>
 #include <scabbard/trace/AsyncQueue.hpp>
 #include <scabbard/trace/TraceWriter.hpp>
+#include <scabbard/Metadata.hpp>
 
 #include <hip/hip_ext.h>
 #include <hip/hip_runtime_api.h>
@@ -98,50 +99,22 @@ namespace scabbard {
     
     // << ======================================== Device ========================================== >> 
 
-    //NOTE: moved to device-defs.cpp for crosswise compilation
-    // namespace device {
-
-    //   __device__ inline 
-    //   size_t getLaneId() // const
-    //   {
-    //     return (size_t)(((blockDim.x*blockIdx.x) + (blockDim.y*blockIdx.y) + (blockDim.z*blockIdx.z)
-    //             + threadIdx.x + threadIdx.y + threadIdx.z) % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT);
-    //   }
-      
-    //   __device__ __noinline__
-    //   void trace_append$mem(InstrData data, const void* PTR, const void* METADATA)
-    //   {
-    //     const size_t lId = getLaneId();
-    //     DEVICE_TRACE_LOGGER->data[lId].data[(++(DEVICE_TRACE_LOGGER->data[lId].next))  // atomic so increment should happen at same time as load/copy
-    //               % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH] = TraceData(data,
-    //                                                                       blockIdx, threadIdx,
-    //                                                                       PTR, METADATA, 
-    //                                                                       clock64());
-    //     // *DEVICE_TRACE_LOGGER += TraceData(data,
-    //     //                                   blockIdx, threadIdx,
-    //     //                                   PTR, METADATA, 
-    //     //                                   clock64());
-    //     // DEVICE_TRACE_LOGGER->append(TraceData(data,
-    //     //                                       blockIdx, threadIdx,
-    //     //                                       PTR, METADATA, 
-    //     //                                       clock64()));
-    //   }
-
-
-    // } //?namespace device
+    namespace device {
+      //NOTE: moved to device-defs.cpp for crosswise compilation
+    } //?namespace device
 
 
     // << ========================================= Host =========================================== >> 
     namespace host {
 
       __host__ 
-      void trace_append$mem(InstrData data, const void* PTR, const void* METADATA)
+      void trace_append$mem(InstrData data, const void* PTR, const std::uint32_t* src_id, std::uint32_t line, std::uint32_t col)
       {
-        TRACE_LOGGER.append(TraceData(data, PTR, METADATA));
+        TRACE_LOGGER.append(TraceData(data, PTR, {src_id, line,col}));
       }
 
       __host__ 
-      void trace_append$mem$cond(InstrData data, const void* PTR, const void* METADATA)
+      void trace_append$mem$cond(InstrData data, const void* PTR, const std::uint32_t* src_id, std::uint32_t line, std::uint32_t col)
       {
         hipPointerAttribute_t* attrs;
         const auto status = hipPointerGetAttributes(attrs,PTR);
@@ -153,7 +126,7 @@ namespace scabbard {
           } else {
             data |= InstrData::DEVICE_HEAP;
           }
-          trace_append$mem(data,PTR,METADATA);
+          trace_append$mem(data,PTR, src_id, line,col);
         } else {
           std::cerr << "\n[scabbard::trace::cond::ERROR] could not get the properties of a pointer with `hipPointerGetAttributes()`!\n"
                     << std::endl;
@@ -161,6 +134,12 @@ namespace scabbard {
             exit(EXIT_FAILURE);
 #         endif
         }
+      }
+
+      __host__ 
+      void trace_append$alloc(InstrData data, const void* PTR, const std::uint32_t* src_id, std::uint32_t line, std::uint32_t col, std::size_t size)
+      {
+        TRACE_LOGGER.append(TraceData(data, PTR, {src_id, line,col}, size));
       }
       
     } // namespace host

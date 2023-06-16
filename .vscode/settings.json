@@ -99,7 +99,8 @@
         "__mutex_base": "cpp",
         "*.config": "cpp",
         "locale": "cpp",
-        "version": "cpp"
+        "version": "cpp",
+        "iostream": "cpp"
     },
     "cSpell.words": [
         "amdgcn",

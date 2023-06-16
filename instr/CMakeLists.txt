@@ -9,6 +9,7 @@ add_library(instr MODULE
     src/DepTrace.cpp
     src/DepTrace_HOST.cpp
     src/DepTrace_DEVICE.cpp
+    src/MetadataHandler.cpp
     src/registry.cpp
   )
 add_dependencies(instr trace-device)

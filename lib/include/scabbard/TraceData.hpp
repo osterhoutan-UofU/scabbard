@@ -13,6 +13,7 @@
 #pragma once
 
 #include "Enums.hpp"
+#include "Metadata.hpp"
 
 #ifdef __scabbard_hip_compile
 # include <hip/hip_ext.h>
@@ -36,12 +37,6 @@ struct blockId_t {
   uint32_t x = 0u;
   uint16_t y = 0u;
   uint16_t z = 0u;
-  // __device__ blockId_t()
-  // {
-  //   x = blockIdx.x;  
-  //   y = blockIdx.y;
-  //   z = blockIdx.z;
-  // }
 # ifdef __scabbard_hip_compile
     __host__ __device__ 
     inline blockId_t(const dim3& blockId)
@@ -54,19 +49,13 @@ struct blockId_t {
     {}
 };
 #pragma pack()
-// static_assert(sizeof(blockId_t) <= __WORDSIZE, "blockId_t is of the correct size");
+static_assert(sizeof(blockId_t) <= __WORDSIZE, "blockId_t is of the correct size");
 
 #pragma pack(1)
 struct threadId_t {
   uint16_t x;
   uint16_t y;
   uint8_t z;
-  // __device__ threadId_t()
-  // {
-  //   x = threadIdx.x;  
-  //   y = threadIdx.y;
-  //   z = threadIdx.z;
-  // }
 # ifdef __scabbard_hip_compile
     __host__ __device__ 
     inline threadId_t(const dim3& threadId)
@@ -79,7 +68,7 @@ struct threadId_t {
     {}
 };
 #pragma pack()
-// static_assert(sizeof(threadId_t) <= __WORDSIZE, "threadId_t is of the correct size");
+static_assert(sizeof(threadId_t) <= __WORDSIZE, "threadId_t is of the correct size");
 
 struct DeviceThreadId {
   blockId_t block;
@@ -126,16 +115,29 @@ union ThreadId {
 };
 static_assert(sizeof(ThreadId) <= __WORDSIZE*2, "ThreadID is of the correct size");
 
+template<typename T>
+inline const T& reading_cast(const char* buffer, const std::size_t index, const std::size_t WORD_LEN)
+{
+  return *static_cast<T*>(buffer[index*(WORD_LEN/8)]);
+}
+template<typename T>
+inline const T& reading_cast(const char* buffer, const std::size_t offset, const std::size_t size, const std::size_t WORD_LEN)
+{
+  return *static_cast<T*>(reinterpret_cast<oldT*>(buffer[offset]));
+}
+
+
 
 struct TraceData {
-  // DATA
-  const InstrData     data        = InstrData::NEVER;
-  const ThreadId      threadId    = ((void*)nullptr);
-  const void*         ptr         = nullptr;
-  const void*         metadata    = nullptr; //TODO update this with whatever type llvm metadata ends up having
-        size_t        time_stamp  = 0ul;
-  const size_t        _BUFFER     = 0ul;
-
+  using LocMData_t = ::scabbard::LocationMetadata;
+  //DATA TYPE         NAME          DEFAULT VALUE          SIZE       W/PADDING (64b arch)
+  const std::size_t   time_stamp  = 0ul;                //  8B ( 64b)  8B ( 64b)
+  const InstrData     data        = InstrData::NEVER;   //  2B ( 16b)  8B ( 64b)
+  const ThreadId      threadId    = ((void*)nullptr);   // 16B (128b) 16B (128b)
+  const void*         ptr         = nullptr;            //  8B ( 64b)  8B ( 64b)
+  const LocMData_t    metadata    = {0ul,0ul,0ul};      // 24B (192b) 24B (192b)
+  const std::size_t   _OPT_DATA   = 0ul;                //  8B ( 64b)  8B ( 64b)
+  //                                              TOTALS:  66B (528b) 72B (576b)
   // Constructors
 # ifdef __scabbard_hip_compile
     __host__ __device__ 
@@ -145,25 +147,31 @@ struct TraceData {
     __host__ __device__ 
 # endif
   TraceData(const TraceData& other) { std::memcpy(this, &other, sizeof(TraceData)); }
-# ifdef __scabbard_hip_compile
-  __device__ TraceData(InstrData data_, 
+# ifndef __scabbard_hip_compile
+  TraceData(const void* src_ptr) { std::memcpy(this, src_ptr, sizeof(TraceData)); }
+  TraceData(const char* buffer) : TraceData(reinterpret_cast<void*>(buffer)) {}
+  // only use this constructor if WORD_LEN in file trace file is different from system __WORDSIZE
+  TraceData(const char* buffer, const size_t WORD_LEN);
+# else
+  __device__ TraceData(const std::size_t time_stamp_, InstrData data_, 
                         const dim3& blockId_, const dim3 threadId_,
-                        const void* ptr_, const void* metadata_,
-                        const size_t time_stamp_)
-    : data(data_), threadId(blockId_, threadId_), 
-      ptr(ptr_), metadata(metadata_), time_stamp(time_stamp_)
+                        const void* ptr_, 
+                        const std::size_t src_id, std::uint32_t line, std::uint32_t col,
+                        const std::size_t size_=0ul)
+    : time_stamp(time_stamp_), data(data_), threadId(blockId_, threadId_), 
+      ptr(ptr_), metadata({src_id,line,col}), _OPT_DATA(size_)
     {}
     __host__ __device__ 
-  __host__ TraceData(InstrData data_, const void* ptr_, const void* metadata_)
-    : data(data_), threadId(), ptr(ptr_), metadata(metadata_), 
-      time_stamp(std::chrono::high_resolution_clock::now().time_since_epoch().count())
+  __host__ TraceData(InstrData data_, const void* ptr_, const LocMData_t& metadata_, std::size_t opt_data=0ul)
+    : time_stamp(std::chrono::high_resolution_clock::now().time_since_epoch().count()),
+      data(data_), threadId(), ptr(ptr_), metadata(metadata_), _OPT_DATA(opt_data)
   {}
   __host__ 
 # endif
-  TraceData(InstrData data_, const ThreadId& threadId_,
-                     void* ptr_, void* metadata_, size_t time_stamp_)
-    : data(data_), threadId(threadId_),
-      ptr(ptr_), metadata(metadata_), time_stamp(time_stamp_)
+  TraceData(size_t time_stamp_, InstrData data_, const ThreadId& threadId_,
+                     void* ptr_, const LocMData_t& metadata_, std::size_t opt_data)
+    : time_stamp(time_stamp_), data(data_), threadId(threadId_),
+      ptr(ptr_), metadata(metadata_), _OPT_DATA(opt_data)
   {}
 # ifdef __scabbard_hip_compile
     __host__ __device__ 

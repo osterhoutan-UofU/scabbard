@@ -13,6 +13,7 @@
 #pragma once
 
 #include "DepTrace.hpp"
+#include "MetadataHandler.hpp"
 
 #include <scabbard/instr-names.def>
 
@@ -50,20 +51,41 @@ namespace instr {
   struct ScabbardPassPlugin : llvm::PassInfoMixin<ScabbardPassPlugin> {
   protected:
     std::string source_loc = "";
+    std::size_t archBit = 64;
+
+    MetadataHandler metadata;
 
     struct {
+        llvm::FunctionCallee module_ctor;
+        const std::string module_ctor_name = SCABBARD_CALLBACK_MODULE_CTOR_NAME;
+        llvm::FunctionCallee module_dtor;
+        const std::string module_dtor_name = SCABBARD_CALLBACK_MODULE_DTOR_NAME;
+
         llvm::FunctionCallee scabbard_init;
         const std::string scabbard_init_name = SCABBARD_CALLBACK_INIT_NAME;
         // llvm::FunctionCallee scabbard_close;
         // const std::string scabbard_close_name = SCABBARD_CALLBACK_CLOSE_NAME;
+        llvm::FunctionCallee metadata_register$src;
+        const std::string metadata_register$src_name = SCABBARD_CALLBACK_REGISTER_SRC_NAME;
+        llvm::FunctionCallee metadata_unregister$src;
+        const std::string metadata_unregister$src_name = SCABBARD_CALLBACK_UNREGISTER_SRC_NAME;
+        // llvm::FunctionCallee metadata_register$loc;
+        // const std::string metadata_register$loc_name = SCABBARD_CALLBACK_REGISTER_LOC_NAME;
+        // llvm::FunctionCallee metadata_unregister$loc;
+        // const std::string metadata_unregister$loc_name = SCABBARD_CALLBACK_UNREGISTER_LOC_NAME;
+
         llvm::FunctionCallee trace_append$mem;
         const std::string trace_append$mem_name = SCABBARD_HOST_CALLBACK_APPEND_MEM_NAME;
         llvm::FunctionCallee trace_append$mem$cond; 
         const std::string trace_append$mem$cond_name = SCABBARD_HOST_CALLBACK_APPEND_MEM_COND_NAME;
+        llvm::FunctionCallee trace_append$alloc;
+        const std::string trace_append$alloc_name = SCABBARD_HOST_CALLBACK_APPEND_ALLOC_NAME;
       } host;
     struct {
         llvm::FunctionCallee trace_append$mem;
         const std::string trace_append$mem_name = SCABBARD_DEVICE_CALLBACK_APPEND_MEM_NAME;
+        llvm::FunctionCallee trace_append$alloc;
+        const std::string trace_append$alloc_name = SCABBARD_DEVICE_CALLBACK_APPEND_ALLOC_NAME;
       } device;
 
 
@@ -73,15 +95,6 @@ namespace instr {
     // ScabbardPassPlugin(const std::string& InstrLibLoc);
     // ~ScabbardPassPlugin() = default;
 
-    // /**
-    // * @brief \em fn \c run : (llvm::Function& -> bool) \n
-    // *        The \c runOnFunction method must be implemented by your subclass to do the transformation 
-    // *         or analysis work of your pass. 
-    // *        As usual, a \c true value should be returned if the function is modified.
-    // * @param M \c llvm::Module& - The module being processed
-    // * @return \c llvm::PreservedAnalyses - the relevant analysis that are still valid
-    // */
-    // llvm::PreservedAnalyses run(llvm::Function &F, llvm::FunctionAnalysisManager &FAM);
     /**
      * @brief \em fn \c run : (llvm::Module& -> bool) \n
      *        The \c doInitialization method is allowed to do most of the things that \c FunctionPasses
@@ -154,6 +167,26 @@ namespace instr {
      * @param FAM \c llvm::FunctionAnalysisManager& - The Analysis Manager for the function
      */
     auto instr_mainFunc_host(llvm::Function& F, llvm::FunctionAnalysisManager &FAM) -> void;
+
+    /**
+     * @brief Fill in the contents of the module ctor and add it to \c @llvm.global_ctors 
+     * @param M \c llvm::Module& - The host side Module to instrument
+     * @param MAM \c llvm::ModuleAnalysisManager& - The Analysis Manager for the Module
+     */
+    auto instr_module_ctor_host(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
+
+    /**
+     * @brief Instrument host module to have all necessary globals for processing metadata at runtime
+     * @param M \c llvm::Module& - The host side Module to instrument
+     * @param MAM \c llvm::ModuleAnalysisManager& - The Analysis Manager for the Module
+     */
+    auto instrMetadata_host(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
+    /**
+     * @brief Instrument device module to have all necessary globals for processing metadata at runtime
+     * @param M \c llvm::Module& - The host side Module to instrument
+     * @param MAM \c llvm::ModuleAnalysisManager& - The Analysis Manager for the Module
+     */
+    auto instrMetadata_device(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
 
     auto instr_call_device(const llvm::Function& F, llvm::CallInst* ci) -> void;
     auto instr_call_host(const llvm::Function& F, llvm::CallInst* ci) -> void;
