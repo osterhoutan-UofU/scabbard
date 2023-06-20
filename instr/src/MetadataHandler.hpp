@@ -38,7 +38,7 @@ namespace scabbard {
       llvm::GlobalVariable* src_id_ptr_host = nullptr;
       llvm::GlobalVariable* src_id_ptr_device = nullptr;
       llvm::GlobalVariable* src_id_ptr_device_host = nullptr;
-      llvm::ConstantData* src_filepath_str = nullptr;
+      llvm::GlobalVariable* src_filepath_str = nullptr;
       // llvm::DIFile* debugInfo_host = nullptr;
       // llvm::DIFile* debugInfo_device = nullptr;
     };
