@@ -6,6 +6,18 @@
 
 -[ ] ...
 
+```ll
+tail call void @__hipRegisterVar(
+  i8** %6,                                                              ; fatCubinHandle
+  i8* bitcast (i64* @__d_val__ to i8*),                                 ; hostVar
+  i8* getelementptr inbounds ([10 x i8], [10 x i8]* @2, i64 0, i64 0),  ; deviceAddress 
+  i8* getelementptr inbounds ([10 x i8], [10 x i8]* @2, i64 0, i64 0),  ; deviceName
+  i32 0,                                                                ; ext
+  i64 8,                                                                ; size
+  i32 0,                                                                ; constant
+  i32 0                                                                 ; global
+)
+```
 
 
  Design Decisions:

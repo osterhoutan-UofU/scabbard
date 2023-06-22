@@ -32,4 +32,10 @@
 #define SCABBARD_HOST_CALLBACK_APPEND_ALLOC_NAME "scabbard.trace.host.trace_append$alloc"
 
 
+#define SCABBARD_METADATA_INSTR_srcId_VAR_HOST_PREFIX "scabbard.metadata.host.srcId$"
+#define SCABBARD_METADATA_INSTR_srcPath_VAR_HOST_PREFIX "scabbard.metadata.srcFilePath$"
+#define SCABBARD_METADATA_INSTR_srcId_VAR_DEVICE_PREFIX "scabbard.metadata.device.srcId$"
+
+
+
 #endif

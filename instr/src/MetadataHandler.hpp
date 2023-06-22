@@ -20,43 +20,60 @@
 
 #include <string>
 #include <cstdint>
-#include <map>
+#include <unordered_map>
 
 namespace scabbard {
   namespace instr {
 
-
+    class ScabbardPassPlugin;
 
     struct LocResult {
-      const llvm::GlobalVariable* src_id_ptr = nullptr;
-      const std::uint32_t line;
-      const std::uint32_t col;
+      llvm::GlobalVariable* src_id_ptr = nullptr;
+      std::uint32_t line;
+      std::uint32_t col;
+      llvm::Constant* getLineAsConstant(llvm::LLVMContext& CTX) const;
+      llvm::Constant* getColAsConstant(llvm::LLVMContext& CTX) const;
     };
 
 
     struct MetadataStore {
+      /// @brief global variable for the host
       llvm::GlobalVariable* src_id_ptr_host = nullptr;
+      /// @brief global variable for the device 
       llvm::GlobalVariable* src_id_ptr_device = nullptr;
+      /// @brief host side copy to the device side global
       llvm::GlobalVariable* src_id_ptr_device_host = nullptr;
+      /// @brief host side constant holding the device side variable name
+      llvm::GlobalVariable* src_id_ptr_device_host_name = nullptr;
+      /// @brief host side constant global for the source filepath
       llvm::GlobalVariable* src_filepath_str = nullptr;
-      // llvm::DIFile* debugInfo_host = nullptr;
-      // llvm::DIFile* debugInfo_device = nullptr;
+      /// @brief the last module this store was called for (and where in all relevant values reside)
+      llvm::Module* last_module = nullptr;
+      std::string hex_id_str = "";
     };
 
     class MetadataHandler {
 
-      std::map<std::string,MetadataStore> traced_files;
+      typedef std::unordered_map<std::string,MetadataStore> MetadataMap;
+
+      MetadataMap traced_files;
+      size_t next = 0ul;
       
 
     public:
 
-      inline LocResult trace(llvm::Function& F, const llvm::DebugLoc* DI, bool is_device=false);
+      inline LocResult trace(llvm::Function& F, const llvm::DebugLoc& DI, bool is_device=false);
+
+      const MetadataMap& getMetadataMap() const { return traced_files; }
 
     protected:
 
       template<class DINode_t>
-      const llvm::GlobalVariable* _trace(llvm::Function& F, const DINode_t* DI, bool is_device);
+      llvm::GlobalVariable* _trace(llvm::Function& F, const DINode_t* DI, bool is_device);
 
+
+    private:
+      void encode_variables(MetadataStore& data, llvm::Module& M, const std::string& filepath, bool is_device);
 
     };
 

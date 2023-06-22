@@ -56,9 +56,9 @@ namespace instr {
     MetadataHandler metadata;
 
     struct {
-        llvm::FunctionCallee module_ctor;
+        llvm::Function* module_ctor = nullptr;
         const std::string module_ctor_name = SCABBARD_CALLBACK_MODULE_CTOR_NAME;
-        llvm::FunctionCallee module_dtor;
+        llvm::Function* module_dtor = nullptr;
         const std::string module_dtor_name = SCABBARD_CALLBACK_MODULE_DTOR_NAME;
 
         llvm::FunctionCallee scabbard_init;
@@ -175,19 +175,6 @@ namespace instr {
      */
     auto instr_module_ctor_host(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
 
-    /**
-     * @brief Instrument host module to have all necessary globals for processing metadata at runtime
-     * @param M \c llvm::Module& - The host side Module to instrument
-     * @param MAM \c llvm::ModuleAnalysisManager& - The Analysis Manager for the Module
-     */
-    auto instrMetadata_host(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
-    /**
-     * @brief Instrument device module to have all necessary globals for processing metadata at runtime
-     * @param M \c llvm::Module& - The host side Module to instrument
-     * @param MAM \c llvm::ModuleAnalysisManager& - The Analysis Manager for the Module
-     */
-    auto instrMetadata_device(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
-
     auto instr_call_device(const llvm::Function& F, llvm::CallInst* ci) -> void;
     auto instr_call_host(const llvm::Function& F, llvm::CallInst* ci) -> void;
     
@@ -199,10 +186,10 @@ namespace instr {
                                 const llvm::FunctionType& FnTy, const llvm::StringRef FnName) -> void;
 
     
-    auto instr_mem_func_device(const llvm::Function& F, 
+    auto instr_mem_func_device(llvm::Function& F, 
                                llvm::Instruction& I, llvm::Value* V, 
                                const InstrData& data, bool InsertAfter=true) -> void;
-    auto instr_mem_func_host(const llvm::Function& F, 
+    auto instr_mem_func_host(llvm::Function& F, 
                               llvm::Instruction& I, llvm::Value* V, 
                               const InstrData& data, bool InsertAfter=true) -> void;
     
