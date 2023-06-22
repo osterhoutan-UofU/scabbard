@@ -22,6 +22,7 @@
 #include <llvm/Linker/Linker.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Metadata.h>
+#include <llvm/Transforms/Utils/ModuleUtils.h>
 
 #define DEBUG_TYPE "scabbard"
 
@@ -61,7 +62,6 @@ namespace scabbard {
     void ScabbardPassPlugin::run_device(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
     {
       instrCallbacks_device(M, MAM);
-      instrMetadata_device(M,MAM);
       llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
         .getManager();
       DepTraceDevice dt(M);
@@ -111,7 +111,6 @@ namespace scabbard {
     {
       //TODO make any necessary additions to the Module (i.e.inserting globals and linking references)
       instrCallbacks_host(M, MAM);
-      instrMetadata_host(M, MAM);
       //TODO process and store dgb metadata tables (or skip this and just read directly from binary latter)
       llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
         .getManager();
@@ -121,6 +120,7 @@ namespace scabbard {
       DepTraceHost dt(M);
       for (auto& f : M.getFunctionList())
         run_host(f, fam, dt);
+      instr_module_ctor_host(M, MAM);
     }
 
     void ScabbardPassPlugin::instrCallbacks_host(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
@@ -250,10 +250,24 @@ namespace scabbard {
                 })
             );
           IRB.CreateStore(regCall, mde.src_id_ptr_host);
-          if (gpuBin != nullptr)
-            IRB.Create
+          if (gpuBin != nullptr) {
+            IRB.CreateCall(M.getFunction("__hipRegisterVar"),
+                            llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,8>{
+                              gpuBin,
+                              llvm::ConstantExpr::getBitCast(mde.src_id_ptr_device_host, IRB.getInt8PtrTy()),
+                              mde.src_id_ptr_device_host_name,
+                              mde.src_id_ptr_device_host_name,
+                              IRB.getInt32(0u),
+                              IRB.getInt32(8u),
+                              IRB.getInt32(0u),
+                              IRB.getInt32(0u),
+                            }));
+            IRB.CreateStore(regCall, mde.src_id_ptr_device_host);
+          }
         }
       }
+      // register the ctor with a "low priority" so it goes after all other ctors
+      llvm::appendToGlobalCtors(M, host.module_ctor, UINT32_MAX);
     }
 
 

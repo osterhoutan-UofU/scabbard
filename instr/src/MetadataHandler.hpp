@@ -44,9 +44,9 @@ namespace scabbard {
       /// @brief host side copy to the device side global
       llvm::GlobalVariable* src_id_ptr_device_host = nullptr;
       /// @brief host side constant holding the device side variable name
-      llvm::GlobalVariable* src_id_ptr_device_host_name = nullptr;
+      llvm::Constant* src_id_ptr_device_host_name = nullptr;
       /// @brief host side constant global for the source filepath
-      llvm::GlobalVariable* src_filepath_str = nullptr;
+      llvm::Constant* src_filepath_str = nullptr;
       /// @brief the last module this store was called for (and where in all relevant values reside)
       llvm::Module* last_module = nullptr;
       std::string hex_id_str = "";

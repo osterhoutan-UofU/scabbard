@@ -113,22 +113,21 @@ namespace scabbard {
         data.src_id_ptr_host->setInitializer(llvm::Constant::getIntegerValue(int64_ty, llvm::APInt(0u, 64ul)));
         data.src_id_ptr_host->setLinkage(llvm::GlobalValue::LinkageTypes::PrivateLinkage);
         // output filepath name to global space
-        data.src_filepath_str = llvm::dyn_cast_or_null<llvm::GlobalVariable>(M.getOrInsertGlobal(SCABBARD_METADATA_INSTR_srcPath_VAR_HOST(data.hex_id_str), charArr_ty));
-        std::vector<llvm::Value*> filename_arr;
-        std::transform(filepath.begin(), filepath.end(), filename_arr.begin(),
-                        [&](char val) -> llvm::Constant* { return llvm::Constant::getIntegerValue(char_ty, llvm::APSInt::get(val)); });
-        filename_arr.push_back(llvm::Constant::getIntegerValue(char_ty, llvm::APSInt::get(0)));
-        data.src_filepath_str->setInitializer(llvm::ConstantDataArray::get(M.getContext(), llvm::makeArrayRef(filename_arr)));
-        data.src_filepath_str->setLinkage(llvm::GlobalValue::LinkageTypes::PrivateLinkage);
+        // data.src_filepath_str = llvm::dyn_cast_or_null<llvm::GlobalVariable>(M.getOrInsertGlobal(SCABBARD_METADATA_INSTR_srcPath_VAR_HOST(data.hex_id_str), charArr_ty));
+        // std::vector<llvm::Value*> filename_arr;
+        // std::transform(filepath.begin(), filepath.end(), filename_arr.begin(),
+        //                 [&](char val) -> llvm::Constant* { return llvm::Constant::getIntegerValue(char_ty, llvm::APSInt::get(val)); });
+        // filename_arr.push_back(llvm::Constant::getIntegerValue(char_ty, llvm::APSInt::get(0)));
+        // data.src_filepath_str->setInitializer(llvm::ConstantDataArray::get(M.getContext(), llvm::makeArrayRef(filename_arr)));
+        // data.src_filepath_str->setLinkage(llvm::GlobalValue::LinkageTypes::PrivateLinkage);
+        data.src_filepath_str = IRB.CreateGlobalStringPtr(filepath, SCABBARD_METADATA_INSTR_srcPath_VAR_HOST(filepath));
         // make host copy of device side global
         if (data.src_id_ptr_device != nullptr) {
+          if (data.src_id_ptr_device_host == nullptr)
+            data.src_id_ptr_device_host_name = IRB.CreateGlobalStringPtr(SCABBARD_METADATA_INSTR_srcId_VAR_DEVICE(data.hex_id_str), SCABBARD_METADATA_INSTR_srcId_VAR_DEVICE_NAME(filepath));
           data.src_id_ptr_device_host = llvm::dyn_cast_or_null<llvm::GlobalVariable>(M.getOrInsertGlobal(SCABBARD_METADATA_INSTR_srcId_VAR_DEVICE(data.hex_id_str), int64_ty));
           data.src_id_ptr_device_host->setInitializer(llvm::Constant::getIntegerValue(int64_ty, llvm::APInt(0u, 64ul)));
           data.src_id_ptr_device_host->setLinkage(llvm::GlobalValue::LinkageTypes::PrivateLinkage);
-          if (data.src_id_ptr_device_host == nullptr) {
-            charArr_ty = llvm::ArrayType::get(char_ty, 29u);
-            data.src_id_ptr_device_host_name = llvm::dyn_cast_or_null<llvm::GlobalVariable>(M.getOrInsertGlobal(SCABBARD_METADATA_INSTR_srcId_VAR_DEVICE_NAME(data.hex_id_str), charArr_ty));
-          }
         }
       }
     }
