@@ -108,13 +108,13 @@ namespace scabbard {
     namespace host {
 
       __host__ 
-      void trace_append$mem(InstrData data, const void* PTR, const std::uint32_t* src_id, std::uint32_t line, std::uint32_t col)
+      void trace_append$mem(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col)
       {
         TRACE_LOGGER.append(TraceData(data, PTR, {src_id, line,col}));
       }
 
       __host__ 
-      void trace_append$mem$cond(InstrData data, const void* PTR, const std::uint32_t* src_id, std::uint32_t line, std::uint32_t col)
+      void trace_append$mem$cond(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col)
       {
         hipPointerAttribute_t* attrs;
         const auto status = hipPointerGetAttributes(attrs,PTR);
@@ -137,7 +137,7 @@ namespace scabbard {
       }
 
       __host__ 
-      void trace_append$alloc(InstrData data, const void* PTR, const std::uint32_t* src_id, std::uint32_t line, std::uint32_t col, std::size_t size)
+      void trace_append$alloc(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col, std::size_t size)
       {
         TRACE_LOGGER.append(TraceData(data, PTR, {src_id, line,col}, size));
       }

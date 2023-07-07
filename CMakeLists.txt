@@ -5,16 +5,21 @@ include(GNUInstallDirs)
 configure_file(${CMAKE_SOURCE_DIR}/config/version.h.config
                 ${CMAKE_SOURCE_DIR}/lib/include/scabbard/version.h)
 
+# tmp build with debug llvm-project on external drive
+set(ENV{LLVM_HOME} /mnt/d/repos/llvm-project/build)
+
 # we need rocm and hip paths to be defined
 if (DEFINED ENV{ROCM_PATH} OR DEFINED ENV{HIP_PATH})
     if (NOT DEFINED ENV{ROCM_PATH})
         set(ENV{ROCM_PATH} "$ENV{HIP_PATH}/..")
-    elseif (NOT DEFINED ENV{HIP_PATH} AND EXISTS )
+        # set(ENV{LLVM_HOME} $ENV{ROCM_PATH}/llvm)
+        elseif (NOT DEFINED ENV{HIP_PATH} AND EXISTS )
         set(ENV{HIP_PATH} "$ENV{ROCM_PATH}/hip")
     endif()
 elseif (EXISTS "/opt/rocm") # if both are nto defined define them if possible
-    set(ENV{ROCM_PATH} "/opt/rocm")
-    set(ENV{HIP_PATH} "$ENV{ROCM_PATH}/hip")
+        set(ENV{ROCM_PATH} "/opt/rocm")
+        set(ENV{HIP_PATH} "$ENV{ROCM_PATH}/hip")
+        # set(ENV{LLVM_HOME} $ENV{ROCM_PATH}/llvm)
 else ()
     message(FATAL_ERROR "[ERROR] hip/rocm could not be found try defining $HIP_PATH and $ROCM_PATH\n")
 endif()
@@ -30,30 +35,27 @@ endif()
 if(NOT DEFINED ENV{LLVM_HOME})
     message(WARNING "$LLVM_HOME was not defined (looking for valid values)")
     # look for possibel values for llvm in the default locations (for linux)
-    if(EXISTS "../../llvm-project") # for using a local debug build of llvm 
-        set(ENV{LLVM_HOME} "../../llvm-project")
-        message("[NOTE] $LLVM_HOME was set to `../llvm-project` for a local debug build of llvm\n")
-    else()
-        # define teh ROCM and HIP path variables
-        if (EXISTS "$ENV{ROCM_PATH}/llvm") # try to use the default rocm llvm install
-            set(ENV{LLVM_HOME} "$ENV{ROCM_PATH}/llvm")
-            message("[NOTE] $LLVM_HOME was set to `$ENV{ROCM_PATH}/llvm` for a version of amd-llvm\n")
-        else() # try using a normal llvm install
-            # list instead of range to select prefered values (15 or 12) before other/future values
-            foreach(I IN ITEMS 15 16 17 18 19 20 21 22 23 24 25 12 14 13 11 10) 
-                if(EXISTS "/usr/lib/llvm-${I}")
-                    set(ENV{LLVM_HOME} "/usr/lib/llvm-${I}")
-                    message("[NOTE] $LLVM_HOME was set to `/usr/lib/llvm-${I}` for llvm v${I}\n") 
-                    if(i GREATER 12)
-                        message(AUTHOR_WARNING "[WARNING] LLVM versions >12 are not officialy supported!")
-                    endif()
-                    break()
+    if (EXISTS "$ENV{ROCM_PATH}/llvm") # try to use the default rocm llvm install
+        set(ENV{LLVM_HOME} "$ENV{ROCM_PATH}/llvm")
+        message("[NOTE] $LLVM_HOME was set to `$ENV{ROCM_PATH}/llvm` for a version of amd-llvm\n")
+    elseif(EXISTS "../../llvm-project/build") # for using a local debug build of llvm 
+        set(ENV{LLVM_HOME} "../../llvm-project/build")
+        message("[NOTE] $LLVM_HOME was set to `../../llvm-project/build` for a local debug build of llvm\n")
+    else() # try using a normal llvm install
+        # list instead of range to select prefered values (15 or 12) before other/future values
+        foreach(I IN ITEMS 15 16 17 18 19 20 21 22 23 24 25 12 14 13 11 10) 
+            if(EXISTS "/usr/lib/llvm-${I}")
+                set(ENV{LLVM_HOME} "/usr/lib/llvm-${I}")
+                message("[NOTE] $LLVM_HOME was set to `/usr/lib/llvm-${I}` for llvm v${I}\n") 
+                if(i GREATER 12)
+                    message(AUTHOR_WARNING "[WARNING] LLVM versions >12 are not officialy supported!")
                 endif()
-            endforeach()
-        endif()
-        if(NOT DEFINED ENV{LLVM_HOME})
-            message(FATAL_ERROR "[ERROR] $LLVM_HOME could not be found or infered (is LLVM installed?)")
-        endif()
+                break()
+            endif()
+        endforeach()
+    endif()
+    if(NOT DEFINED ENV{LLVM_HOME})
+        message(FATAL_ERROR "[ERROR] $LLVM_HOME could not be found or infered (is LLVM installed?)")
     endif()
 endif()
 set(ENV{LLVM_DIR} $ENV{LLVM_HOME}/lib/cmake/llvm)

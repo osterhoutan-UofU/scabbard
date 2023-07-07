@@ -41,7 +41,7 @@ namespace scabbard {
       }
       
       __device__ __noinline__
-      void trace_append$mem(InstrData data, const void* PTR, const std::uint32_t* src_id, std::uint32_t line, std::uint32_t col)
+      void trace_append$mem(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col)
       {
         const size_t lId = getLaneId();
         DEVICE_TRACE_LOGGER->data[lId].data[(++(DEVICE_TRACE_LOGGER->data[lId].next))  // atomic so increment should happen at same time as load/copy
@@ -52,7 +52,7 @@ namespace scabbard {
       }
 
       __device__ __noinline__
-      void trace_append$alloc(InstrData data, const void* PTR, const std::uint32_t* src_id, std::uint32_t line, std::uint32_t col, std::size_t size)
+      void trace_append$alloc(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col, std::size_t size)
       {
         const size_t lId = getLaneId();
         DEVICE_TRACE_LOGGER->data[lId].data[(++(DEVICE_TRACE_LOGGER->data[lId].next))  // atomic so increment should happen at same time as load/copy
@@ -74,6 +74,9 @@ namespace scabbard {
 
     namespace {
 
+      // place filler for the metadata tag in this required piece to get device functions to not be optimized out
+      __device__ uint64_t src_id_reg_tmp = 0x54; 
+
       /**
        * @brief waisted space used to that the device side function does not optimized out
        *        from not being called from inside teh device space
@@ -81,7 +84,8 @@ namespace scabbard {
       __global__ 
       void call_for_looks(InstrData tmp, void* ptr, void* meta)
       {
-        ::scabbard::trace::device::trace_append$mem(tmp,ptr,meta);
+        ::scabbard::trace::device::trace_append$mem(tmp,ptr,&src_id_reg_tmp,87u,9u);
+        ::scabbard::trace::device::trace_append$alloc(tmp,ptr,&src_id_reg_tmp,88u,9u,7ul);
       }
 
       // __global__ void call_for_differentiation(InstrData tmp, void* ptr, void* meta)

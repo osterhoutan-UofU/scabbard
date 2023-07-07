@@ -62,14 +62,14 @@ namespace scabbard {
 
     public:
 
-      inline LocResult trace(llvm::Function& F, const llvm::DebugLoc& DI, bool is_device=false);
+      LocResult trace(llvm::Function& F, const llvm::DebugLoc& DI, bool is_device);
 
       const MetadataMap& getMetadataMap() const { return traced_files; }
 
     protected:
 
-      template<class DINode_t>
-      llvm::GlobalVariable* _trace(llvm::Function& F, const DINode_t* DI, bool is_device);
+      llvm::GlobalVariable* _trace_scope(llvm::Function& F, const llvm::DIScope* DI, bool is_device);
+      llvm::GlobalVariable* _trace_file(llvm::Function& F, const llvm::DIFile* DI, bool is_device);
 
 
     private:

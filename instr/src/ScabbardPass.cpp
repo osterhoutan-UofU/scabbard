@@ -127,22 +127,22 @@ namespace scabbard {
     {
       // don't bother with host modules without hip components
       //WARN: this might break linking (or break linking if this isn't here IDK yet)
-      host.module_ctor = llvm::dyn_cast_or_null<llvm::Function*>(M.getOrInsertFunction(
+      host.module_ctor = llvm::dyn_cast_or_null<llvm::Function>(M.getOrInsertFunction(
           host.module_ctor_name,
           llvm::FunctionType::get(
               llvm::Type::getVoidTy(M.getContext()),
               llvm::ArrayRef<llvm::Type*>(std::array<llvm::Type*,0>{}),
               false
             )
-        ));
-      host.module_dtor = llvm::dyn_cast_or_null<llvm::Function*>(M.getOrInsertFunction(
+        ).getCallee());
+      host.module_dtor = llvm::dyn_cast_or_null<llvm::Function>(M.getOrInsertFunction(
           host.module_dtor_name,
           llvm::FunctionType::get(
               llvm::Type::getVoidTy(M.getContext()),
               llvm::ArrayRef<llvm::Type*>(std::array<llvm::Type*,0>{}),
               false
             )
-        ));
+        ).getCallee());
       if (M.getFunction("main") != nullptr)
         host.scabbard_init = M.getOrInsertFunction(
             host.scabbard_init_name,
@@ -254,7 +254,7 @@ namespace scabbard {
             IRB.CreateCall(M.getFunction("__hipRegisterVar"),
                             llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,8>{
                               gpuBin,
-                              llvm::ConstantExpr::getBitCast(mde.src_id_ptr_device_host, IRB.getInt8PtrTy()),
+                              llvm::ConstantExpr::getBitCast(mde.src_id_ptr_device_host, IRB.getInt8PtrTy()), //TODO found the issue
                               mde.src_id_ptr_device_host_name,
                               mde.src_id_ptr_device_host_name,
                               IRB.getInt32(0u),

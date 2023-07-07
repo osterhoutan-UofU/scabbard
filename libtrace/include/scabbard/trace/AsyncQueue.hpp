@@ -64,7 +64,8 @@ namespace scabbard {
     protected:
       // __device__ static inline size_t getLaneId(); // const;
       friend class AsyncQueue;
-      friend __device__ void scabbard::trace::device::trace_append$mem(InstrData data, const void* PTR, const void* METADATA);
+      friend __device__ void scabbard::trace::device::trace_append$mem(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col);
+      friend __device__ void scabbard::trace::device::trace_append$alloc(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col, std::size_t size);
     };
   
 

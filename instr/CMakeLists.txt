@@ -35,6 +35,7 @@ target_include_directories(instr
 
 target_link_libraries(instr
     PUBLIC
+    LLVMSupport
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../lib/libscabbard.so>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/libscabbard.so>
   )

@@ -120,11 +120,11 @@ inline const T& reading_cast(const char* buffer, const std::size_t index, const 
 {
   return *static_cast<T*>(buffer[index*(WORD_LEN/8)]);
 }
-template<typename T>
-inline const T& reading_cast(const char* buffer, const std::size_t offset, const std::size_t size, const std::size_t WORD_LEN)
-{
-  return *static_cast<T*>(reinterpret_cast<oldT*>(buffer[offset]));
-}
+// template<typename T>
+// inline const T& reading_cast(const char* buffer, const std::size_t offset, const std::size_t size, const std::size_t WORD_LEN)
+// {
+//   return *static_cast<T*>(reinterpret_cast<oldT*>(buffer[offset]));
+// }
 
 
 
