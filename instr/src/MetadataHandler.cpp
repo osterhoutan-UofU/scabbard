@@ -58,7 +58,7 @@ namespace scabbard {
           return iter->second.src_id_ptr_device; // just return the old reference
         }
         // else is on host
-        if (auto src_id_ptr = M.getGlobalVariable(SCABBARD_METADATA_INSTR_srcId_VAR_DEVICE(filename)))
+        if (auto src_id_ptr = M.getGlobalVariable(SCABBARD_METADATA_INSTR_srcId_VAR_HOST(filename)))
           return (iter->second.src_id_ptr_host = src_id_ptr);
         encode_variables(iter->second, M, filename, false);
         return iter->second.src_id_ptr_host;
@@ -108,7 +108,7 @@ namespace scabbard {
       } else {
         auto* char_ty = llvm::IntegerType::get(M.getContext(), 8u);
         auto* charArr_ty = llvm::ArrayType::get(char_ty, filepath.size()+1);
-        data.src_id_ptr_host = llvm::dyn_cast_or_null<llvm::GlobalVariable>(M.getOrInsertGlobal(SCABBARD_METADATA_INSTR_srcId_VAR_DEVICE(data.hex_id_str), int64_ty));
+        data.src_id_ptr_host = llvm::dyn_cast_or_null<llvm::GlobalVariable>(M.getOrInsertGlobal(SCABBARD_METADATA_INSTR_srcId_VAR_HOST(data.hex_id_str), int64_ty));
         data.src_id_ptr_host->setInitializer(llvm::Constant::getIntegerValue(int64_ty, llvm::APInt(64ul, 0ul, false)));
         data.src_id_ptr_host->setLinkage(llvm::GlobalValue::LinkageTypes::PrivateLinkage);
         // output filepath name to global space

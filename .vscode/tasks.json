@@ -11,6 +11,17 @@
 			"group": "build",
 			"problemMatcher": [],
 			"detail": "CMake template build task"
+		},
+		{
+			"label": "Instr Current single file",
+			"type": "process",
+			"command": "hipcc",
+			"args": [
+				"-fpass-plugin=${workspaceFolder}/build/instr/libinstr.so",
+				"-x", "hip", "-g", "-std=c++17",
+				"-o","${fileWithoutExtension}.instr.cpp","${file}"
+			], 
+			"dependsOn": "[CMake] build scabbard-instr"
 		}
 	]
 }

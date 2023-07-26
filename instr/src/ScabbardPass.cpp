@@ -167,7 +167,7 @@ namespace scabbard {
       host.metadata_register$src = M.getOrInsertFunction(
           host.metadata_register$src_name,
           llvm::FunctionType::get(
-              llvm::Type::getVoidTy(M.getContext()),
+              llvm::IntegerType::get(M.getContext(), 64u),
               llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
                   // llvm::IntegerType::get(M.getContext(), 64u),
                   llvm::PointerType::get(llvm::IntegerType::get(M.getContext(), 8u), 0u)
@@ -250,11 +250,11 @@ namespace scabbard {
                 })
             );
           IRB.CreateStore(regCall, mde.src_id_ptr_host);
-          if (gpuBin != nullptr) {
+          if (gpuBin != nullptr && mde.src_id_ptr_device != nullptr) {
             IRB.CreateCall(M.getFunction("__hipRegisterVar"),
                             llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,8>{
                               gpuBin,
-                              llvm::ConstantExpr::getBitCast(mde.src_id_ptr_device_host, IRB.getInt8PtrTy()), //TODO found the issue
+                              llvm::ConstantExpr::getBitCast(mde.src_id_ptr_device_host, IRB.getInt8PtrTy()),
                               mde.src_id_ptr_device_host_name,
                               mde.src_id_ptr_device_host_name,
                               IRB.getInt32(0u),
@@ -266,8 +266,10 @@ namespace scabbard {
           }
         }
       }
+      IRB.CreateRetVoid();
       // register the ctor with a "low priority" so it goes after all other ctors
       llvm::appendToGlobalCtors(M, host.module_ctor, UINT32_MAX);
+      host.module_ctor->print(llvm::errs()); //DEBUG
     }
 
 
