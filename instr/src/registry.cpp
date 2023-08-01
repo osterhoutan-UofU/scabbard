@@ -11,7 +11,7 @@
  */
 
 #include "ScabbardPass.hpp"
-#include "ScabbardLinkPass.hpp"
+// #include "ScabbardLinkPass.hpp"
 
 #include <llvm/Pass.h>
 #include <llvm/Passes/PassBuilder.h>
@@ -71,11 +71,11 @@ llvm::PassPluginLibraryInfo getScabbardPassPluginInfo() {
                     return false;
                   }
                 );
-              PB.registerFullLinkTimeOptimizationLastEPCallback( // used to handle link time instrumentation
-                  [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
-                    MPM.addPass(scabbard::instr::ScabbardLinkPass());
-                  }
-                );
+              // PB.registerFullLinkTimeOptimizationLastEPCallback( // used to handle link time instrumentation
+              //     [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
+              //       MPM.addPass(scabbard::instr::ScabbardLinkPass());
+              //     }
+              //   );
           }};
 }
 extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo

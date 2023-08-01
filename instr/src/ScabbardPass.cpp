@@ -66,8 +66,8 @@ namespace scabbard {
         .getManager();
       DepTraceDevice dt(M);
       for (auto& f : M.getFunctionList())
-        if (f.getName() != "__hip_module_ctor")
           run_device(f, fam, dt);
+      auto result = linkPass.run(M,MAM);
     }
 
     void ScabbardPassPlugin::instrCallbacks_device(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
@@ -119,7 +119,8 @@ namespace scabbard {
         instr_mainFunc_host(*f, fam);
       DepTraceHost dt(M);
       for (auto& f : M.getFunctionList())
-        run_host(f, fam, dt);
+        if (f.getName() != "__hip_module_ctor")
+          run_host(f, fam, dt);
       instr_module_ctor_host(M, MAM);
     }
 
@@ -269,7 +270,7 @@ namespace scabbard {
       IRB.CreateRetVoid();
       // register the ctor with a "low priority" so it goes after all other ctors
       llvm::appendToGlobalCtors(M, host.module_ctor, UINT32_MAX);
-      host.module_ctor->print(llvm::errs()); //DEBUG
+      LLVM_DEBUG(host.module_ctor->print(llvm::errs()));
     }
 
 

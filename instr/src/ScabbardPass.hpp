@@ -14,6 +14,7 @@
 
 #include "DepTrace.hpp"
 #include "MetadataHandler.hpp"
+#include "ScabbardLinkPass.hpp" 
 
 #include <scabbard/instr-names.def>
 
@@ -87,6 +88,8 @@ namespace instr {
         llvm::FunctionCallee trace_append$alloc;
         const std::string trace_append$alloc_name = SCABBARD_DEVICE_CALLBACK_APPEND_ALLOC_NAME;
       } device;
+
+  ScabbardLinkPass linkPass;
 
 
   public:

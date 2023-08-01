@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include "loadModule.hpp"
+
 #include <scabbard/instr-names.def>
 
 #include <llvm/Pass.h> 
@@ -30,6 +32,9 @@ namespace scabbard {
     struct ScabbardLinkPass : public llvm::PassInfoMixin<ScabbardLinkPass> {
 
       llvm::PreservedAnalyses run(llvm::Module &M, llvm::ModuleAnalysisManager &MAM) {
+        //DEBUG msg
+        llvm::errs() << "\n[scabbard::instr::link::DBG] link pass has been run on: `" << M.getSourceFileName() << "`\n"; 
+
         const llvm::Triple target(M.getTargetTriple());
         if (not target.isAMDGPU())  // checks for both amdgcn & r600 arch(s) (might need to restrict this to just amdgcn with `isAMDGCN()`)
           return llvm::PreservedAnalyses::all();  // To support hip on Nvidia GPUs we might need to also run this for nvptx arch(s) (this might be the same as supporting CUDA though)
@@ -46,20 +51,25 @@ namespace scabbard {
         const std::string LIBTRACE_DEVICE_PATH = std::string(SCABBARD_PATH) + "/libtrace-device.bc";
         auto _buf = llvm::MemoryBuffer::getFile(LIBTRACE_DEVICE_PATH);
         if (not _buf) {
-          llvm::errs() << "\n[scabbard::instr::link::ERROR] Could not open `" << LIBTRACE_DEVICE_PATH << "`!!\n";
+          llvm::errs() << "\n[scabbard::instr::link::ERROR] Could not OPEN `" << LIBTRACE_DEVICE_PATH << "`!!\n";
           return llvm::PreservedAnalyses::all();
         }
-        auto _traceModules = llvm::getBitcodeModuleList(*_buf.get());
-        if (not _traceModules) {
-          llvm::errs() << "\n[scabbard::instr::link::ERROR] failed to READ the bitcode \"library\" libtrace-device in!!\n";
-          return llvm::PreservedAnalyses::all();
-        }
-        auto _traceModule = _traceModules.get()[0].getLazyModule(M.getContext(), true, true);
-        if (not _traceModule) {
-          llvm::errs() << "\n[scabbard::instr::link::ERROR] failed to lazy PARSE the bitcode \"library\" libtrace-device in!!\n";
-          return llvm::PreservedAnalyses::all();
-        }
-        std::unique_ptr<llvm::Module>& traceModule = _traceModule.get();
+        // auto _traceModules_uptr = _buf.get();
+        // auto _traceModules = llvm::getBitcodeFileContents(*_traceModules_uptr);
+        // auto _traceModules = llvm::getBitcodeFileContents(*_buf.get());
+        // if (not _traceModules) {
+        //   llvm::errs() << "\n[scabbard::instr::link::ERROR] failed to READ the bitcode ``library'' libtrace-device in!!"
+        //                   "\n[scabbard::instr::link::ERROR] error as follows: " << _traceModules.takeError() << "\n";
+        //   // throw "forced-err-str";
+        //   return llvm::PreservedAnalyses::all();
+        // }
+        // auto _traceModule = _traceModules.get().Mods[0].getLazyModule(M.getContext(), true, true);
+        // if (not _traceModule) {
+        //   llvm::errs() << "\n[scabbard::instr::link::ERROR] failed to lazy PARSE the bitcode ``library'' libtrace-device in!!\n";
+        //   return llvm::PreservedAnalyses::all();
+        // }
+        // std::unique_ptr<llvm::Module>& traceModule = _traceModule.get();
+        std::unique_ptr<llvm::Module>& traceModule = loadModule(_bug.get());
         if (not llvm::Triple(traceModule->getTargetTriple()).isAMDGPU()) {
           llvm::errs() << "\n[scabbard::instr::link::ERROR] could not find the device module in the libtrace-device bitcode \"library\"!!\n";
           return llvm::PreservedAnalyses::all();
