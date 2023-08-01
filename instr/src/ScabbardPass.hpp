@@ -152,12 +152,12 @@ namespace instr {
      */
     auto run_host(llvm::Function& F, llvm::FunctionAnalysisManager &FAM, const DepTraceHost& DT) -> void;
 
-    /**
-     * @brief Instrument device module to have all necessary callback functions
-     * @param M \c llvm::Module& - The device side Module to instrument
-     * @param MAM \c llvm::ModuleAnalysisManager& - The Analysis Manager for the Module
-     */
-    auto instrCallbacks_device(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
+    // /**
+    //  * @brief Instrument device module to have all necessary callback functions
+    //  * @param M \c llvm::Module& - The device side Module to instrument
+    //  * @param MAM \c llvm::ModuleAnalysisManager& - The Analysis Manager for the Module
+    //  */
+    // auto instrCallbacks_device(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
     /**
      * @brief Instrument host module to have all necessary callback functions
      * @param M \c llvm::Module& - The host side Module to instrument

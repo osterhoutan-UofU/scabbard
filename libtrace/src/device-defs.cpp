@@ -76,16 +76,22 @@ namespace scabbard {
 
       // place filler for the metadata tag in this required piece to get device functions to not be optimized out
       __device__ uint64_t src_id_reg_tmp = 0x54; 
+      __device__ uint64_t src_id_reg_tmp2 = 0x54; 
+      __device__ uint64_t src_id_reg_tmp3 = 0x54; 
 
       /**
        * @brief waisted space used to that the device side function does not optimized out
        *        from not being called from inside teh device space
        */
       __global__ 
-      void call_for_looks(InstrData tmp, void* ptr, void* meta)
+      void call_for_looks(InstrData tmp, void* ptr, void* meta, const std::uint64_t* src_id)
       {
-        ::scabbard::trace::device::trace_append$mem(tmp,ptr,&src_id_reg_tmp,87u,9u);
-        ::scabbard::trace::device::trace_append$alloc(tmp,ptr,&src_id_reg_tmp,88u,9u,7ul);
+        ::scabbard::trace::device::trace_append$mem(tmp,ptr,&src_id_reg_tmp,19u,9u);
+        ::scabbard::trace::device::trace_append$mem(tmp,ptr,&src_id_reg_tmp2,1024u,4u);
+        ::scabbard::trace::device::trace_append$mem(tmp,ptr,src_id,10240u,40u);
+        ::scabbard::trace::device::trace_append$alloc(tmp,ptr,&src_id_reg_tmp2,88u,256u,7ul);
+        ::scabbard::trace::device::trace_append$alloc(tmp,ptr,&src_id_reg_tmp3,98u,6u,23ul);
+        ::scabbard::trace::device::trace_append$alloc(tmp,ptr,src_id,980u,60u,230ul);
       }
 
       // __global__ void call_for_differentiation(InstrData tmp, void* ptr, void* meta)

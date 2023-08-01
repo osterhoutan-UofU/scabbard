@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "loadModule.hpp"
+// #include "loadModule.hpp"
 
 #include <scabbard/instr-names.def>
 
@@ -20,6 +20,7 @@
 #include <llvm/IR/PassManager.h>
 #include <llvm/Linker/Linker.h>
 #include <llvm/Bitcode/BitcodeReader.h>
+#include <llvm/IRReader/IRReader.h>
 #include <llvm/ADT/Triple.h>
 #include <llvm/Support/MemoryBuffer.h>
 
@@ -56,20 +57,20 @@ namespace scabbard {
         }
         // auto _traceModules_uptr = _buf.get();
         // auto _traceModules = llvm::getBitcodeFileContents(*_traceModules_uptr);
-        // auto _traceModules = llvm::getBitcodeFileContents(*_buf.get());
-        // if (not _traceModules) {
-        //   llvm::errs() << "\n[scabbard::instr::link::ERROR] failed to READ the bitcode ``library'' libtrace-device in!!"
-        //                   "\n[scabbard::instr::link::ERROR] error as follows: " << _traceModules.takeError() << "\n";
-        //   // throw "forced-err-str";
-        //   return llvm::PreservedAnalyses::all();
-        // }
-        // auto _traceModule = _traceModules.get().Mods[0].getLazyModule(M.getContext(), true, true);
-        // if (not _traceModule) {
-        //   llvm::errs() << "\n[scabbard::instr::link::ERROR] failed to lazy PARSE the bitcode ``library'' libtrace-device in!!\n";
-        //   return llvm::PreservedAnalyses::all();
-        // }
-        // std::unique_ptr<llvm::Module>& traceModule = _traceModule.get();
-        std::unique_ptr<llvm::Module>& traceModule = loadModule(_bug.get());
+        auto _traceModules = llvm::getBitcodeFileContents(*_buf.get());
+        if (not _traceModules) {
+          llvm::errs() << "\n[scabbard::instr::link::ERROR] failed to READ the bitcode ``library'' libtrace-device in!!"
+                          "\n[scabbard::instr::link::ERROR] error as follows: " << _traceModules.takeError() << "\n";
+          // throw "forced-err-str";
+          return llvm::PreservedAnalyses::all();
+        }
+        auto _traceModule = _traceModules.get().Mods[0].getLazyModule(M.getContext(), true, true);
+        if (not _traceModule) {
+          llvm::errs() << "\n[scabbard::instr::link::ERROR] failed to lazy PARSE the bitcode ``library'' libtrace-device in!!\n";
+          return llvm::PreservedAnalyses::all();
+        }
+        std::unique_ptr<llvm::Module>& traceModule = _traceModule.get();
+        // std::unique_ptr<llvm::Module>& traceModule = loadModule(_bug.get());
         if (not llvm::Triple(traceModule->getTargetTriple()).isAMDGPU()) {
           llvm::errs() << "\n[scabbard::instr::link::ERROR] could not find the device module in the libtrace-device bitcode \"library\"!!\n";
           return llvm::PreservedAnalyses::all();

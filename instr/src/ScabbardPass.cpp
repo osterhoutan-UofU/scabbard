@@ -24,6 +24,9 @@
 #include <llvm/IR/Metadata.h>
 #include <llvm/Transforms/Utils/ModuleUtils.h>
 
+#include <llvm/IRReader/IRReader.h>
+#include <llvm/Support/SourceMgr.h>
+
 #define DEBUG_TYPE "scabbard"
 
 namespace scabbard {
@@ -61,47 +64,85 @@ namespace scabbard {
 
     void ScabbardPassPlugin::run_device(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
     {
-      instrCallbacks_device(M, MAM);
+      // instrCallbacks_device(M, MAM);
+      // llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
+      //   .getManager();
+      // DepTraceDevice dt(M);
+      // for (auto& f : M.getFunctionList())
+      //     run_device(f, fam, dt);
+      // auto result = linkPass.run(M,MAM);
+      const auto SCABBARD_PATH = std::getenv("SCABBARD_PATH");
+      if (SCABBARD_PATH == nullptr) {
+        llvm::errs() << "\n[scabbard::instr::link::ERROR] Env var `SCABBARD_PATH` was undefined could not identify instrumentation file location!!\n";
+        return;
+      }
+      const std::string LIBTRACE_DEVICE_PATH = std::string(SCABBARD_PATH) + "/libtrace-device.ll";
+      auto diag = llvm::SMDiagnostic();
+      auto context = llvm::LLVMContext();
+      M.getContext().setDiscardValueNames(false);
+      std::unique_ptr<llvm::Module> traceModule = llvm::parseIRFile(LIBTRACE_DEVICE_PATH, diag, M.getContext());
+      M.getContext().setDiscardValueNames(true);
+      if (traceModule == nullptr) {
+        llvm::errs() << "\n[scabbard::instr::link::ERROR] could not parse the libtrace-device bitcode/IR \"library\"!!"
+                        "\n[scabbard::instr::link::ERROR] error msg: ```\n";
+        diag.print("scabbard::instr", llvm::errs());
+        llvm::errs() << "```\n";
+        return;
+      }
+      // std::unique_ptr<llvm::Module>& traceModule = loadModule(_bug.get());
+      if (not llvm::Triple(traceModule->getTargetTriple()).isAMDGPU()) {
+        llvm::errs() << "\n[scabbard::instr::link::ERROR] could not find the device module in the libtrace-device bitcode \"library\"!!\n";
+        return;
+      }
+      if (llvm::Linker::linkModules(M, std::move(traceModule))) {
+        llvm::errs() << "\n[scabbard::instr::link::ERROR] the llvm linker encountered an error while linking!!\n";
+        return;
+      }
+      
+      // get references to linked in utility functions
+      device.trace_append$mem = M.getFunction(device.trace_append$mem_name);
+      device.trace_append$alloc = M.getFunction(device.trace_append$alloc_name);
+
       llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
-        .getManager();
+                                              .getManager();
       DepTraceDevice dt(M);
       for (auto& f : M.getFunctionList())
+        if (f.getName() != device.trace_append$mem_name && f.getName() != device.trace_append$alloc_name)
           run_device(f, fam, dt);
-      auto result = linkPass.run(M,MAM);
     }
 
-    void ScabbardPassPlugin::instrCallbacks_device(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
-    {
-      device.trace_append$mem = M.getOrInsertFunction(
-          device.trace_append$mem_name,
-          llvm::FunctionType::get(
-              llvm::Type::getVoidTy(M.getContext()),
-              llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
-                  llvm::IntegerType::get(M.getContext(), sizeof(InstrData) * 8),
-                  llvm::PointerType::get(M.getContext(), 0u), //WARN: This constant 0u might need to be dynamicly decided for host modules
-                  llvm::PointerType::get(M.getContext(), 1u), //WARN: This constant 0u might need to be dynamicly decided for host modules
-                  llvm::IntegerType::get(M.getContext(), 32u),
-                  llvm::IntegerType::get(M.getContext(), 32u)
-                }),
-              false
-            )
-        );
-      device.trace_append$alloc = M.getOrInsertFunction(
-          device.trace_append$alloc_name,
-          llvm::FunctionType::get(
-              llvm::Type::getVoidTy(M.getContext()),
-              llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
-                  llvm::IntegerType::get(M.getContext(), sizeof(InstrData) * 8),
-                  llvm::PointerType::get(M.getContext(), 0u),
-                  llvm::PointerType::get(M.getContext(), 1u),
-                  llvm::IntegerType::get(M.getContext(), 32u),
-                  llvm::IntegerType::get(M.getContext(), 32u),
-                  llvm::IntegerType::get(M.getContext(), 64u)
-                }),
-              false
-            )
-        );
-    }
+    // void ScabbardPassPlugin::instrCallbacks_device(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
+    // {
+    //   device.trace_append$mem = M.getOrInsertFunction(
+    //       device.trace_append$mem_name,
+    //       llvm::FunctionType::get(
+    //           llvm::Type::getVoidTy(M.getContext()),
+    //           llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
+    //               llvm::IntegerType::get(M.getContext(), sizeof(InstrData) * 8),
+    //               llvm::PointerType::get(M.getContext(), 0u), //WARN: This constant 0u might need to be dynamicly decided for host modules
+    //               llvm::PointerType::get(M.getContext(), 1u), //WARN: This constant 0u might need to be dynamicly decided for host modules
+    //               llvm::IntegerType::get(M.getContext(), 32u),
+    //               llvm::IntegerType::get(M.getContext(), 32u)
+    //             }),
+    //           false
+    //         )
+    //     );
+    //   device.trace_append$alloc = M.getOrInsertFunction(
+    //       device.trace_append$alloc_name,
+    //       llvm::FunctionType::get(
+    //           llvm::Type::getVoidTy(M.getContext()),
+    //           llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
+    //               llvm::IntegerType::get(M.getContext(), sizeof(InstrData) * 8),
+    //               llvm::PointerType::get(M.getContext(), 0u),
+    //               llvm::PointerType::get(M.getContext(), 1u),
+    //               llvm::IntegerType::get(M.getContext(), 32u),
+    //               llvm::IntegerType::get(M.getContext(), 32u),
+    //               llvm::IntegerType::get(M.getContext(), 64u)
+    //             }),
+    //           false
+    //         )
+    //     );
+    // }
 
 
 

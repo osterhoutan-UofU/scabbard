@@ -61,8 +61,8 @@ std::unique_ptr<llvm::Module> loadModule(llvm::MemoryBufferRef MBRef)
 {
   using namespace llvm;
   using namespace clang;
-  // CompilerInstance &CI = getCompilerInstance();
-  // SourceManager &SM = CI.getSourceManager();
+  CompilerInstance &CI = getCompilerInstance();
+  SourceManager &SM = CI.getSourceManager();
 
   // For ThinLTO backend invocations, ensure that the context
   // merges types based on ODR identifiers. We also need to read
@@ -71,11 +71,11 @@ std::unique_ptr<llvm::Module> loadModule(llvm::MemoryBufferRef MBRef)
     VMContext->enableDebugTypeODRUniquing();
 
     auto DiagErrors = [&](Error E) -> std::unique_ptr<llvm::Module> {
-      // unsigned DiagID =
-      //     CI.getDiagnostics().getCustomDiagID(DiagnosticsEngine::Error, "%0");
-      // handleAllErrors(std::move(E), [&](ErrorInfoBase &EIB) {
-      //   CI.getDiagnostics().Report(DiagID) << EIB.message();
-      // });
+      unsigned DiagID =
+          CI.getDiagnostics().getCustomDiagID(DiagnosticsEngine::Error, "%0");
+      handleAllErrors(std::move(E), [&](ErrorInfoBase &EIB) {
+        CI.getDiagnostics().Report(DiagID) << EIB.message();
+      });
       return {};
     };
 

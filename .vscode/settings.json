@@ -100,7 +100,9 @@
         "*.config": "cpp",
         "locale": "cpp",
         "version": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "__locale": "cpp",
+        "ios": "cpp"
     },
     "cSpell.words": [
         "amdgcn",

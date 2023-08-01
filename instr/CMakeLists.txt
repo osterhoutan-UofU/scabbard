@@ -10,10 +10,10 @@ add_library(instr MODULE
     src/DepTrace_HOST.cpp
     src/DepTrace_DEVICE.cpp
     src/MetadataHandler.cpp
-    src/loadModule.cpp
+    # src/loadModule.cpp
     src/registry.cpp
   )
-add_dependencies(instr trace-device)
+# add_dependencies(instr trace-device) # uncommetn to auto build the manually linked GPU module
 
 add_library(testpass MODULE
     src/TestPass/TestPass.cpp
