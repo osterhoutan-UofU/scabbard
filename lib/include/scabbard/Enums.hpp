@@ -29,19 +29,20 @@ namespace instr {
     * @brief ENUM BYTE MAP\n
     *   \code{.txt}
     *     0b_0000_0000_0000_0000
-    *         ^^^ ^ ^  ^^^^ ^^ ^
-    *         ||| | |  |||| || L Runtime Conditional
-    *         ||| | |  |||| |L Instr in Host (CPU) module
-    *         ||| | |  |||| L Instr in Device (GPU) module
-    *         ||| | |  |||L Instr as ALLOCATE
-    *         ||| | |  ||L Instr as READ
-    *         ||| | |  |L Instr as FREE
-    *         ||| | |  L Instr as WRITE
-    *         ||| | L Instr as ATOMIC
-    *         ||| L Instr as MANAGED
-    *         ||L Is in DEVICE HEAP memory
-    *         |L Is in UNKNOWN memory
-    *         L Is in HOST HEAP memory
+    *        ^^^^ ^ ^  ^^^^ ^^ ^
+    *        |||| | |  |||| || L Runtime Conditional
+    *        |||| | |  |||| |L Instr in Host (CPU) module
+    *        |||| | |  |||| L Instr in Device (GPU) module
+    *        |||| | |  |||L Instr as ALLOCATE
+    *        |||| | |  ||L Instr as READ
+    *        |||| | |  |L Instr as FREE
+    *        |||| | |  L Instr as WRITE
+    *        |||| | L Instr as ATOMIC
+    *        |||| L Instr as MANAGED
+    *        |||L Is in DEVICE HEAP memory
+    *        ||L Is in UNKNOWN memory
+    *        |L Is in HOST HEAP memory
+    *        L Is a sync event
     *   \endcode
     */
   enum InstrData : std::uint16_t {
@@ -76,6 +77,8 @@ namespace instr {
     UNKNOWN_HEAP          = 1<<13,
     //
     HOST_HEAP             = 1<<14,
+    //
+    STEAM_SYNC            = 1<<15
   };
 
   inline InstrData operator | (InstrData l, InstrData r) 

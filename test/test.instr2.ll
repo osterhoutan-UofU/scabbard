@@ -14,7 +14,8 @@ target triple = "amdgcn-amd-amdhsa"
 
 $_ZN8scabbard5trace12_GLOBAL__N_114call_for_looksENS_9InstrDataEPvS3_PKm = comdat any
 
-@_ZN8scabbard5trace19DEVICE_TRACE_LOGGERE = external protected local_unnamed_addr addrspace(1) global %"struct.scabbard::trace::DeviceAsyncQueue"*, align 8
+; @_ZN8scabbard5trace19DEVICE_TRACE_LOGGERE = external protected local_unnamed_addr addrspace(1) global %"struct.scabbard::trace::DeviceAsyncQueue"*, align 8
+@_ZN8scabbard5trace19DEVICE_TRACE_LOGGERE = external local_unnamed_addr addrspace(1) global %"struct.scabbard::trace::DeviceAsyncQueue"*, align 8
 @_ZN8scabbard5trace12_GLOBAL__N_114src_id_reg_tmpE = internal addrspace(1) global i64 84, align 8
 @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp2E = internal addrspace(1) global i64 84, align 8
 @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp3E = internal addrspace(1) global i64 84, align 8

@@ -16,9 +16,11 @@
 # define __scabbard_hip_compile (1u)
 #endif
 
+#include "TraceWriter.hpp"
+#include "MetadataStrore.hpp"
+#include "calls.hpp"
+
 #include <scabbard/TraceData.hpp>
-#include <scabbard/trace/TraceWriter.hpp>
-#include <scabbard/trace/calls.hpp>
 
 #include <hip/hip_ext.h>
 #include <hip/hip_runtime.h>
@@ -29,6 +31,7 @@
 #include <atomic>
 #include <thread>
 #include <chrono>
+#include <cinttypes>
 
 #define WARP_SIZE (size_t(32ul))
 
@@ -106,6 +109,9 @@ namespace scabbard {
 
       /// @brief delay between processes of the various buffers
       std::chrono::high_resolution_clock::duration delay = std::chrono::milliseconds(2);
+
+      /// @brief where we store an manage metadata about where data comes from
+      MetadataStore metadata;
       
       
     public:
@@ -160,11 +166,18 @@ namespace scabbard {
        */
       __host__ void async_process();
 
+      /**
+       * @brief called from instrumented module scabbard_ctor's to register new src files 
+       * @param src - the src file being registered
+       * @return \c std::uint64_t - the id that this src file should be registered with
+       */
+      __host__ std::uint64_t register_src(const char* src);
+
+
     protected:
 
       __host__ void process_device(TraceWriter& tw);
       __host__ void process_host(TraceWriter& tw);
-
       
 
     };

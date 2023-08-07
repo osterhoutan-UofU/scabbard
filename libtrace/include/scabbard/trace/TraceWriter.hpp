@@ -16,6 +16,8 @@
 #endif
 #include <scabbard/TraceData.hpp>
 
+#include <scabbard/trace/MetadataStrore.hpp>
+
 #include <fstream>
 #include <string>
 #include <chrono>
@@ -33,6 +35,8 @@ namespace scabbard {
       static const uint32_t WORD_LEN;
       // useful for inserting buffers to realign with system word boundaries
       static const char* BUF;
+
+      std::streampos metadata_table_loc_entry_pos;
 
     public:
 
@@ -53,15 +57,16 @@ namespace scabbard {
 
       /**
        * @brief Writes the footer of the trace file \n 
+       *        \b NOTE: this must be called after all traces are written \n
        *        \b WARNING: does NOT close the trace file! 
        *        You will have to call \c close() after calling this!
        */
-      __host__ void finalize();
+      __host__ void finalize(const MetadataStore& metadata);
 
       /**
        * @brief closes the trace file on the filesystem
        */
-      __host__ inline void close();
+      __host__ void close();
 
       /**
        * @brief get if the trace file is open on the system or not

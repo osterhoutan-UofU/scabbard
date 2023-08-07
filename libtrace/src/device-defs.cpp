@@ -81,7 +81,7 @@ namespace scabbard {
 
       /**
        * @brief waisted space used to that the device side function does not optimized out
-       *        from not being called from inside teh device space
+       *        from not being called from inside the llvm device module pre-instrumentation
        */
       __global__ 
       void call_for_looks(InstrData tmp, void* ptr, void* meta, const std::uint64_t* src_id)

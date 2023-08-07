@@ -98,7 +98,7 @@ namespace scabbard {
 
     void MetadataHandler::encode_variables(MetadataStore& data, llvm::Module& M, const std::string& filepath, bool is_device)
     {
-      llvm::IRBuilder IRB(M.getContext());
+      llvm::IRBuilder<llvm::ConstantFolder,llvm::IRBuilderDefaultInserter> IRB(M.getContext());
       auto* int64_ty = llvm::IntegerType::get(M.getContext(), 64u);
       if (is_device) {
         // output device side source metadata global

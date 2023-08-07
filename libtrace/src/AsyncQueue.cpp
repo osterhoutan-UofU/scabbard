@@ -46,7 +46,7 @@ namespace scabbard {
           std::cerr << "\n[scabbard::trace::dtor::ERROR] could not deallocate device side buffer!\n" 
                     << std::endl;
       if (tw != nullptr) {
-        tw->finalize();
+        tw->finalize(metadata);
         tw->close();
         delete tw;
       }
@@ -88,7 +88,7 @@ namespace scabbard {
     void AsyncQueue::set_trace_writer(const std::string& file_path, const std::string& exe_path, std::time_t start_time)
     {
       if (tw != nullptr) {
-        tw->finalize();
+        tw->finalize(metadata);
         tw->close();
         delete tw;
       }
@@ -164,6 +164,13 @@ namespace scabbard {
         hostQ.pop();
       }
       mx_hostQ.unlock();
+    }
+
+
+    __host__ 
+    std::uint64_t AsyncQueue::register_src(const char* src)
+    {
+      return metadata.register_src(src);
     }
 
 

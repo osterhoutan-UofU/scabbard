@@ -59,8 +59,8 @@ namespace instr {
     struct {
         llvm::Function* module_ctor = nullptr;
         const std::string module_ctor_name = SCABBARD_CALLBACK_MODULE_CTOR_NAME;
-        llvm::Function* module_dtor = nullptr;
-        const std::string module_dtor_name = SCABBARD_CALLBACK_MODULE_DTOR_NAME;
+        // llvm::Function* module_dtor = nullptr;
+        // const std::string module_dtor_name = SCABBARD_CALLBACK_MODULE_DTOR_NAME;
 
         llvm::FunctionCallee scabbard_init;
         const std::string scabbard_init_name = SCABBARD_CALLBACK_INIT_NAME;
@@ -179,7 +179,7 @@ namespace instr {
     auto instr_module_ctor_host(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
 
     auto instr_call_device(const llvm::Function& F, llvm::CallInst* ci) -> void;
-    auto instr_call_host(const llvm::Function& F, llvm::CallInst* ci) -> void;
+    auto instr_call_host(llvm::Function& F, llvm::CallInst* ci) -> void;
     
     auto instr_stream_call_host(const llvm::Function& F, llvm::CallInst* ci,
                                 const llvm::FunctionType& FnTy, const llvm::StringRef FnName) -> void;

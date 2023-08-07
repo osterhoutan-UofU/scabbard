@@ -11,23 +11,29 @@
 
 #pragma once
 
-#include <scabbard/Metadata.hpp>
+
+#include <string>
+#include <cinttypes>
+#include <vector>
+#include <unordered_set>
+#include <unordered_map>
 
 namespace scabbard {
 namespace trace {
 
   class MetadataStore {
-    //TODO
+    
+    std::vector<std::string> srcs;
+    std::unordered_map<std::string,std::uint64_t> src_ids;
 
 
   public:
 
-    MetadataStore() = default;
+    // MetadataStore() = default;
 
-    void register_src(std::size_t src_id, const std::string& src_file);
-    void unregister_src(std::size_t src_id);
-    void register_loc(std::size_t src_id, std::size_t loc_id, std::size_t line, std::size_t col);
-    void unregister_loc(std::size_t src_id, std::size_t loc_id);
+    std::uint64_t register_src(const char* _src);
+
+    const std::vector<std::string>* get_srcs() const { return &srcs; }
   };
 
 

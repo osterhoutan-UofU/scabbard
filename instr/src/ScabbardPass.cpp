@@ -78,7 +78,7 @@ namespace scabbard {
       }
       const std::string LIBTRACE_DEVICE_PATH = std::string(SCABBARD_PATH) + "/libtrace-device.ll";
       auto diag = llvm::SMDiagnostic();
-      auto context = llvm::LLVMContext();
+      // auto context = llvm::LLVMContext();
       M.getContext().setDiscardValueNames(false);
       std::unique_ptr<llvm::Module> traceModule = llvm::parseIRFile(LIBTRACE_DEVICE_PATH, diag, M.getContext());
       M.getContext().setDiscardValueNames(true);
@@ -177,14 +177,14 @@ namespace scabbard {
               false
             )
         ).getCallee());
-      host.module_dtor = llvm::dyn_cast_or_null<llvm::Function>(M.getOrInsertFunction(
-          host.module_dtor_name,
-          llvm::FunctionType::get(
-              llvm::Type::getVoidTy(M.getContext()),
-              llvm::ArrayRef<llvm::Type*>(std::array<llvm::Type*,0>{}),
-              false
-            )
-        ).getCallee());
+      // host.module_dtor = llvm::dyn_cast_or_null<llvm::Function>(M.getOrInsertFunction(
+      //     host.module_dtor_name,
+      //     llvm::FunctionType::get(
+      //         llvm::Type::getVoidTy(M.getContext()),
+      //         llvm::ArrayRef<llvm::Type*>(std::array<llvm::Type*,0>{}),
+      //         false
+      //       )
+      //   ).getCallee());
       if (M.getFunction("main") != nullptr)
         host.scabbard_init = M.getOrInsertFunction(
             host.scabbard_init_name,
@@ -275,7 +275,7 @@ namespace scabbard {
     void ScabbardPassPlugin::instr_module_ctor_host(llvm::Module& M, llvm::ModuleAnalysisManager &MAM)
     {
       auto BB = llvm::BasicBlock::Create(M.getContext(), "metadata_registry", host.module_ctor);
-      llvm::IRBuilder IRB(BB);
+      llvm::IRBuilder<llvm::ConstantFolder,llvm::IRBuilderDefaultInserter> IRB(BB);
       // handle hip stuff
       llvm::Value* gpuBin = nullptr;
       auto gpuBinGlobal = M.getGlobalVariable("__hip_gpubin_handle");
@@ -444,7 +444,7 @@ namespace scabbard {
             instr_mem_func_host(F, i, load->getPointerOperand(), data);
           } else if (auto* call = llvm::dyn_cast<llvm::CallInst>(&i)) {
             //TODO instrument calls to hip malloc, hip copy, kernel launch and stream sync
-            // instr_call_host(F, call);
+            instr_call_host(F, call);
           } else if (auto atomic = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
             auto data = DT.getInstrData(*atomic);
             LLVM_DEBUG(
@@ -498,29 +498,63 @@ namespace scabbard {
     }
 
 
-    void ScabbardPassPlugin::instr_call_host(const llvm::Function& F, llvm::CallInst* ci)
+    void ScabbardPassPlugin::instr_call_host(llvm::Function& F, llvm::CallInst* CI)
     {
-      const auto& fn = *ci->getCalledFunction();
-      const auto& fnTy = *fn.getFunctionType();
-      const auto fnName = fn.getName();
-      if (fnName.startswith("hip") || fnName.startswith("cuda")) {
-        if (fnName.contains("Host")) { // deal with all host specific functions separately (for organizational purposes)
-          instr_host_call_host(F,ci,fnTy,fnName);
-        } else if (fnName.contains("Stream")) { // deal with all host specific functions separately (for organizational purposes)
-          instr_stream_call_host(F, ci,fnTy,fnName); 
-        } else if (fnName.contains("Memcpy")) { // deal with all various hipMemcpy specific fn's separately (for organizational purposes)
-          instr_memcpy_call_host(F,ci,fnTy,fnName);
-        } else if (fnName.contains("Memset")) { // deal with the various hipMemset funcs
-          //TODO
-        } else if (fnName.contains("Malloc")) { // deal with the various hipMalloc funcs 
-          //TODO
-        } else if (fnName.contains("Free")) { // deal with the various hipFree funcs 
-          //TODO
-        } else if (fnName.contains("LaunchKernel")) { // deal with kernel launch funcs (this one is complicated)
-          //TODO
-        }
-      }
+      const auto* fn = CI->getCalledFunction();
+      if (fn == nullptr) return; // don't deal with antonymous functions 
+      // const auto& fnTy = *fn.getFunctionType();
+      if (not fn->hasName()) return; // don't deal with antonymous functions
+      const auto fnName = fn->getName();
+      if (fnName != "hipStreamSynchronize" && fnName != "hipDeviceSynchronize") // make sure this is supposed to be instrumented on device
+        return;
+      auto loc = metadata.trace(F, CI->getDebugLoc(), false);
+      // auto ptrtoint = llvm::CastInst::Create(llvm::CastInst::CastOps::PtrToInt, 
+      //                                         CI->getOperand(0), 
+      //                                         llvm::IntegerType::getInt64PtrTy(F.getContext()));
+      auto ci = llvm::CallInst::Create(
+          host.trace_append$mem,
+          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,5>{
+              llvm::ConstantInt::get(
+                  llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
+                  llvm::APInt(sizeof(InstrData)*8, InstrData::STEAM_SYNC)
+                ),
+              ((fnName == "hipDeviceSynchronize") 
+                ? llvm::ConstantPointerNull::get(llvm::PointerType::get(F.getContext(), 0u))
+                : CI->getOperand(0)), // ptrtoint
+              loc.src_id_ptr,
+              loc.getLineAsConstant(F.getContext()),
+              loc.getColAsConstant(F.getContext())
+            })
+        );
+      
+      ci->insertAfter(CI);   // might need to switch to inserting before
+      // ci->insertBefore(CI);
+      // ptrtoint->insertBefore(ci); // insert conversion to int before the call using it (must be done after it's insertion)
     }
+
+    // void ScabbardPassPlugin::instr_call_host(const llvm::Function& F, llvm::CallInst* ci)
+    // {
+    //   const auto& fn = *ci->getCalledFunction();
+    //   const auto& fnTy = *fn.getFunctionType();
+    //   const auto fnName = fn.getName();
+    //   if (fnName.startswith("hip") || fnName.startswith("cuda")) {
+    //     if (fnName.contains("Host")) { // deal with all host specific functions separately (for organizational purposes)
+    //       instr_host_call_host(F,ci,fnTy,fnName);
+    //     } else if (fnName.contains("Stream")) { // deal with all host specific functions separately (for organizational purposes)
+    //       instr_stream_call_host(F, ci,fnTy,fnName); 
+    //     } else if (fnName.contains("Memcpy")) { // deal with all various hipMemcpy specific fn's separately (for organizational purposes)
+    //       instr_memcpy_call_host(F,ci,fnTy,fnName);
+    //     } else if (fnName.contains("Memset")) { // deal with the various hipMemset funcs
+    //       //TODO
+    //     } else if (fnName.contains("Malloc")) { // deal with the various hipMalloc funcs 
+    //       //TODO
+    //     } else if (fnName.contains("Free")) { // deal with the various hipFree funcs 
+    //       //TODO
+    //     } else if (fnName.contains("LaunchKernel")) { // deal with kernel launch funcs (this one is complicated)
+    //       //TODO
+    //     }
+    //   }
+    // }
     
     void ScabbardPassPlugin::instr_stream_call_host(const llvm::Function& F, llvm::CallInst* ci,
                                                     const llvm::FunctionType& FnTy, const llvm::StringRef FnName) 

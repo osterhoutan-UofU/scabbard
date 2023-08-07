@@ -10,6 +10,7 @@ add_library(trace STATIC
     src/defs.cpp
     src/AsyncQueue.cpp
     src/TraceWriter.cpp
+    src/MetadataStore.cpp
   )
 
 set_property(TARGET trace PROPERTY HIP_STANDARD 17)
@@ -27,6 +28,7 @@ target_include_directories(trace
 target_link_libraries(trace
     PUBLIC
     hip::host
+    hip::device
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/lib/libscabbard.so>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/libscabbard.so>
     # PRIVATE
