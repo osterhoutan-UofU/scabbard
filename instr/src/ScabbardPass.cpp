@@ -292,7 +292,7 @@ namespace scabbard {
                 })
             );
           IRB.CreateStore(regCall, mde.src_id_ptr_host);
-          if (gpuBin != nullptr && mde.src_id_ptr_device != nullptr) {
+          if (gpuBin != nullptr && mde.src_id_ptr_device != nullptr) { //TODO: issue about id ptr not being created 
             IRB.CreateCall(M.getFunction("__hipRegisterVar"),
                             llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,8>{
                               gpuBin,
@@ -334,8 +334,8 @@ namespace scabbard {
     void ScabbardPassPlugin::run_device(llvm::Function& F, llvm::FunctionAnalysisManager& FAM, const DepTraceDevice& DT)
     {
       //TODO make any necessary additions to the function (i.e. getting thread, block, tile and stream ids)
-      for (auto& bb : F.getBasicBlockList())
-        for (auto& i : bb.getInstList())
+      for (auto& bb : F)
+        for (auto& i : bb)
           if (auto* store = llvm::dyn_cast<llvm::StoreInst>(&i)) {
             auto data = DT.getInstrData(*store);
             LLVM_DEBUG(
@@ -416,8 +416,8 @@ namespace scabbard {
 
     void ScabbardPassPlugin::run_host(llvm::Function& F, llvm::FunctionAnalysisManager& FAM, const DepTraceHost& DT)
     {
-      for (auto& bb : F.getBasicBlockList())
-        for (auto& i : bb.getInstList())
+      for (auto& bb : F)
+        for (auto& i : bb)
           if (auto* store = llvm::dyn_cast<llvm::StoreInst>(&i)) {
             auto data = DT.getInstrData(*store);
             LLVM_DEBUG(

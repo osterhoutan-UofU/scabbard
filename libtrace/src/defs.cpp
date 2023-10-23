@@ -63,6 +63,9 @@ namespace scabbard {
     __host__ 
     void scabbard_init()
     {
+      // if (__hip_gpubin_handle == nullptr)
+      //   __hip_gpubin_handle = __hipRegisterFatBinary(__hip_fatbin_wrapper);
+      
       const auto _EXE_NAME = std::getenv("SCABBARD_INSTRUMENTED_EXE_NAME");
       const std::string EXE_NAME = ((_EXE_NAME)
                                     ? std::string(_EXE_NAME)
@@ -120,12 +123,12 @@ namespace scabbard {
 
     namespace device {
       //NOTE: moved to device-defs.cpp for crosswise compilation
-      __global__ 
-      void call_stub(int* data_stub)
-      {
-        size_t i = threadIdx.x;
-        data_stub[i*2] += data_stub[i*2+1]; 
-      }
+      // __global__ 
+      // void call_stub(int* data_stub)
+      // {
+      //   size_t i = threadIdx.x;
+      //   data_stub[i*2] += data_stub[i*2+1]; 
+      // }
     } //?namespace device
 
 

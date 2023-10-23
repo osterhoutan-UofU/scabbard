@@ -29,8 +29,9 @@ namespace instr {
     * @brief ENUM BYTE MAP\n
     *   \code{.txt}
     *     0b_0000_0000_0000_0000
-    *        ^^^^ ^ ^  ^^^^ ^^ ^
-    *        |||| | |  |||| || L Runtime Conditional
+    *        ^^^^ ^ ^  ^^^^ ^^^^
+    *        |||| | |  |||| |||L Runtime Conditional
+    *        |||| | |  |||| ||L Optional data used
     *        |||| | |  |||| |L Instr in Host (CPU) module
     *        |||| | |  |||| L Instr in Device (GPU) module
     *        |||| | |  |||L Instr as ALLOCATE
@@ -51,6 +52,8 @@ namespace instr {
     NO                    = 0, // just a useful duplicate of NEVER
     // This might be of interest, but we can only know after a runtime conditional is run.
     _RUNTIME_CONDITIONAL  = 1<<0,  // Note: conditional is only valid for HOST/CPU
+    // This is used to indicate that the trace data's optional data slot is used
+    _OPT_USED             = 1<<1,
     // This inst should always be instrumented (no chance of NOT being of interest in traces) 
     ALWAYS                = (1<<2)|(1<<3),
     // If this is on the GPU/Device it should be instrumented
@@ -78,7 +81,7 @@ namespace instr {
     //
     HOST_HEAP             = 1<<14,
     //
-    STEAM_SYNC            = 1<<15
+    SYNC_EVENT            = 1<<15
   };
 
   inline InstrData operator | (InstrData l, InstrData r) 

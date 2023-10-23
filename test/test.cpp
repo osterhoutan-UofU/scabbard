@@ -2,6 +2,7 @@
 #include <iostream>
 #include <chrono>
 #include <cstring>
+// #include <scabbard/trace/calls.hpp>
 
 #ifdef ENABLE_HIP_CPU
 // #include <hip/hip_ext.h>

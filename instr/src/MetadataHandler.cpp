@@ -121,8 +121,8 @@ namespace scabbard {
         // data.src_filepath_str->setLinkage(llvm::GlobalValue::LinkageTypes::PrivateLinkage);
         data.src_filepath_str = IRB.CreateGlobalStringPtr(filepath, SCABBARD_METADATA_INSTR_srcPath_VAR_HOST(filepath),0u,&M);
         // make host copy of device side global
-        if (data.src_id_ptr_device != nullptr) {
-          if (data.src_id_ptr_device_host == nullptr)
+        if (data.src_id_ptr_device != nullptr) { //TODO: fix this logic so hip var get's registered in ctor (this is always returning false)
+          if (data.src_id_ptr_device_host == nullptr) 
             data.src_id_ptr_device_host_name = IRB.CreateGlobalStringPtr(SCABBARD_METADATA_INSTR_srcId_VAR_DEVICE(data.hex_id_str), SCABBARD_METADATA_INSTR_srcId_VAR_DEVICE_NAME(filepath),0u,&M);
           data.src_id_ptr_device_host = llvm::dyn_cast_or_null<llvm::GlobalVariable>(M.getOrInsertGlobal(SCABBARD_METADATA_INSTR_srcId_VAR_DEVICE(data.hex_id_str), int64_ty));
           data.src_id_ptr_device_host->setInitializer(llvm::Constant::getIntegerValue(int64_ty, llvm::APInt(64ul, 0ul, false)));

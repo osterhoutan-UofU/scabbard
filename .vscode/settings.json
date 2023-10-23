@@ -116,6 +116,7 @@
         "LIBTRACE",
         "Memcpy",
         "startswith",
-        "unifmem"
+        "unifmem",
+        "verif"
     ]
 }

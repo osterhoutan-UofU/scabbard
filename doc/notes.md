@@ -4,7 +4,34 @@
  TODO:
 ----------------------------------------------------------------------------------------------------
 
--[ ] ...
+- use `AMD_LOG_LEVEL` to higher value to get more info
+  ```
+  $ ./test/test.instr.out
+  :3:rocdevice.cpp            :426 : 1368798841724 us: 596395: [tid:0x7f7fa8f883c0] Initializing HSA stack.
+  :1:rocdevice.cpp            :434 : 1368798841785 us: 596395: [tid:0x7f7fa8f883c0] hsa_init failed.
+  :1:runtime.cpp              :78  : 1368798841790 us: 596395: [tid:0x7f7fa8f883c0] Runtime initialization failed
+  :3:hip_memory.cpp           :511 : 1368798841799 us: 596395: [tid:0x7f7fa8f883c0] hipMalloc: Returned hipErrorInvalidDevice : 
+
+  [scabbard::trace::init::ERROR] could not allocate space for the device side async queue! [hipError_t: 101]
+
+  :3:hip_device_runtime.cpp   :541 : 1368798841829 us: 596395: [tid:0x7f7fa8f883c0]  hipGetDeviceCount ( 0x7fff7c41dc7c ) 
+  :3:rocdevice.cpp            :426 : 1368798841879 us: 596395: [tid:0x7f7fa8f883c0] Initializing HSA stack.
+  :1:rocdevice.cpp            :434 : 1368798841888 us: 596395: [tid:0x7f7fa8f883c0] hsa_init failed.
+  :1:runtime.cpp              :78  : 1368798841891 us: 596395: [tid:0x7f7fa8f883c0] Runtime initialization failed
+  :3:hip_device_runtime.cpp   :543 : 1368798841895 us: 596395: [tid:0x7f7fa8f883c0] hipGetDeviceCount: Returned hipErrorNoDevice : 
+
+  [scabbard::trace::init::ERROR] could not get the number of compatible devices! [hipError_t: 100]
+  ```
+  - tracked the `rocdevice.cpp` to [this repo](https://github.com/ROCm-Developer-Tools/clr/blob/5914ac3c6e9b3848023a7fa25e19e560b1c38541/rocclr/device/rocm/rocdevice.cpp#L448)
+    - The header called in is from [this repo](https://github.com/HSAFoundation/HSA-Runtime-AMD/blob/0579a4f41cc21a76eff8f1050833ef1602290fcc/include/hsa.h#L309),
+      but this is just so there can be a common header for all AMD hardware when using ROCm
+    - it calls a function called `hsa_init` which is not defined in that repo and links to a device and system determined 
+      implementation of the HSA protocol.
+    - I still don't know what one is for my machine but I was able to find one implementation in [this repo](https://github.com/RadeonOpenCompute/ROCR-Runtime/blob/e0fadddb3175cb95ce9e9af2ebd2a205045e854e/src/core/runtime/hsa.cpp#L204) 
+      that I hope will be helpful (it is the primary runtime implementation)
+      - this implementation just calls a function in the primary runtime singleton to acquire
+
+- Discovery 
 
 ```ll
 tail call void @__hipRegisterVar(

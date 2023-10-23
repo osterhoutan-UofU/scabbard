@@ -98,8 +98,8 @@ namespace scabbard {
     {
       if (const auto* F = llvm::dyn_cast<llvm::Function>(M.getFunction("__hip_module_ctor"))) {
         // llvm::dbgs() << "\n[scabbard::host::DBG_INFO] this module contains a __hip_module_ctor ctor function\n\n";
-        for (const auto& bb : F->getBasicBlockList())
-          for (const auto& i : bb.getInstList())
+        for (const auto& bb : *F)
+          for (const auto& i : bb)
             if (const auto* call = llvm::dyn_cast<llvm::CallInst>(&i)) {
               if (call->getCalledFunction()->getName() == "__hipRegisterVar") {
                 // llvm::dbgs() << "\n[scabbard::host::DBG_INFO] found a `__hipRegisterVar` call!\n";

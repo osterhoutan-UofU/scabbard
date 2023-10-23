@@ -6,7 +6,11 @@ add_executable(verif
   )
 
 target_include_directories(verif
+    PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     PRIVATE
     src
-    ${CMAKE_CURRENT_BINARY_DIR}/../lib
+    ./include
+    ../lib/include
   )
