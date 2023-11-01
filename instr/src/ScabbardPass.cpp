@@ -516,7 +516,7 @@ namespace scabbard {
           llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,5>{
               llvm::ConstantInt::get(
                   llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
-                  llvm::APInt(sizeof(InstrData)*8, InstrData::STEAM_SYNC)
+                  llvm::APInt(sizeof(InstrData)*8, InstrData::SYNC_EVENT)
                 ),
               ((fnName == "hipDeviceSynchronize") 
                 ? llvm::ConstantPointerNull::get(llvm::PointerType::get(F.getContext(), 0u))
