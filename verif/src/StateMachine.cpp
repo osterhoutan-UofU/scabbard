@@ -41,6 +41,7 @@ namespace verif {
             // mem[td.ptr] // todo figure out if the lack of start stop detection is a deal breaker
             //POSSIBLE ISSUE: will having multiple kernels running in serial prevent you from detecting races?
             //  Can I just mark all mem addresses written to as synced until read after sync event?
+            //POSSIBLE ISSUE: how to deal with multiple reads in a row that are not part of races
           }
           break;
 
