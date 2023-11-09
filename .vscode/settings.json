@@ -114,6 +114,7 @@
         "hipcc",
         "Instramentable",
         "LIBTRACE",
+        "Malloc",
         "Memcpy",
         "startswith",
         "unifmem",

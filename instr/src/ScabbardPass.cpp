@@ -505,8 +505,8 @@ namespace scabbard {
       // const auto& fnTy = *fn.getFunctionType();
       if (not fn->hasName()) return; // don't deal with antonymous functions
       const auto fnName = fn->getName();
-      if (fnName != "hipStreamSynchronize" && fnName != "hipDeviceSynchronize") // make sure this is supposed to be instrumented on device
-        return;
+      if (fnName == "hipStreamSynchronize" || fnName == "hipDeviceSynchronize") // make sure this is supposed to be instrumented on device
+      {
       auto loc = metadata.trace(F, CI->getDebugLoc(), false);
       // auto ptrtoint = llvm::CastInst::Create(llvm::CastInst::CastOps::PtrToInt, 
       //                                         CI->getOperand(0), 
@@ -526,10 +526,87 @@ namespace scabbard {
               loc.getColAsConstant(F.getContext())
             })
         );
-      
-      ci->insertAfter(CI);   // might need to switch to inserting before
-      // ci->insertBefore(CI);
-      // ptrtoint->insertBefore(ci); // insert conversion to int before the call using it (must be done after it's insertion)
+        ci->insertAfter(CI);
+      }
+      else if (fnName == "hipMalloc")
+      {
+        auto loc = metadata.trace(F, CI->getDebugLoc(), false);
+        auto ci = llvm::CallInst::Create(
+          host.trace_append$alloc,
+          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,6>{
+              llvm::ConstantInt::get(
+                  llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
+                  llvm::APInt(sizeof(InstrData)*8, InstrData::ALLOCATE | InstrData::DEVICE_HEAP)
+                ),
+              ((fnName == "hipDeviceSynchronize") 
+                ? llvm::ConstantPointerNull::get(llvm::PointerType::get(F.getContext(), 0u))
+                : CI->getOperand(0)), // ptrtoint
+              loc.src_id_ptr,
+              loc.getLineAsConstant(F.getContext()),
+              loc.getColAsConstant(F.getContext()),
+              CI->getOperand(1)
+            })
+        );
+        ci->insertAfter(CI);
+      }
+      else if (fnName == "hipFree")
+      {
+        auto loc = metadata.trace(F, CI->getDebugLoc(), false);
+        auto ci = llvm::CallInst::Create(
+          host.trace_append$alloc,
+          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,6>{
+              llvm::ConstantInt::get(
+                  llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
+                  llvm::APInt(sizeof(InstrData)*8, InstrData::FREE | InstrData::DEVICE_HEAP)
+                ),
+              ((fnName == "hipDeviceSynchronize") 
+                ? llvm::ConstantPointerNull::get(llvm::PointerType::get(F.getContext(), 0u))
+                : CI->getOperand(0)), // ptrtoint
+              loc.src_id_ptr,
+              loc.getLineAsConstant(F.getContext()),
+              loc.getColAsConstant(F.getContext()),
+              llvm::ConstantInt::get( // we can't contextually know how much is being free'd inline, but we can keep track like a normal allocator does 
+                  llvm::IntegerType::get(F.getContext(), 64),
+                  llvm::APInt(64u, 0)
+                )
+            })
+        );
+        ci->insertBefore(CI);
+      }
+      else if (fnName == "hipMemcpy")
+      {
+        if (auto* TrTy = llvm::dyn_cast<llvm::ConstantInt>(CI->getOperand(3))) {
+          // get which 
+          switch (TrTy->getSExtValue()) {
+            case 2: // D->H
+              break; // we only care about instrumenting copies that count as reading read by the host
+            case 1: // H->D
+            case 3: // D->D
+            case 0: // H->H
+            default: // Unknown
+              return;
+          }
+        }
+        auto loc = metadata.trace(F, CI->getDebugLoc(), false);
+        auto ci = llvm::CallInst::Create(
+          host.trace_append$alloc,
+          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,6>{
+              llvm::ConstantInt::get(
+                  llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
+                  llvm::APInt(sizeof(InstrData)*8, InstrData::READ | InstrData::DEVICE_HEAP | InstrData::ON_HOST | InstrData::_OPT_USED)
+                ),
+              ((fnName == "hipDeviceSynchronize") 
+                ? llvm::ConstantPointerNull::get(llvm::PointerType::get(F.getContext(), 0u))
+                : CI->getOperand(0)), // ptrtoint
+              loc.src_id_ptr,
+              loc.getLineAsConstant(F.getContext()),
+              loc.getColAsConstant(F.getContext()),
+              CI->getOperand(2)
+            })
+        );
+        ci->insertBefore(CI);
+        return;
+      }
     }
 
     // void ScabbardPassPlugin::instr_call_host(const llvm::Function& F, llvm::CallInst* ci)

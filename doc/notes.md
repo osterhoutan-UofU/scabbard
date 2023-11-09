@@ -4,7 +4,21 @@
  TODO:
 ----------------------------------------------------------------------------------------------------
 
-- use `AMD_LOG_LEVEL` to higher value to get more info
+-[ ] create the trace file analyzer / data race detector
+  -[ ] design a range based data structure that lets you apply and remove multiple traits from ranges of integers (mem addresses)
+
+-[ ] fix the issue of host modules not knowing when they have a gpu module to register the metadata variables for
+
+-[ ] verify that we don't need the conditional trace append for the cpu, then remove it
+  - this might take extra special care to do, as we need to ensure that we record all loads from gpu memory
+
+-[ ] ...
+
+-[X] add support for instrumenting `hipMemcpy`
+-[X] add support for instrumenting `hipMalloc`
+-[X] add support for instrumenting `hipFree`
+
+-[X] use `AMD_LOG_LEVEL` to higher value to get more info
   ```
   $ ./test/test.instr.out
   :3:rocdevice.cpp            :426 : 1368798841724 us: 596395: [tid:0x7f7fa8f883c0] Initializing HSA stack.
