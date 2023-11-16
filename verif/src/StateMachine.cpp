@@ -35,13 +35,11 @@ namespace verif {
 
         case InstrData::WRITE:
           auto& it = mem.find(td.ptr);
-          if (it == mem.end()) { // first write of a pair
+          if (it == mem.end() && not (it->second->data & InstrData::READ)) { // first write of a pair (empty or just allocated)
             mem[td.ptr] = &td;
-          } else if () {
-            // mem[td.ptr] // todo figure out if the lack of start stop detection is a deal breaker
-            //POSSIBLE ISSUE: will having multiple kernels running in serial prevent you from detecting races?
-            //  Can I just mark all mem addresses written to as synced until read after sync event?
-            //POSSIBLE ISSUE: how to deal with multiple reads in a row that are not part of races
+          } else { // This is probably a race
+            return {ERROR, it->second, &td};
+            //NOTE: because we don't know if a kernel was running at the time this could be a false positive
           }
           break;
 
@@ -64,9 +62,11 @@ namespace verif {
           break;
 
         case InstrData::ALLOCATE:
+          // it is currently unessisary to do anything for an allocation
           break;
 
         case InstrData::FREE:
+          mem.erase(td.ptr, td.ptr+td._OPT_DATA);
           break;
 
         default:
