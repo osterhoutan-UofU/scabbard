@@ -23,8 +23,11 @@ struct less<scabbard::TraceData> {
   {
     if (l.time_stamp < r.time_stamp)
       return true;
-    // else if (l.time_stamp == r.time_stamp) // might need this might not
-    //   return ...
+    else if ((l.time_stamp == r.time_stamp) // if they are equal in time
+              && ((l.data & scabbard::InstrData::ON_CPU) // only true if l is on cpu and r is on gpu
+                  && (r.data & scabbard::InstrData::ON_GPU))) 
+        return true;
+    return false;
   }
 };
 
