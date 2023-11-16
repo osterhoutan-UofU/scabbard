@@ -73,6 +73,7 @@ namespace verif {
           
       } 
     }
+    return {GOOD, nullptr, nullptr};
   }
 
 
