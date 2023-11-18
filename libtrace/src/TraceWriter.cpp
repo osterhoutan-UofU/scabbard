@@ -60,8 +60,7 @@ namespace scabbard {
       out.write(BUF, (sizeof(std::uint8_t)*3+sizeof(uint32_t)) % WORD_LEN); 
       
       // write start time 
-      out.write(BUF, sizeof(std::time_t) % WORD_LEN); // little endian buffer
-      out.write(reinterpret_cast<const char*>(&time_stamp), sizeof(std::time_t));
+      out.write(reinterpret_cast<const char*>(&time_stamp), sizeof(std::uint32_t));
 
       // write string of executable file path
       out.write(BUF, sizeof(uint64_t) % WORD_LEN); // little endian buffer

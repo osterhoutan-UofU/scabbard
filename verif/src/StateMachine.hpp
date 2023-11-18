@@ -12,9 +12,9 @@
 #pragma once
 
 #include <scabbard/TraceData.hpp>
-#include <less.hpp>
+#include <scabbard/less.hpp>
 
-#include <multiset>
+#include <set>
 #include <map>
 #include <tuple>
 
