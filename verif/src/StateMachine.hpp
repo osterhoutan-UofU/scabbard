@@ -24,7 +24,7 @@ namespace verif {
   class StateMachine {
 
     const std::multiset<TraceData>& trace;
-    std::map<void*,const TraceData*> mem;
+    std::map<size_t,const TraceData*> mem;
     std::size_t last_sync = __UINT64_MAX__;
 
   public:
@@ -37,7 +37,7 @@ namespace verif {
       const TraceData* write = nullptr;
     };
 
-    const Result run();
+    const StateMachine::Result run();
 
     void reset();
 

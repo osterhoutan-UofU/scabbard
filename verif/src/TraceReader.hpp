@@ -23,8 +23,6 @@ namespace scabbard {
 namespace verif {
 
 
-  class TraceFile
-
   /**
    * @brief read in a trace file and 
    * @param filepath the path to the file to be read

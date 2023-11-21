@@ -103,7 +103,8 @@
         "iostream": "cpp",
         "__locale": "cpp",
         "ios": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "semaphore": "cpp"
     },
     "cSpell.words": [
         "amdgcn",

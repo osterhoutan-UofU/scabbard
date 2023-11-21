@@ -3,6 +3,8 @@ project(scabbard-verif VERSION 0.1)
 
 add_executable(verif
     src/main.cpp
+    src/StateMachine.cpp
+    src/TraceReader.cpp
   )
 
 target_include_directories(verif

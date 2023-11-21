@@ -19,7 +19,7 @@ namespace verif {
   {}
 
 
-  StateMachine::Result StateMachine::run()
+  const StateMachine::Result StateMachine::run()
   {
     const InstrData FILTER = (
         InstrData::SYNC_EVENT 
@@ -27,6 +27,7 @@ namespace verif {
         | InstrData::ALLOCATE | InstrData::FREE
       );
     for (const auto& td : trace) {
+      std::map<size_t, const scabbard::TraceData *>::iterator it = mem.end();
       switch (td.data & FILTER)
       {
         case InstrData::SYNC_EVENT:
@@ -34,7 +35,7 @@ namespace verif {
           break;
 
         case InstrData::WRITE:
-          auto& it = mem.find(td.ptr);
+          it = mem.find(td.ptr);
           if (it == mem.end() && not (it->second->data & InstrData::READ)) { // first write of a pair (empty or just allocated)
             mem[td.ptr] = &td;
           } else { // This is probably a race
@@ -44,7 +45,7 @@ namespace verif {
           break;
 
         case InstrData::READ:
-          auto& it = mem.find(td.ptr);
+          it = mem.find(td.ptr);
           if (td.data & InstrData::_OPT_USED) { // bulk read (memcpy device to host)
             while (it->second->ptr < td.ptr+td._OPT_DATA && it != mem.end()) {
               auto res = check_race_read(td, *it->second);
@@ -70,7 +71,7 @@ namespace verif {
           break;
 
         default:
-          
+          break;
       } 
     }
     return {GOOD, nullptr, nullptr};
@@ -86,7 +87,7 @@ namespace verif {
 
 
 
-  const Result StateMachine::check_race_read(const TraceData& r, const TraceData& o) const 
+  const StateMachine::Result StateMachine::check_race_read(const TraceData& r, const TraceData& o) const 
   {
     if (o.data & InstrData::WRITE) { // if mem stores a write event 
       if (last_sync > o.time_stamp) // that occurred after the last sync event
@@ -97,7 +98,7 @@ namespace verif {
     }
   }
 
-  const Result StateMachine::check_race_write(const TraceData& w, const TraceData& o) const 
+  const StateMachine::Result StateMachine::check_race_write(const TraceData& w, const TraceData& o) const 
   {
 
   }

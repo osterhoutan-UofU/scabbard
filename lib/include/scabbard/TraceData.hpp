@@ -30,7 +30,7 @@
 
 
 namespace scabbard {
-  namespace trace {
+  // namespace trace {
 
 #pragma pack(1)
 struct blockId_t {
@@ -130,6 +130,7 @@ inline const T& reading_cast(const char* buffer, const std::size_t index, const 
 
 struct TraceData {
   using LocMData_t = ::scabbard::LocationMetadata;
+# ifdef __scabbard_hip_compile
   //DATA TYPE         NAME          DEFAULT VALUE          SIZE       W/PADDING (64b arch)
   const std::size_t   time_stamp  = 0ul;                //  8B ( 64b)  8B ( 64b)
   const InstrData     data        = InstrData::NEVER;   //  2B ( 16b)  8B ( 64b)
@@ -138,6 +139,14 @@ struct TraceData {
   const LocMData_t    metadata    = {0ul,0ul,0ul};      // 24B (192b) 24B (192b)
   const std::size_t   _OPT_DATA   = 0ul;                //  8B ( 64b)  8B ( 64b)
   //                                              TOTALS:  66B (528b) 72B (576b)
+# else
+  std::size_t   time_stamp  = 0ul;
+  InstrData     data        = InstrData::NEVER;
+  ThreadId      threadId    = ((void*)nullptr);
+  std::size_t   ptr         = 0ul;
+  LocMData_t    metadata    = {0ul,0ul,0ul};
+  std::size_t   _OPT_DATA   = 0ul;
+#endif
   // Constructors
 # ifdef __scabbard_hip_compile
     __host__ __device__ 
@@ -149,7 +158,7 @@ struct TraceData {
   TraceData(const TraceData& other) { std::memcpy(this, &other, sizeof(TraceData)); }
 # ifndef __scabbard_hip_compile
   TraceData(const void* src_ptr) { std::memcpy(this, src_ptr, sizeof(TraceData)); }
-  TraceData(const char* buffer) : TraceData(reinterpret_cast<void*>(buffer)) {}
+  // TraceData(const char* buffer) : TraceData(reinterpret_cast<void*>(buffer)) {}
   // only use this constructor if WORD_LEN in file trace file is different from system __WORDSIZE
   TraceData(const char* buffer, const size_t WORD_LEN);
 # else
@@ -167,12 +176,12 @@ struct TraceData {
       data(data_), threadId(), ptr(ptr_), metadata(metadata_), _OPT_DATA(opt_data)
   {}
   __host__ 
-# endif
   TraceData(size_t time_stamp_, InstrData data_, const ThreadId& threadId_,
                      void* ptr_, const LocMData_t& metadata_, std::size_t opt_data)
     : time_stamp(time_stamp_), data(data_), threadId(threadId_),
       ptr(ptr_), metadata(metadata_), _OPT_DATA(opt_data)
   {}
+# endif
 # ifdef __scabbard_hip_compile
     __host__ __device__ 
 # endif 
@@ -189,5 +198,5 @@ struct TraceData {
 };
 
 
-} //?namespace trace
+// } //?namespace trace
 } //?namespace scabbard

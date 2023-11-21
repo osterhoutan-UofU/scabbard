@@ -15,6 +15,7 @@
 #include <iostream>
 #include <memory>
 
+#define BUF_L (128ul)
 
 namespace scabbard {
 namespace verif {
@@ -22,17 +23,28 @@ namespace verif {
 #if (__WORDSIZE == 64)
   TraceData readTraceData_32(std::ifstream& in)
   {
-    
+    TraceData res;
+    in.read(reinterpret_cast<char*>(&res.time_stamp), sizeof(uint32_t));
+    in.read(reinterpret_cast<char*>(&res.data), sizeof(InstrData));
+    in.read(reinterpret_cast<char*>(&res.threadId), sizeof(ThreadId));
+    in.read(reinterpret_cast<char*>(&res.ptr), sizeof(uint32_t));
+    in.read(reinterpret_cast<char*>(&res.metadata), 12u);
+    in.read(reinterpret_cast<char*>(&res._OPT_DATA), sizeof(uint32_t));
+    return res;
   }
 
   TraceData readTraceData_64(std::ifstream& in)
   {
-
+    TraceData res;
+    in.read(reinterpret_cast<char*>(&res), sizeof(TraceData));
+    return res;
   }
 #elif (__WORDSIZE == 32)
   TraceData readTraceData_32(std::ifstream& in)
   {
-    
+    TraceData res;
+    in.read(reinterpret_cast<char*>(&res), sizeof(TraceData));
+    return res;
   }
 
   TraceData readTraceData_64(std::ifstream& in)
@@ -76,7 +88,7 @@ namespace verif {
       //TODO: actually read in the exe path
 
       // based upon trace file decide how to interpret trace data
-      std::function<TraceData(std::ifstream)> readTraceData;
+      std::function<TraceData(std::ifstream&)> readTraceData;
       switch (tf.WORD_LEN) {
         case 32u:
           readTraceData = readTraceData_32;
@@ -85,15 +97,41 @@ namespace verif {
           readTraceData = readTraceData_64;
           break;
         default:
-          throw std::exception("tracefile comes from a machine with an unsupported wordsize");
+          throw std::domain_error("tracefile comes from a machine with an unsupported wordsize");
       }
 
       // read in the metadata jump point
-      //TODO: read in the metadata jump point
-      std::streampos metadata_loc
+      std::streamoff trace_end_pos;
+      in.read(reinterpret_cast<char*>(&trace_end_pos), tf.WORD_LEN);
 
       // read in the trace data
+      while (trace_end_pos < in.tellg())
+        tf.trace_data.insert(readTraceData(in));
 
+      // read in the metadata jump table
+      std::vector<std::streamoff> jmpTbl;
+      std::streamoff tmp;
+      do {
+        in.read(reinterpret_cast<char*>(&tmp), tf.WORD_LEN);
+        jmpTbl.push_back(tmp);
+      } while (in.tellg() < jmpTbl[0]);
+
+      // read in the metadata
+      char buf[BUF_L];
+      for (size_t i=0; i<(jmpTbl.size()-1); ++i) {
+        std::string tmp = "";
+        in.seekg(jmpTbl[i]);
+        std::streamoff l = jmpTbl[i+1] - jmpTbl[i];
+        std::streamoff J = l / BUF_L;
+        for (size_t j=0; j<J; ++j) {
+          in.read(buf, BUF_L);
+          tmp.append(buf, BUF_L);
+        }
+        std::streamoff K = l % BUF_L;
+        in.read(buf,K);
+        tmp.append(buf,K);
+        tf.src_files.push_back(tmp);
+      }
 
     } catch (std::exception& ex) {
       std::cerr << "Error occurred while reading in trace file: `" << filepath << "`\n   " << ex.what() << std::endl;
