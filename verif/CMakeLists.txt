@@ -16,3 +16,9 @@ target_include_directories(verif
     ./include
     ../lib/include
   )
+
+target_link_libraries(verif
+  PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../lib/libscabbard.so>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/libscabbard.so>
+)

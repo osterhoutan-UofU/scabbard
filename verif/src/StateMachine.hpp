@@ -47,19 +47,21 @@ namespace verif {
      * @brief check if a race has occurred if the current trace is a read event
      * @param r - the current trace data being processed that is known to be a read event
      * @param o  - the other trace data from the mem object (known to exist)
-     * @return \c const Result - the resulting condition
+     * @return \c const ResultStatus - the resulting condition
      */
-    const Result check_race_read(const TraceData& r, const TraceData& o) const;
+    const ResultStatus check_race_read(const TraceData& r, const TraceData& o);
 
-    /**
-     * @brief check if a race has occurred if the current trace is a write event
-     * @param w - the current trace data being processed that is known to be a write event
-     * @param o - the other trace data from the mem object (known to exist)
-     * @return \c const Result - the resulting condition
-     */
-    const Result check_race_write(const TraceData& w, const TraceData& o) const;
+    // /**
+    //  * @brief check if a race has occurred if the current trace is a write event
+    //  * @param w - the current trace data being processed that is known to be a write event
+    //  * @param o - the other trace data from the mem object (known to exist)
+    //  * @return \c const ResultStatus - the resulting condition
+    //  */
+    // const ResultStatus check_race_write(const TraceData& w, const TraceData& o);
 
   };
+
+  std::ostream& operator << (std::ostream& out, const StateMachine::ResultStatus& status);
 
 } //?namespace verif
 } //?namespace scabbard

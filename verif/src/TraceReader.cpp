@@ -56,6 +56,21 @@ namespace verif {
   std::static_assert(false, "this machine is of an unsupported word size");
 #endif
 
+  std::string readStringL(std::ifstream& in, std::streamoff l)
+  {
+    char buf[BUF_L];
+    std::string tmp = "";
+    std::streamoff J = l / BUF_L;
+    for (size_t j=0; j<J; ++j) {
+      in.read(buf, BUF_L);
+      tmp.append(buf, BUF_L);
+    }
+    std::streamoff K = l % BUF_L;
+    in.read(buf,K);
+    tmp.append(buf,K);
+    return tmp;
+  }
+
 
   TraceFile readTraceFile(const std::string& filepath)
   {
@@ -64,6 +79,7 @@ namespace verif {
       _input = new std::ifstream(filepath, std::ios::binary);
     } catch (std::exception& ex) {
       std::cerr << "Error occurred while opening trace file: `" << filepath << "`\n    " << ex.what() << std::endl;
+      exit(EXIT_FAILURE);
     }
     std::ifstream& in = *_input;
     TraceFile tf;
@@ -78,14 +94,18 @@ namespace verif {
       in.read(reinterpret_cast<char*>(&tf.WORD_LEN), sizeof(uint32_t));
 
       // jump if nessisary
-      if ((sizeof(uint8_t)*3 + sizeof(uint32_t)) % tf.WORD_LEN)
-        //TODO: figure out how to move read head
+      if (std::streamoff diff = (sizeof(uint8_t)*3 + sizeof(uint32_t)) % tf.WORD_LEN)
+        in.seekg(in.tellg() + diff);
 
       // read in the start time
       in.read(reinterpret_cast<char*>(&tf.START_TIME), sizeof(uint32_t));
 
       // read in exe path
-      //TODO: actually read in the exe path
+      std::size_t exe_l = 0ul;
+      in.read(reinterpret_cast<char*>(&exe_l), tf.WORD_LEN);
+      tf.EXE_PATH = readStringL(in, exe_l);
+      if (std::streamoff diff2 = exe_l % tf.WORD_LEN)
+        in.seekg(in.tellg() + diff2);
 
       // based upon trace file decide how to interpret trace data
       std::function<TraceData(std::ifstream&)> readTraceData;
@@ -117,29 +137,20 @@ namespace verif {
       } while (in.tellg() < jmpTbl[0]);
 
       // read in the metadata
-      char buf[BUF_L];
       for (size_t i=0; i<(jmpTbl.size()-1); ++i) {
-        std::string tmp = "";
         in.seekg(jmpTbl[i]);
         std::streamoff l = jmpTbl[i+1] - jmpTbl[i];
-        std::streamoff J = l / BUF_L;
-        for (size_t j=0; j<J; ++j) {
-          in.read(buf, BUF_L);
-          tmp.append(buf, BUF_L);
-        }
-        std::streamoff K = l % BUF_L;
-        in.read(buf,K);
-        tmp.append(buf,K);
-        tf.src_files.push_back(tmp);
+        tf.src_files.push_back(readStringL(in,l));
       }
 
     } catch (std::exception& ex) {
       std::cerr << "Error occurred while reading in trace file: `" << filepath << "`\n   " << ex.what() << std::endl;
+      exit(EXIT_FAILURE);
     }
     try {
       _input->close();
     } catch (std::exception& ex) {
-      std::cerr << "Error occurred while trying to close the trace file: `" << filepath << "`\n   " << ex.what() << std::endl;
+      std::cerr << "WARNING: error occurred while trying to close the trace file: `" << filepath << "`\n   " << ex.what() << std::endl;
     }
     delete _input;
     return tf;

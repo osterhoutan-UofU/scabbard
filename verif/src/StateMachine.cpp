@@ -49,14 +49,14 @@ namespace verif {
           if (td.data & InstrData::_OPT_USED) { // bulk read (memcpy device to host)
             while (it->second->ptr < td.ptr+td._OPT_DATA && it != mem.end()) {
               auto res = check_race_read(td, *it->second);
-              if (res.status != GOOD)
-                return res;
+              if (res != GOOD)
+                return {res, &td, it->second};
               ++it; // iterate to next mem address
             }
           } else if (it != mem.end()) { // single read
             auto res = check_race_read(td, *it->second);
-              if (res.status != GOOD)
-                return res;
+              if (res != GOOD)
+                return {res, &td, it->second};
           } else { // read with no preceding write
             return {WARNING, &td, nullptr}; // read with no preceding write
           }
@@ -67,7 +67,7 @@ namespace verif {
           break;
 
         case InstrData::FREE:
-          mem.erase(td.ptr, td.ptr+td._OPT_DATA);
+          mem.erase(mem.find(td.ptr), mem.find(td.ptr+td._OPT_DATA));
           break;
 
         default:
@@ -87,20 +87,37 @@ namespace verif {
 
 
 
-  const StateMachine::Result StateMachine::check_race_read(const TraceData& r, const TraceData& o) const 
+  const StateMachine::ResultStatus StateMachine::check_race_read(const TraceData& r, const TraceData& o) 
   {
     if (o.data & InstrData::WRITE) { // if mem stores a write event 
       if (last_sync > o.time_stamp) // that occurred after the last sync event
-        return {ResultStatus::WARNING, &r, &o}; // return a warning
+        return ResultStatus::WARNING; // return a warning
     } else {    // if a read event we don't care yet (could be a double read)
       mem[o.ptr] = &r;
-      return {ResultStatus::GOOD, nullptr, nullptr};
+      return ResultStatus::GOOD;
     }
   }
 
-  const StateMachine::Result StateMachine::check_race_write(const TraceData& w, const TraceData& o) const 
-  {
+  // const StateMachine::ResultStatus StateMachine::check_race_write(const TraceData& w, const TraceData& o)
+  // {
+  //
+  // }
 
+
+  std::ostream& operator << (std::ostream& out, const StateMachine::ResultStatus& status)
+  {
+    switch (status)
+    {
+      case StateMachine::ResultStatus::ERROR:
+        return (out << "DATA RACE FOUND");
+        break;
+      case StateMachine::ResultStatus::WARNING:
+        return (out << "POSSIBLE Data Race FOUND");
+      case StateMachine::ResultStatus::GOOD:
+        return (out << "NO data races detected");
+      default:
+        return (out << "<UNKNOWN>");
+    }
   }
 
 } //?namespace verif
