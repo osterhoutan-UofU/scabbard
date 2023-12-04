@@ -69,7 +69,7 @@ void norm_increment(int* h_out, int* h_in, const size_t ARRAY_SIZE)
 
 int main()
 {
-    const size_t ARRAY_SIZE = 0b100000000000000; //46945;
+    const size_t ARRAY_SIZE = 4096ul; //4096;
     const size_t ITERATIONS = ARRAY_SIZE; //986087543U; //1024;
     int *in = new int[ARRAY_SIZE];
     int *norm_out = new int[ARRAY_SIZE];

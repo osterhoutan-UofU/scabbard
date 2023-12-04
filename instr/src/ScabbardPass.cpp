@@ -559,9 +559,7 @@ namespace scabbard {
                   llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
                   llvm::APInt(sizeof(InstrData)*8, InstrData::FREE | InstrData::DEVICE_HEAP)
                 ),
-              ((fnName == "hipDeviceSynchronize") 
-                ? llvm::ConstantPointerNull::get(llvm::PointerType::get(F.getContext(), 0u))
-                : CI->getOperand(0)), // ptrtoint
+              llvm::ConstantPointerNull::get(llvm::PointerType::get(F.getContext(), 0u)),
               loc.src_id_ptr,
               loc.getLineAsConstant(F.getContext()),
               loc.getColAsConstant(F.getContext()),
@@ -573,10 +571,30 @@ namespace scabbard {
         );
         ci->insertBefore(CI);
       }
-      else if (fnName == "hipMemcpy")
+      else if (fnName == "hipMemcpy" || fnName == "hipMemcpyAsync")
       {
+        auto loc = metadata.trace(F, CI->getDebugLoc(), false);
+        // hipMemCpy performs a hipStreamSync(0) unless it's async so we must also register the sync event
+        if (not fnName.contains("Async")) {
+          auto cis = llvm::CallInst::Create(
+            host.trace_append$mem,
+            llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,5>{
+                llvm::ConstantInt::get(
+                    llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
+                    llvm::APInt(sizeof(InstrData)*8, InstrData::SYNC_EVENT)
+                  ),
+                ((fnName == "hipMemcpyWithStream") 
+                  ? CI->getOperand(0)
+                  : llvm::ConstantPointerNull::get(llvm::PointerType::get(F.getContext(), 0u))),
+                loc.src_id_ptr,
+                loc.getLineAsConstant(F.getContext()),
+                loc.getColAsConstant(F.getContext())
+              })
+          );
+          cis->insertBefore(CI);
+        }
+        // we only need to register the cpy as a read if it's from device to host 
         if (auto* TrTy = llvm::dyn_cast<llvm::ConstantInt>(CI->getOperand(3))) {
-          // get which 
           switch (TrTy->getSExtValue()) {
             case 2: // D->H
               break; // we only care about instrumenting copies that count as reading read by the host
@@ -587,7 +605,6 @@ namespace scabbard {
               return;
           }
         }
-        auto loc = metadata.trace(F, CI->getDebugLoc(), false);
         auto ci = llvm::CallInst::Create(
           host.trace_append$alloc,
           llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,6>{
