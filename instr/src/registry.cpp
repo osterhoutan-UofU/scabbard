@@ -65,7 +65,7 @@ llvm::PassPluginLibraryInfo getScabbardPassPluginInfo() {
                   // MPM.addPass(scabbard::instr::ScabbardPostPass(metadata)); // moved to linker phase
                 }
               );
-              PB.registerFullLinkTimeOptimizationLastEPCallback( // used to handle link time instrumentation
+              PB.registerFullLinkTimeOptimizationEarlyEPCallback( // used to handle link time instrumentation
                   [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
                     MPM.addPass(scabbard::instr::ScabbardPostPass(metadata));
                   }
