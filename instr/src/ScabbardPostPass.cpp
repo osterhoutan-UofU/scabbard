@@ -10,8 +10,6 @@
  *
  */
 
-#pragma once
-
 #include "ScabbardPostPass.hpp"
 
 #include <scabbard/instr-names.def>
@@ -49,10 +47,13 @@ namespace scabbard {
       // archBit = ((target.isArch64Bit()) ? 64 //ASSUMING for now this will only be used on 64 bit machines
       //             : ((target.isArch32Bit()) ? 32 
       //               : (target.isArch16Bit()) ? 16 : 0))
-      if (target.isAMDGPU())  // checks for both amdgcn & r600 arch(s) (might need to restrict this to just amdgcn with `isAMDGCN()`)
+      if (target.isAMDGPU()) {  // checks for both amdgcn & r600 arch(s) (might need to restrict this to just amdgcn with `isAMDGCN()`)
         run_device(M, MAM);    //                                        To support hip on Nvidia GPUs we might need to also run this for nvptx arch(s) (this might be the same as supporting CUDA though)
-      else
+        return llvm::PreservedAnalyses::all();
+      } else {
         run_host(M, MAM);
+        return llvm::PreservedAnalyses::none();
+      }
     }
 
     void ScabbardPostPass::run_device(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
@@ -60,6 +61,7 @@ namespace scabbard {
 
     void ScabbardPostPass::run_host(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
     {
+      instrCallbacks_host(M, MAM);
       instr_module_ctor_host(M, MAM);
     }
 
@@ -73,7 +75,7 @@ namespace scabbard {
       llvm::Value* gpuBin = nullptr;
       auto gpuBinGlobal = M.getGlobalVariable("__hip_gpubin_handle");
       if (gpuBinGlobal != nullptr)
-        gpuBin = IRB.CreateLoad(llvm::PointerType::get(IRB.getInt8PtrTy(),0u), gpuBinGlobal);
+        gpuBin = IRB.CreateLoad(gpuBinGlobal->getType(), gpuBinGlobal, "gpuBin");
       // insert the registry stuff
       for (const auto& mde_p : metadata.getMetadataMap()) {
         const auto& mde = mde_p.second;
@@ -112,24 +114,6 @@ namespace scabbard {
 
     void ScabbardPostPass::instrCallbacks_host(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
     {
-      // don't bother with host modules without hip components
-      //WARN: this might break linking (or break linking if this isn't here IDK yet)
-      host.module_ctor = llvm::dyn_cast_or_null<llvm::Function>(M.getOrInsertFunction(
-          host.module_ctor_name,
-          llvm::FunctionType::get(
-              llvm::Type::getVoidTy(M.getContext()),
-              llvm::ArrayRef<llvm::Type*>(std::array<llvm::Type*,0>{}),
-              false
-            )
-        ).getCallee());
-      // host.module_dtor = llvm::dyn_cast_or_null<llvm::Function>(M.getOrInsertFunction(
-      //     host.module_dtor_name,
-      //     llvm::FunctionType::get(
-      //         llvm::Type::getVoidTy(M.getContext()),
-      //         llvm::ArrayRef<llvm::Type*>(std::array<llvm::Type*,0>{}),
-      //         false
-      //       )
-      //   ).getCallee());
       host.metadata_register$src = M.getOrInsertFunction(
           host.metadata_register$src_name,
           llvm::FunctionType::get(
@@ -151,6 +135,23 @@ namespace scabbard {
               false
             )
         );
+
+      host.module_ctor = llvm::dyn_cast_or_null<llvm::Function>(M.getOrInsertFunction(
+          host.module_ctor_name,
+          llvm::FunctionType::get(
+              llvm::Type::getVoidTy(M.getContext()),
+              llvm::ArrayRef<llvm::Type*>(std::array<llvm::Type*,0>{}),
+              false
+            )
+        ).getCallee());
+      // host.module_dtor = llvm::dyn_cast_or_null<llvm::Function>(M.getOrInsertFunction(
+      //     host.module_dtor_name,
+      //     llvm::FunctionType::get(
+      //         llvm::Type::getVoidTy(M.getContext()),
+      //         llvm::ArrayRef<llvm::Type*>(std::array<llvm::Type*,0>{}),
+      //         false
+      //       )
+      //   ).getCallee());
     }
 
 

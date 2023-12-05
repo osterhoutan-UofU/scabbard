@@ -62,18 +62,9 @@ llvm::PassPluginLibraryInfo getScabbardPassPluginInfo() {
             PB.registerOptimizerLastEPCallback( // ~can~ find kernel functions (sometimes run's twice)
                 [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
                   MPM.addPass(scabbard::instr::ScabbardPassPlugin(metadata));
+                  // MPM.addPass(scabbard::instr::ScabbardPostPass(metadata)); // moved to linker phase
                 }
               );
-            PB.registerPipelineParsingCallback( // can find kernal functions (conditional upon cli args)
-                  [](StringRef Name, llvm::ModulePassManager &MPM,
-                    ArrayRef<llvm::PassBuilder::PipelineElement>) {
-                    if (Name == "scabbard") {
-                      MPM.addPass(scabbard::instr::ScabbardPassPlugin(metadata));
-                      return true;
-                    }
-                    return false;
-                  }
-                );
               PB.registerFullLinkTimeOptimizationLastEPCallback( // used to handle link time instrumentation
                   [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
                     MPM.addPass(scabbard::instr::ScabbardPostPass(metadata));
