@@ -33,6 +33,10 @@ namespace scabbard {
   namespace instr {
 
 
+    ScabbardPassPlugin::ScabbardPassPlugin(MetadataHandler& metadata_)
+      : metadata(metadata_)
+    {}
+
     // ScabbardPassPlugin::ScabbardPassPlugin() {}
 
     // ScabbardPassPlugin::ScabbardPassPlugin(const std::string& InstrLibLoc)
@@ -162,29 +166,10 @@ namespace scabbard {
       for (auto& f : M.getFunctionList())
         if (f.getName() != "__hip_module_ctor")
           run_host(f, fam, dt);
-      instr_module_ctor_host(M, MAM);
     }
 
     void ScabbardPassPlugin::instrCallbacks_host(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
     {
-      // don't bother with host modules without hip components
-      //WARN: this might break linking (or break linking if this isn't here IDK yet)
-      host.module_ctor = llvm::dyn_cast_or_null<llvm::Function>(M.getOrInsertFunction(
-          host.module_ctor_name,
-          llvm::FunctionType::get(
-              llvm::Type::getVoidTy(M.getContext()),
-              llvm::ArrayRef<llvm::Type*>(std::array<llvm::Type*,0>{}),
-              false
-            )
-        ).getCallee());
-      // host.module_dtor = llvm::dyn_cast_or_null<llvm::Function>(M.getOrInsertFunction(
-      //     host.module_dtor_name,
-      //     llvm::FunctionType::get(
-      //         llvm::Type::getVoidTy(M.getContext()),
-      //         llvm::ArrayRef<llvm::Type*>(std::array<llvm::Type*,0>{}),
-      //         false
-      //       )
-      //   ).getCallee());
       if (M.getFunction("main") != nullptr)
         host.scabbard_init = M.getOrInsertFunction(
             host.scabbard_init_name,
@@ -206,27 +191,6 @@ namespace scabbard {
       //         false
       //       )
       //   );
-      host.metadata_register$src = M.getOrInsertFunction(
-          host.metadata_register$src_name,
-          llvm::FunctionType::get(
-              llvm::IntegerType::get(M.getContext(), 64u),
-              llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
-                  // llvm::IntegerType::get(M.getContext(), 64u),
-                  llvm::PointerType::get(llvm::IntegerType::get(M.getContext(), 8u), 0u)
-                }),
-              false
-            )
-        );
-      host.metadata_unregister$src = M.getOrInsertFunction(
-          host.metadata_unregister$src_name,
-          llvm::FunctionType::get(
-              llvm::Type::getVoidTy(M.getContext()),
-              llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
-                  llvm::IntegerType::get(M.getContext(), 64u)
-                }),
-              false
-            )
-        );
       host.trace_append$mem = M.getOrInsertFunction(
           host.trace_append$mem_name,
           llvm::FunctionType::get(
@@ -270,48 +234,6 @@ namespace scabbard {
               false
             )
         );
-    }
-
-    void ScabbardPassPlugin::instr_module_ctor_host(llvm::Module& M, llvm::ModuleAnalysisManager &MAM)
-    {
-      auto BB = llvm::BasicBlock::Create(M.getContext(), "metadata_registry", host.module_ctor);
-      llvm::IRBuilder<llvm::ConstantFolder,llvm::IRBuilderDefaultInserter> IRB(BB);
-      // handle hip stuff
-      llvm::Value* gpuBin = nullptr;
-      auto gpuBinGlobal = M.getGlobalVariable("__hip_gpubin_handle");
-      if (gpuBinGlobal != nullptr)
-        gpuBin = IRB.CreateLoad(llvm::PointerType::get(IRB.getInt8PtrTy(),0u), gpuBinGlobal);
-      // insert the registry stuff
-      for (const auto& mde_p : metadata.getMetadataMap()) {
-        const auto& mde = mde_p.second;
-        if (mde.last_module == &M) { // if it was used in this module 
-          const auto regCall = IRB.CreateCall(
-              host.metadata_register$src,
-              llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*, 1>{
-                  mde.src_filepath_str
-                })
-            );
-          IRB.CreateStore(regCall, mde.src_id_ptr_host);
-          if (gpuBin != nullptr && mde.src_id_ptr_device != nullptr) { //TODO: issue about id ptr not being created 
-            IRB.CreateCall(M.getFunction("__hipRegisterVar"),
-                            llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,8>{
-                              gpuBin,
-                              llvm::ConstantExpr::getBitCast(mde.src_id_ptr_device_host, IRB.getInt8PtrTy()),
-                              mde.src_id_ptr_device_host_name,
-                              mde.src_id_ptr_device_host_name,
-                              IRB.getInt32(0u),
-                              IRB.getInt32(8u),
-                              IRB.getInt32(0u),
-                              IRB.getInt32(0u),
-                            }));
-            IRB.CreateStore(regCall, mde.src_id_ptr_device_host);
-          }
-        }
-      }
-      IRB.CreateRetVoid();
-      // register the ctor with a "low priority" so it goes after all other ctors
-      llvm::appendToGlobalCtors(M, host.module_ctor, UINT32_MAX);
-      LLVM_DEBUG(host.module_ctor->print(llvm::errs()));
     }
 
 
