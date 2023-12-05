@@ -14,8 +14,8 @@
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [
-                {"name": "SCABBARD_INSTRUMENTED_EXE_NAME", "value":"${workspaceFolder}/test/test.instr.out"},
-                {"name": "SCABBARD_TRACE_FILE", "value":"${workspaceFolder}/test/test.instr.scabbard.trace"}
+                {"name":"SCABBARD_INSTRUMENTED_EXE_NAME", "value":"${workspaceFolder}/test/test.instr.out"},
+                {"name":"SCABBARD_TRACE_FILE", "value":"${workspaceFolder}/test/test.instr.scabbard.trace"}
             ],
             "externalConsole": false,
             "MIMode": "gdb",
