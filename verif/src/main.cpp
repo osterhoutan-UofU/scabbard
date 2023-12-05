@@ -43,12 +43,14 @@ int main(int argc, char *argv[]) {
       break;
 
     case StateMachine::ResultStatus::GOOD:
+      std::cout << "\nNO data races were found :)\n"; 
       break;
 
     default:
       std::cerr << "!unknown result code!" << std::endl;
       return -1;
   }
+  std::cout << std::endl;
   return 0;
 }
 

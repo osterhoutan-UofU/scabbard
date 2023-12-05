@@ -14,7 +14,6 @@
 
 #include "DepTrace.hpp"
 #include "MetadataHandler.hpp"
-#include "ScabbardLinkPass.hpp" 
 
 #include <scabbard/instr-names.def>
 
@@ -54,27 +53,11 @@ namespace instr {
     std::string source_loc = "";
     std::size_t archBit = 64;
 
-    MetadataHandler metadata;
+    MetadataHandler& metadata;
 
     struct {
-        llvm::Function* module_ctor = nullptr;
-        const std::string module_ctor_name = SCABBARD_CALLBACK_MODULE_CTOR_NAME;
-        // llvm::Function* module_dtor = nullptr;
-        // const std::string module_dtor_name = SCABBARD_CALLBACK_MODULE_DTOR_NAME;
-
         llvm::FunctionCallee scabbard_init;
         const std::string scabbard_init_name = SCABBARD_CALLBACK_INIT_NAME;
-        // llvm::FunctionCallee scabbard_close;
-        // const std::string scabbard_close_name = SCABBARD_CALLBACK_CLOSE_NAME;
-        llvm::FunctionCallee metadata_register$src;
-        const std::string metadata_register$src_name = SCABBARD_CALLBACK_REGISTER_SRC_NAME;
-        llvm::FunctionCallee metadata_unregister$src;
-        const std::string metadata_unregister$src_name = SCABBARD_CALLBACK_UNREGISTER_SRC_NAME;
-        // llvm::FunctionCallee metadata_register$loc;
-        // const std::string metadata_register$loc_name = SCABBARD_CALLBACK_REGISTER_LOC_NAME;
-        // llvm::FunctionCallee metadata_unregister$loc;
-        // const std::string metadata_unregister$loc_name = SCABBARD_CALLBACK_UNREGISTER_LOC_NAME;
-
         llvm::FunctionCallee trace_append$mem;
         const std::string trace_append$mem_name = SCABBARD_HOST_CALLBACK_APPEND_MEM_NAME;
         llvm::FunctionCallee trace_append$mem$cond; 
@@ -89,12 +72,10 @@ namespace instr {
         const std::string trace_append$alloc_name = SCABBARD_DEVICE_CALLBACK_APPEND_ALLOC_NAME;
       } device;
 
-  ScabbardLinkPass linkPass;
-
 
   public:
 
-    // ScabbardPassPlugin();
+    ScabbardPassPlugin(MetadataHandler& metadataHandler_);
     // ScabbardPassPlugin(const std::string& InstrLibLoc);
     // ~ScabbardPassPlugin() = default;
 
@@ -170,13 +151,6 @@ namespace instr {
      * @param FAM \c llvm::FunctionAnalysisManager& - The Analysis Manager for the function
      */
     auto instr_mainFunc_host(llvm::Function& F, llvm::FunctionAnalysisManager &FAM) -> void;
-
-    /**
-     * @brief Fill in the contents of the module ctor and add it to \c @llvm.global_ctors 
-     * @param M \c llvm::Module& - The host side Module to instrument
-     * @param MAM \c llvm::ModuleAnalysisManager& - The Analysis Manager for the Module
-     */
-    auto instr_module_ctor_host(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
 
     auto instr_call_device(const llvm::Function& F, llvm::CallInst* ci) -> void;
     auto instr_call_host(llvm::Function& F, llvm::CallInst* ci) -> void;

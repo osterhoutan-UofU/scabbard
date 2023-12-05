@@ -23,11 +23,6 @@
 #include <sstream>
 
 
-#define SCABBARD_METADATA_INSTR_srcId_VAR_HOST(hex_id_str) (SCABBARD_METADATA_INSTR_srcId_VAR_HOST_PREFIX+(hex_id_str))
-#define SCABBARD_METADATA_INSTR_srcPath_VAR_HOST(hex_id_str) (SCABBARD_METADATA_INSTR_srcPath_VAR_HOST_PREFIX+(hex_id_str))
-#define SCABBARD_METADATA_INSTR_srcId_VAR_DEVICE(hex_id_str) (SCABBARD_METADATA_INSTR_srcId_VAR_DEVICE_PREFIX+(hex_id_str))
-#define SCABBARD_METADATA_INSTR_srcId_VAR_DEVICE_NAME(hex_id_str) (SCABBARD_METADATA_INSTR_srcId_VAR_DEVICE_PREFIX "name$"+(hex_id_str))
-
 namespace scabbard {
   namespace instr {
 
@@ -41,38 +36,51 @@ namespace scabbard {
       return llvm::ConstantInt::get(llvm::IntegerType::get(CTX, 32u), llvm::APInt(32u, col, false)); 
     }
 
+    // << ------------------------------------------------------------------------------------------ >> 
+
+    MetadataStore::MetadataStore(const std::string& src_path_, size_t id_)
+      : src_path(src_path_), id(id_), hex_id_str(MetadataStore::get_hex_str(id_))
+    {}
+
+    std::string MetadataStore::get_hex_str(size_t val)
+    {
+      std::stringstream tmp;
+      tmp << std::setfill('0') << std::setw(4u) << std::hex << val;
+      return tmp.str();
+    }
+
+    std::string MetadataStore::get_var_name(bool is_device) const
+    {
+      return "scabbard.metadata." + std::string((is_device) ? "device" : "host") + ".srcId$0x" + hex_id_str;
+    }
+    std::string MetadataStore::get_str_var_name() const
+    {
+      return "scabbard.metadata.srcData$0x" + hex_id_str;
+    }
+
+    // << ------------------------------------------------------------------------------------------ >> 
 
     llvm::GlobalVariable* MetadataHandler::_trace_file(llvm::Function& F, const llvm::DIFile* DI, bool is_device)
     {
       std::string filename = (DI->getDirectory() + "/" + DI->getFilename()).str();
-      MetadataStore data;
-      //TODO I will need to handle references to the same source file in multiple modules
-      const auto iter = traced_files.find(filename);
-      llvm::Module& M = *F.getParent();
-      if (iter != traced_files.end()) {
-        iter->second.last_module = &M;
-        if (is_device) { // if we're in a device module and have this source file in the cache
-          if (auto src_id_ptr_device = M.getGlobalVariable(SCABBARD_METADATA_INSTR_srcId_VAR_DEVICE(filename)))
-            return (iter->second.src_id_ptr_device = src_id_ptr_device);
-          encode_variables(iter->second, M, filename, true);
-          return iter->second.src_id_ptr_device; // just return the old reference
-        }
-        // else is on host
-        if (auto src_id_ptr = M.getGlobalVariable(SCABBARD_METADATA_INSTR_srcId_VAR_HOST(filename)))
-          return (iter->second.src_id_ptr_host = src_id_ptr);
-        encode_variables(iter->second, M, filename, false);
-        return iter->second.src_id_ptr_host;
+      MetadataStore* data = nullptr;
+
+      mut.lock();
+      auto it = traced_files.find(filename);
+      if (it == traced_files.end()) {
+        auto tmp = traced_files.emplace(std::make_pair(filename, MetadataStore(filename, next++)));
+        data = &tmp.first->second;
+      } else {
+        data = &it->second;
       }
-      //[X]TODO insert/update a "new" entry
-      std::stringstream tmp;
-      tmp << "0x" << std::setfill('0') << std::setw(4u) << std::hex << next++;
-      data.hex_id_str = tmp.str();
-      encode_variables(data,M,filename,is_device);
-      data.last_module = &M;
-      traced_files[filename] = data;
       if (is_device)
-        return data.src_id_ptr_device;
-      return data.src_id_ptr_host;
+        data->on_device = true;
+      else
+        data->on_host = true;
+      data->in_modules.insert(F.getParent()->getModuleIdentifier());
+      mut.unlock();
+
+      return encode_variables(*data, *F.getParent(), is_device);
     }
 
 
@@ -96,41 +104,14 @@ namespace scabbard {
       return {_trace_scope(F, llvm::dyn_cast_or_null<llvm::DIScope>(DI.getScope()), is_device), DI.getLine(), DI.getCol()};
     }
 
-    void MetadataHandler::encode_variables(MetadataStore& data, llvm::Module& M, const std::string& filepath, bool is_device)
+    llvm::GlobalVariable* MetadataHandler::encode_variables(MetadataStore& data, llvm::Module& M, bool is_device)
     {
-      llvm::IRBuilder<llvm::ConstantFolder,llvm::IRBuilderDefaultInserter> IRB(M.getContext());
       auto* int64_ty = llvm::IntegerType::get(M.getContext(), 64u);
-      if (is_device) {
-        // output device side source metadata global
-        data.src_id_ptr_device = llvm::dyn_cast_or_null<llvm::GlobalVariable>(M.getOrInsertGlobal(SCABBARD_METADATA_INSTR_srcId_VAR_DEVICE(data.hex_id_str), int64_ty));
-        data.src_id_ptr_device->setInitializer(llvm::Constant::getIntegerValue(int64_ty, llvm::APInt(64ul, 0ul, false)));
-        data.src_id_ptr_device->setLinkage(llvm::GlobalValue::LinkageTypes::PrivateLinkage);
-      } else {
-        auto* char_ty = llvm::IntegerType::get(M.getContext(), 8u);
-        auto* charArr_ty = llvm::ArrayType::get(char_ty, filepath.size()+1);
-        data.src_id_ptr_host = llvm::dyn_cast_or_null<llvm::GlobalVariable>(M.getOrInsertGlobal(SCABBARD_METADATA_INSTR_srcId_VAR_HOST(data.hex_id_str), int64_ty));
-        data.src_id_ptr_host->setInitializer(llvm::Constant::getIntegerValue(int64_ty, llvm::APInt(64ul, 0ul, false)));
-        data.src_id_ptr_host->setLinkage(llvm::GlobalValue::LinkageTypes::PrivateLinkage);
-        // output filepath name to global space
-        // data.src_filepath_str = llvm::dyn_cast_or_null<llvm::GlobalVariable>(M.getOrInsertGlobal(SCABBARD_METADATA_INSTR_srcPath_VAR_HOST(data.hex_id_str), charArr_ty));
-        // std::vector<llvm::Value*> filename_arr;
-        // std::transform(filepath.begin(), filepath.end(), filename_arr.begin(),
-        //                 [&](char val) -> llvm::Constant* { return llvm::Constant::getIntegerValue(char_ty, llvm::APSInt::get(val)); });
-        // filename_arr.push_back(llvm::Constant::getIntegerValue(char_ty, llvm::APSInt::get(0)));
-        // data.src_filepath_str->setInitializer(llvm::ConstantDataArray::get(M.getContext(), llvm::makeArrayRef(filename_arr)));
-        // data.src_filepath_str->setLinkage(llvm::GlobalValue::LinkageTypes::PrivateLinkage);
-        data.src_filepath_str = IRB.CreateGlobalStringPtr(filepath, SCABBARD_METADATA_INSTR_srcPath_VAR_HOST(filepath),0u,&M);
-        // make host copy of device side global
-        if (data.src_id_ptr_device != nullptr) { //TODO: fix this logic so hip var get's registered in ctor (this is always returning false)
-          if (data.src_id_ptr_device_host == nullptr) 
-            data.src_id_ptr_device_host_name = IRB.CreateGlobalStringPtr(SCABBARD_METADATA_INSTR_srcId_VAR_DEVICE(data.hex_id_str), SCABBARD_METADATA_INSTR_srcId_VAR_DEVICE_NAME(filepath),0u,&M);
-          data.src_id_ptr_device_host = llvm::dyn_cast_or_null<llvm::GlobalVariable>(M.getOrInsertGlobal(SCABBARD_METADATA_INSTR_srcId_VAR_DEVICE(data.hex_id_str), int64_ty));
-          data.src_id_ptr_device_host->setInitializer(llvm::Constant::getIntegerValue(int64_ty, llvm::APInt(64ul, 0ul, false)));
-          data.src_id_ptr_device_host->setLinkage(llvm::GlobalValue::LinkageTypes::PrivateLinkage);
-        }
-      }
+      auto res = llvm::dyn_cast_or_null<llvm::GlobalVariable>(M.getOrInsertGlobal(data.get_var_name(is_device), int64_ty));
+      res->setInitializer(llvm::Constant::getIntegerValue(int64_ty, llvm::APInt(64ul, 0ul, false)));
+      res->setLinkage(llvm::GlobalValue::LinkageTypes::PrivateLinkage);
+      return res;
     }
-
 
   } //?namespace instr
 } //?namespace scabbard

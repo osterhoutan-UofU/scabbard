@@ -17,15 +17,16 @@
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/DebugInfoMetadata.h>
 #include <llvm/IR/DebugLoc.h>
+#include <llvm/ADT/StringSet.h>
 
 #include <string>
 #include <cstdint>
 #include <unordered_map>
+#include <mutex>
 
 namespace scabbard {
   namespace instr {
 
-    class ScabbardPassPlugin;
 
     struct LocResult {
       llvm::GlobalVariable* src_id_ptr = nullptr;
@@ -37,19 +38,34 @@ namespace scabbard {
 
 
     struct MetadataStore {
-      /// @brief global variable for the host
-      llvm::GlobalVariable* src_id_ptr_host = nullptr;
-      /// @brief global variable for the device 
-      llvm::GlobalVariable* src_id_ptr_device = nullptr;
-      /// @brief host side copy to the device side global
-      llvm::GlobalVariable* src_id_ptr_device_host = nullptr;
-      /// @brief host side constant holding the device side variable name
-      llvm::Constant* src_id_ptr_device_host_name = nullptr;
-      /// @brief host side constant global for the source filepath
-      llvm::Constant* src_filepath_str = nullptr;
-      /// @brief the last module this store was called for (and where in all relevant values reside)
-      llvm::Module* last_module = nullptr;
-      std::string hex_id_str = "";
+      /// @brief the filepath to the src in question
+      const std::string src_path;
+      llvm::StringSet<> in_modules;
+      /// @brief boolean of if this source file is referenced in the host module
+      bool on_host = false;
+      /// @brief boolean of if this source file is referenced in the host module
+      bool on_device = false;
+      /// @brief the id in a hexidecimal string format (omitting the `0x` prefix, min 4 chars)
+      const std::string hex_id_str;
+      /// @brief the src id string
+      const size_t id;
+      MetadataStore(const std::string& src_path_, size_t id_); 
+      /**
+       * @brief Get the hexidecimal string representation of the provided \param val
+       * @param val \c size_t - the unsigned integer version of the number to convert
+       * @return \c std::string - the resulting hexidecimal string
+       */
+      static std::string get_hex_str(size_t val);
+      /**
+       * @brief Get a string containing the variable name for a source id global variable
+       * @param is_device \c bool - if this is for a device module or a host module
+       * @return \c std::string - the name of the variable
+       */
+      std::string get_var_name(bool is_device) const;
+      /**
+       * @brief Get a string containing the name for the variable that contains the string holding the source file data
+       */
+      std::string get_str_var_name() const;
     };
 
     class MetadataHandler {
@@ -59,6 +75,7 @@ namespace scabbard {
       MetadataMap traced_files;
       size_t next = 0ul;
       
+      std::mutex mut;
 
     public:
 
@@ -73,7 +90,7 @@ namespace scabbard {
 
 
     private:
-      void encode_variables(MetadataStore& data, llvm::Module& M, const std::string& filepath, bool is_device);
+      llvm::GlobalVariable* encode_variables(MetadataStore& data, llvm::Module& M, bool is_device);
 
     };
 

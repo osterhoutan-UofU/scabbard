@@ -11,7 +11,8 @@
  */
 
 #include "ScabbardPass.hpp"
-// #include "ScabbardLinkPass.hpp"
+#include "ScabbardPostPass.hpp"
+#include "MetadataHandler.hpp"
 
 #include <llvm/Pass.h>
 #include <llvm/Passes/PassBuilder.h>
@@ -51,6 +52,8 @@ static llvm::cl::opt<std::string> ScabbardLibOpt("scabbard-lib", llvm::cl::init(
 // <<                           NEW PASS-MANAGER PASS PLUGIN REGISTRY                            >> 
 // << ========================================================================================== >> 
 
+scabbard::instr::MetadataHandler metadata;
+
 /* New PM Registration */
 llvm::PassPluginLibraryInfo getScabbardPassPluginInfo() {
   using namespace llvm;
@@ -58,24 +61,15 @@ llvm::PassPluginLibraryInfo getScabbardPassPluginInfo() {
           [](PassBuilder& PB) {
             PB.registerOptimizerLastEPCallback( // ~can~ find kernel functions (sometimes run's twice)
                 [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
-                  MPM.addPass(scabbard::instr::ScabbardPassPlugin());
+                  MPM.addPass(scabbard::instr::ScabbardPassPlugin(metadata));
+                  // MPM.addPass(scabbard::instr::ScabbardPostPass(metadata)); // moved to linker phase
                 }
               );
-            PB.registerPipelineParsingCallback( // can find kernal functions (conditional upon cli args)
-                  [](StringRef Name, llvm::ModulePassManager &MPM,
-                    ArrayRef<llvm::PassBuilder::PipelineElement>) {
-                    if (Name == "scabbard") {
-                      MPM.addPass(scabbard::instr::ScabbardPassPlugin());
-                      return true;
-                    }
-                    return false;
+              PB.registerFullLinkTimeOptimizationLastEPCallback( // used to handle link time instrumentation
+                  [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
+                    MPM.addPass(scabbard::instr::ScabbardPostPass(metadata));
                   }
                 );
-              // PB.registerFullLinkTimeOptimizationLastEPCallback( // used to handle link time instrumentation
-              //     [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
-              //       MPM.addPass(scabbard::instr::ScabbardLinkPass());
-              //     }
-              //   );
           }};
 }
 extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
