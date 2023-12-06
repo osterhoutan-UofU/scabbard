@@ -66,11 +66,11 @@ namespace scabbard {
       // if (__hip_gpubin_handle == nullptr)
       //   __hip_gpubin_handle = __hipRegisterFatBinary(__hip_fatbin_wrapper);
       
-      const auto _EXE_NAME = std::getenv("SCABBARD_INSTRUMENTED_EXE_NAME");
+      const char* _EXE_NAME = std::getenv("SCABBARD_INSTRUMENTED_EXE_NAME");
       const std::string EXE_NAME = ((_EXE_NAME)
                                     ? std::string(_EXE_NAME)
                                     : "unknown_exe");
-      const auto _TRACE_FILE = std::getenv("SCABBARD_TRACE_FILE");
+      const char* _TRACE_FILE = std::getenv("SCABBARD_TRACE_FILE");
       const std::string TRACE_FILE = ((_TRACE_FILE) 
                                       ? std::string(_TRACE_FILE) 
                                       : "./" + EXE_NAME + ".scabbard.trace");
