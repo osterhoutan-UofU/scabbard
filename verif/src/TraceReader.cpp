@@ -93,12 +93,11 @@ namespace verif {
       // read in the writing system's word size
       in.read(reinterpret_cast<char*>(&tf.WORD_LEN), sizeof(uint32_t));
 
-      // jump if nessisary
-      if (std::streamoff diff = (sizeof(uint8_t)*3 + sizeof(uint32_t)) % 16)
-        in.seekg(in.tellg() + diff);
+      in.seekg(((std::streamoff)in.tellg()) + 9ul);
 
       // read in the start time
       in.read(reinterpret_cast<char*>(&tf.START_TIME), sizeof(uint32_t));
+      in.seekg(((std::streamoff)in.tellg()) + 12ul);
 
       // read in exe path
       std::size_t exe_l = 0ul;
