@@ -21,14 +21,14 @@ namespace trace {
 
   std::uint64_t MetadataStore::register_src(const char* _src)
   {
+    if (src_ids.size() <= 0) // deal with issues related to bad linking space
+      src_ids = std::unordered_map<std::string,std::uint64_t>();
     std::string src_file = std::string(_src);
     auto res = src_ids.find(src_file);
     if (res != src_ids.end())
       return res->second;
     std::uint64_t id = srcs.size();
     // src_ids[src_file] = id;
-    if (src_ids.size() <= 0) // deal with issues related to bad linking space
-      src_ids = std::unordered_map<std::string,std::uint64_t>();
     src_ids.insert(std::make_pair(src_file, id));
     srcs.push_back(src_file);
     std::cerr << "\n[scabbard::trace::dbg] registering src file: `" << src_file << "` as " << id << std::endl;
