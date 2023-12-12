@@ -133,7 +133,7 @@ namespace scabbard {
     void AsyncQueue::process_device(TraceWriter& tw)
     {
       using Lane = ::scabbard::trace::DeviceAsyncQueue::Lane;
-      if (hipMemcpy(&_db, deviceQ, sizeof(DeviceAsyncQueue), hipMemcpyDeviceToHost) 
+      if (hipMemcpyAsync(&_db, deviceQ, sizeof(DeviceAsyncQueue), hipMemcpyDeviceToHost) 
             != hipSuccess) {
         std::cerr << "\n[scabbard::trace::ERROR] failed to copy the device side of the AsyncQueue for processing!\n";
 #       ifdef DEBUG
