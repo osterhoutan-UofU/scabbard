@@ -82,7 +82,7 @@ namespace scabbard {
       // record the actual src strings
       for (const auto& src : srcs) {
         out.write(src.c_str(), src.size());
-        std::cerr << "\n[scabbard::trace::dbg] encoding src file: `" << src << "`\n";
+        std::cerr << "\n[scabbard:trace:dbg] encoding src file: `" << src << "`\n";
       }
       std::cerr << std::endl;
       out.write(BUF, ((std::streamoff)out.tellp()) % WORD_LEN); // word align for next section
@@ -92,8 +92,8 @@ namespace scabbard {
     __host__
     void TraceWriter::finalize(const MetadataStore& metadata)
     {
-      std::cerr << "\n[scabbard::trace::dbg] scabbard::trace::TraceWriter::finalize() was reached!"
-                   "\n[scabbard::trace::dbg] src's registered at this point: " << metadata.get_srcs()->size() << std::endl;
+      std::cerr << "\n[scabbard:trace:dbg] scabbard::trace::TraceWriter::finalize() was reached!"
+                   "\n[scabbard:trace:dbg] src's registered at this point: " << metadata.get_srcs()->size() << std::endl;
       // std::streamoff trace_end = out.tellp();
       // const auto& srcs = *metadata.get_srcs();
       // // record the jump table for the source files
