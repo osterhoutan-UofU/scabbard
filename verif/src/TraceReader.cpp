@@ -94,7 +94,7 @@ namespace verif {
       in.read(reinterpret_cast<char*>(&tf.WORD_LEN), sizeof(uint32_t));
 
       // jump if nessisary
-      if (std::streamoff diff = (sizeof(uint8_t)*3 + sizeof(uint32_t)) % tf.WORD_LEN)
+      if (std::streamoff diff = (sizeof(uint8_t)*3 + sizeof(uint32_t)) % 16)
         in.seekg(in.tellg() + diff);
 
       // read in the start time

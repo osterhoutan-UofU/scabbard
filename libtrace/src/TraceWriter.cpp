@@ -57,7 +57,7 @@ namespace scabbard {
       out.write(reinterpret_cast<const char*>(&VER_PATCH), sizeof(uint8_t));
       out.write(reinterpret_cast<const char*>(&WORD_LEN), sizeof(uint32_t));
       // make next parameter system word aligned
-      out.write(BUF, (sizeof(std::uint8_t)*3+sizeof(uint32_t)) % WORD_LEN); 
+      out.write(BUF, (sizeof(std::uint8_t)*3+sizeof(uint32_t)) % 16); 
       
       // write start time 
       out.write(reinterpret_cast<const char*>(&time_stamp), sizeof(std::uint32_t));

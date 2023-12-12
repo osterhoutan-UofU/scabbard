@@ -40,8 +40,8 @@ set(LIBTRACE_DEVICE_PATH ${CMAKE_CURRENT_BINARY_DIR}/libtrace-device.bc)
 set(LIBTRACE_DEVICE_PATH_IR ${CMAKE_CURRENT_BINARY_DIR}/libtrace-device.ll)
 
 add_custom_target(trace-device
-    ${ROCM_PATH}/bin/hipcc ${CMAKE_CXX_FLAGS} -x hip -std=c++17 -I../lib/include -I./include -c -emit-llvm -o ${LIBTRACE_DEVICE_PATH} ./src/device-defs.cpp
-    COMMAND ${ROCM_PATH}/bin/hipcc ${CMAKE_CXX_FLAGS} -x hip -std=c++17 -I../lib/include -I./include -S -emit-llvm -o ${LIBTRACE_DEVICE_PATH_IR} ./src/device-defs.cpp
+    ${ROCM_PATH}/bin/hipcc ${CMAKE_CXX_FLAGS} -x hip -std=c++17 -I../lib/include -I./include -S -emit-llvm -o ${LIBTRACE_DEVICE_PATH_IR}.tmp ./src/device-defs.cpp
+    COMMAND awk '/\; __CLANG_OFFLOAD_BUNDLE____START__ host.+/{p=1} /\; __CLANG_OFFLOAD_BUNDLE____END__ host.+/{p=0\; next}!p' ${LIBTRACE_DEVICE_PATH_IR}.tmp > ${LIBTRACE_DEVICE_PATH_IR}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     DEPENDS ./src/device-defs.cpp 
             ./include/scabbard/trace/globals.hpp 
@@ -55,8 +55,8 @@ add_custom_target(trace-device
             ./include/scabbard/trace/AsyncQueue.hpp 
             ../lib/include/scabbard/TraceData.hpp 
             ../lib/include/scabbard/Enums.hpp
-    BYPRODUCTS ${LIBTRACE_DEVICE_PATH}
-               ${LIBTRACE_DEVICE_PATH_IR}
+    BYPRODUCTS ${LIBTRACE_DEVICE_PATH_IR}
+               ${LIBTRACE_DEVICE_PATH_IR}.tmp
   )
 # add_library(trace-device STATIC
 #     src/device-defs.cpp
