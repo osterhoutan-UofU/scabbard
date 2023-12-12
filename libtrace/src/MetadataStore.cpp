@@ -11,6 +11,9 @@
 
 #include "scabbard/trace/MetadataStrore.hpp"
 
+#include <iostream>
+#include <string>
+
 
 namespace scabbard {
 namespace trace {
@@ -19,7 +22,7 @@ namespace trace {
   std::uint64_t MetadataStore::register_src(const char* _src)
   {
     std::string src_file = std::string(_src);
-    std::cerr << "\n[scabbard::trace::dbg] registering src file: `" << src_file << "`" << std::endl;
+    std::cerr << "\n[scabbard::trace::dbg] registering src file: `" << src_file << "`\n" << std::flush;
     auto res = src_ids.find(src_file);
     if (res != src_ids.end())
       return res->second;
