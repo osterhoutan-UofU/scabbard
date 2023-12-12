@@ -59,14 +59,14 @@ llvm::PassPluginLibraryInfo getScabbardPassPluginInfo() {
   using namespace llvm;
   return {LLVM_PLUGIN_API_VERSION, "scabbard", "alpha 0.0.1",
           [](PassBuilder& PB) {
-            PB.registerOptimizerLastEPCallback( // ~can~ find kernel functions (sometimes run's twice)
-                [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
+            PB.registerOptimizerEarlyEPCallback( // ~can~ find kernel functions (sometimes run's twice)
+                [&](llvm::ModulePassManager &MPM, OptimizationLevel level) {
                   MPM.addPass(scabbard::instr::ScabbardPassPlugin(metadata));
                   // MPM.addPass(scabbard::instr::ScabbardPostPass(metadata)); // moved to linker phase
                 }
               );
-              PB.registerFullLinkTimeOptimizationEarlyEPCallback( // used to handle link time instrumentation
-                  [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
+              PB.registerOptimizerLastEPCallback( // used to handle link time instrumentation
+                  [&](llvm::ModulePassManager &MPM, OptimizationLevel level) {
                     MPM.addPass(scabbard::instr::ScabbardPostPass(metadata));
                   }
                 );
