@@ -5,7 +5,7 @@
 #flux: -g1
 #flux: -c8
 
-source $HOME/.envzsh
+source $HOME/.zshenv
 cd $HOME/repos/scabbard
 
 export SCABBARD_PATH="$(pwd)/build/libtrace"
