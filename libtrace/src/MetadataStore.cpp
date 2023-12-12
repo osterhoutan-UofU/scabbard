@@ -19,6 +19,7 @@ namespace trace {
   std::uint64_t MetadataStore::register_src(const char* _src)
   {
     std::string src_file = std::string(_src);
+    std::cerr << "\n[scabbard::trace::dbg] registering src file: `" << src_file << "`" << std::endl;
     auto res = src_ids.find(src_file);
     if (res != src_ids.end())
       return res->second;
