@@ -31,7 +31,6 @@ namespace trace {
     // src_ids[src_file] = id;
     src_ids.insert(std::make_pair(src_file, id));
     srcs.push_back(src_file);
-    std::cerr << "\n[scabbard::trace::dbg] registering src file: `" << src_file << "` as " << id << std::endl;
     return id;
   }
 

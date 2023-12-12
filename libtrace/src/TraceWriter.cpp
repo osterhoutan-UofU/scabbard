@@ -80,8 +80,11 @@ namespace scabbard {
       }
       out.write(BUF,WORD_LEN); // write end of table null
       // record the actual src strings
-      for (const auto& src : srcs)
+      for (const auto& src : srcs) {
         out.write(src.c_str(), src.size());
+        std::cerr << "\n[scabbard::trace::dbg] encoding src file: `" << src << "`\n";
+      }
+      std::cerr << std::endl;
       out.write(BUF, ((std::streamoff)out.tellp()) % WORD_LEN); // word align for next section
       
     }
