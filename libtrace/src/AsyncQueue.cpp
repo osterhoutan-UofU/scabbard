@@ -93,7 +93,7 @@ namespace scabbard {
         delete tw;
       }
       tw = new TraceWriter(file_path);
-      tw->init(exe_path, start_time);
+      tw->init(exe_path, start_time, metadata);
     }
 
     __host__ 

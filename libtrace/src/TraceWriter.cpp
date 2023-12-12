@@ -41,7 +41,7 @@ namespace scabbard {
 
 
     __host__
-    void TraceWriter::init(const std::string& executable_path, std::time_t time_stamp)
+    void TraceWriter::init(const std::string& executable_path, std::time_t time_stamp, const MetadataStore& metadata)
     {
       if (not out.is_open()) {
         std::cerr << "\n[scabbard::trace::writer::ERROR] could not initiate trace file if it is not open!\n"

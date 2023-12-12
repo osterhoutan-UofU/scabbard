@@ -53,7 +53,9 @@ namespace scabbard {
        * @brief after creating this object with the constructor this sets up the header of the
        *        trace file.
        */
-      __host__ void init(const std::string& executable_path, std::time_t time_stamp);
+      __host__ void init(const std::string& executable_path, 
+                          std::time_t time_stamp,
+                          const MetadataStore& metadata);
 
       /**
        * @brief Writes the footer of the trace file \n 
