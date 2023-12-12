@@ -80,6 +80,7 @@ namespace scabbard {
       }
       out.write(BUF,WORD_LEN); // write end of table null
       // record the actual src strings
+      std::cerr << "\n[scabbard:trace:dbg] src's registered at this point: " << metadata.get_srcs()->size() << std::endl;
       for (const auto& src : srcs) {
         out.write(src.c_str(), src.size());
         std::cerr << "\n[scabbard:trace:dbg] encoding src file: `" << src << "`\n";
