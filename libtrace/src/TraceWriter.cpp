@@ -69,19 +69,10 @@ namespace scabbard {
       out.write(BUF, EXE_PATH_LEN % WORD_LEN); // string end buffer
 
       // write links to metadata table and end of trace table (recorded in finalize)
-      metadata_table_loc_entry_pos = out.tellp();
-      out.write(BUF, WORD_LEN); //TMP record this as 0 until finalization
-      
-    }
-
-    __host__
-    void TraceWriter::finalize(const MetadataStore& metadata)
-    {
-      std::streamoff trace_end = out.tellp();
       const auto& srcs = *metadata.get_srcs();
       // record the jump table for the source files
       assert((sizeof(std::streamoff) == WORD_LEN) && "stream offset is the right size to be written");
-      std::streamoff pos = trace_end + (std::streamoff)(WORD_LEN*(srcs.size()+1));
+      std::streamoff pos = ((std::streamoff)out.tellp()) + (std::streamoff)(WORD_LEN*(srcs.size()+1));
       out.write(reinterpret_cast<const char*>(&pos), WORD_LEN);
       for (const auto& src : srcs) {
         pos += (std::streamoff)src.size();
@@ -91,13 +82,34 @@ namespace scabbard {
       // record the actual src strings
       for (const auto& src : srcs)
         out.write(src.c_str(), src.size());
-      out.write(BUF,WORD_LEN); // write end of file null
-      std::streampos eof = out.tellp(); // record eof loc
+      out.write(BUF, ((std::streamoff)out.tellp()) % WORD_LEN); // word align for next section
+      
+    }
+
+    __host__
+    void TraceWriter::finalize(const MetadataStore& metadata)
+    {
+      // std::streamoff trace_end = out.tellp();
+      // const auto& srcs = *metadata.get_srcs();
+      // // record the jump table for the source files
+      // assert((sizeof(std::streamoff) == WORD_LEN) && "stream offset is the right size to be written");
+      // std::streamoff pos = trace_end + (std::streamoff)(WORD_LEN*(srcs.size()+1));
+      // out.write(reinterpret_cast<const char*>(&pos), WORD_LEN);
+      // for (const auto& src : srcs) {
+      //   pos += (std::streamoff)src.size();
+      //   out.write(reinterpret_cast<const char*>(&pos), WORD_LEN);
+      // }
+      // out.write(BUF,WORD_LEN); // write end of table null
+      // // record the actual src strings
+      // for (const auto& src : srcs)
+      //   out.write(src.c_str(), src.size());
+      // out.write(BUF,WORD_LEN); // write end of file null
+      // std::streampos eof = out.tellp(); // record eof loc
       // go write the jump location of the metadata table
-      out.seekp(metadata_table_loc_entry_pos);
-      out.write(reinterpret_cast<const char*>(&trace_end), WORD_LEN);
+      // out.seekp(metadata_table_loc_entry_pos);
+      // out.write(reinterpret_cast<const char*>(&trace_end), WORD_LEN);
       // return to eof
-      out.seekp(eof);
+      // out.seekp(eof);
     }
 
     __host__

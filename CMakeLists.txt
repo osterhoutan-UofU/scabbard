@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(scabbard VERSION 0.1.0)
+project(scabbard VERSION 0.2.0)
 
 include(GNUInstallDirs)
 configure_file(${CMAKE_SOURCE_DIR}/config/version.h.config

@@ -107,6 +107,23 @@ namespace verif {
       if (std::streamoff diff2 = exe_l % tf.WORD_LEN)
         in.seekg(in.tellg() + diff2);
 
+      // read in the metadata jump table
+      std::vector<std::streamoff> jmpTbl;
+      std::streamoff tmp;
+      do {
+        in.read(reinterpret_cast<char*>(&tmp), tf.WORD_LEN);
+        jmpTbl.push_back(tmp);
+      } while (in.tellg() < jmpTbl[0]);
+
+      // read in the metadata
+      for (size_t i=0; i<(jmpTbl.size()-1); ++i) {
+        in.seekg(jmpTbl[i]);
+        std::streamoff l = jmpTbl[i+1] - jmpTbl[i];
+        tf.src_files.push_back(readStringL(in,l));
+      }
+      if (std::streamoff diff3 = in.tellg() % tf.WORD_LEN)
+        in.seekg(in.tellg() + diff3);
+
       // based upon trace file decide how to interpret trace data
       std::function<TraceData(std::ifstream&)> readTraceData;
       switch (tf.WORD_LEN) {
@@ -127,21 +144,6 @@ namespace verif {
       // read in the trace data
       while (trace_end_pos < in.tellg())
         tf.trace_data.insert(readTraceData(in));
-
-      // read in the metadata jump table
-      std::vector<std::streamoff> jmpTbl;
-      std::streamoff tmp;
-      do {
-        in.read(reinterpret_cast<char*>(&tmp), tf.WORD_LEN);
-        jmpTbl.push_back(tmp);
-      } while (in.tellg() < jmpTbl[0]);
-
-      // read in the metadata
-      for (size_t i=0; i<(jmpTbl.size()-1); ++i) {
-        in.seekg(jmpTbl[i]);
-        std::streamoff l = jmpTbl[i+1] - jmpTbl[i];
-        tf.src_files.push_back(readStringL(in,l));
-      }
 
     } catch (std::exception& ex) {
       std::cerr << "Error occurred while reading in trace file: `" << filepath << "`\n   " << ex.what() << std::endl;
