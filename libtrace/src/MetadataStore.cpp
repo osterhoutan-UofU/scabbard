@@ -22,7 +22,6 @@ namespace trace {
   std::uint64_t MetadataStore::register_src(const char* _src)
   {
     std::string src_file = std::string(_src);
-    std::cerr << "\n[scabbard::trace::dbg] registering src file: `" << src_file << "`\n" << std::flush;
     auto res = src_ids.find(src_file);
     if (res != src_ids.end())
       return res->second;
@@ -32,6 +31,7 @@ namespace trace {
       src_ids = std::unordered_map<std::string,std::uint64_t>();
     src_ids.insert(std::make_pair(src_file, id));
     srcs.push_back(src_file);
+    std::cerr << "\n[scabbard::trace::dbg] registering src file: `" << src_file << "` as " << id << std::endl;
     return id;
   }
 
