@@ -92,6 +92,7 @@ namespace scabbard {
     __host__
     void TraceWriter::finalize(const MetadataStore& metadata)
     {
+      std::cerr << "\n[scabbard::trace::dbg] scabbard::trace::TraceWriter::finalize() was reached!\n" << std::flush;
       // std::streamoff trace_end = out.tellp();
       // const auto& srcs = *metadata.get_srcs();
       // // record the jump table for the source files
