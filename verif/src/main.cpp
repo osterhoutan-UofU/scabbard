@@ -21,9 +21,11 @@ void printResult(std::ostream& out,
 
 int main(int argc, char *argv[]) {
   using namespace ::scabbard::verif;
-  if (argc != 1)
+  if (argc != 2) {
     std::cerr << "incorrect input provided, please provide a file path to a scabbard trace file" 
               << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
   auto tf = scabbard::verif::readTraceFile(std::string(argv[0]));
 

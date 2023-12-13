@@ -14,7 +14,7 @@
 
 #include <string>
 #include <cinttypes>
-#include <vector>
+#include <list>
 #include <unordered_set>
 #include <unordered_map>
 
@@ -23,17 +23,18 @@ namespace trace {
 
   class MetadataStore {
     
-    std::vector<std::string> srcs;
-    std::unordered_map<std::string,std::uint64_t> src_ids;
+    std::list<std::string>* srcs;
+    std::unordered_map<std::string,std::uint64_t>* src_ids;
 
 
   public:
 
     // MetadataStore() = default;
+    ~MetadataStore() { delete srcs; delete src_ids; }
 
     std::uint64_t register_src(const char* _src);
 
-    const std::vector<std::string>* get_srcs() const { return &srcs; }
+    const std::list<std::string>* get_srcs() const { return srcs; }
   };
 
 

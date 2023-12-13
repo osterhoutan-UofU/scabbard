@@ -70,6 +70,7 @@ namespace scabbard {
 
       // write links to metadata table and end of trace table (recorded in finalize)
       const auto& srcs = *metadata.get_srcs();
+      std::cerr << "\n[scabbard:trace:dbg] src's registered at this point: " << srcs.size() << std::endl;
       // record the jump table for the source files
       assert((sizeof(std::streamoff) == WORD_LEN) && "stream offset is the right size to be written");
       std::streamoff pos = ((std::streamoff)out.tellp()) + (std::streamoff)(WORD_LEN*(srcs.size()+1));
@@ -80,7 +81,6 @@ namespace scabbard {
       }
       out.write(BUF,WORD_LEN); // write end of table null
       // record the actual src strings
-      std::cerr << "\n[scabbard:trace:dbg] src's registered at this point: " << metadata.get_srcs()->size() << std::endl;
       for (const auto& src : srcs) {
         out.write(src.c_str(), src.size());
         std::cerr << "\n[scabbard:trace:dbg] encoding src file: `" << src << "`\n";
