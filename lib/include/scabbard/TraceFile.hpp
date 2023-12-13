@@ -26,14 +26,14 @@ namespace scabbard {
 
 struct TraceFile {
 
-  uint8_t VER_MAJOR;
-  uint8_t VER_MINOR;
-  uint8_t VER_PATCH;
+  uint8_t VER_MAJOR = 0;
+  uint8_t VER_MINOR = 0;
+  uint8_t VER_PATCH = 0;
 
-  uint32_t WORD_LEN;
-  uint32_t START_TIME;
+  uint32_t WORD_LEN = 0;
+  uint32_t START_TIME = 0;
 
-  std::string EXE_PATH;
+  std::string EXE_PATH = "";
 
   std::multiset<TraceData> trace_data;
 

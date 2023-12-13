@@ -119,6 +119,7 @@
         "Malloc",
         "Memcpy",
         "startswith",
+        "tracefiles",
         "unifmem",
         "verif"
     ]

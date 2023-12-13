@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  auto tf = scabbard::verif::readTraceFile(std::string(argv[0]));
+  auto tf = scabbard::verif::readTraceFile(std::string(argv[1]));
 
   scabbard::verif::StateMachine sm(tf.trace_data);
   auto result = sm.run();
