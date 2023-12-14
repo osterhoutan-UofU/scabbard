@@ -169,11 +169,11 @@ namespace verif {
       }
 
       // read in the metadata jump point
-      std::streamoff trace_end_pos;
-      in.read(reinterpret_cast<char*>(&trace_end_pos), tf.WORD_LEN);
+      // std::streamoff trace_end_pos;
+      // in.read(reinterpret_cast<char*>(&trace_end_pos), tf.WORD_LEN);
 
       // read in the trace data
-      while (trace_end_pos < in.tellg())
+      while (not in.eof())
         tf.trace_data.insert(readTraceData(in));
 
     } catch (std::exception& ex) {
