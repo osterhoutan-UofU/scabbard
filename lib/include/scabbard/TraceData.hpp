@@ -176,7 +176,7 @@ struct TraceData {
   // {}
   __host__ 
   TraceData(size_t time_stamp_, InstrData data_, const ThreadId& threadId_,
-                     void* ptr_, const LocMData_t& metadata_, std::size_t opt_data)
+                    const void* ptr_, const LocMData_t& metadata_, std::size_t opt_data)
     : time_stamp(time_stamp_), data(data_), threadId(threadId_),
       ptr(ptr_), metadata(metadata_), _OPT_DATA(opt_data)
   {}
