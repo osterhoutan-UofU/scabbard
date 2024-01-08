@@ -104,7 +104,8 @@
         "__locale": "cpp",
         "ios": "cpp",
         "queue": "cpp",
-        "semaphore": "cpp"
+        "semaphore": "cpp",
+        "stack": "c"
     },
     "cSpell.words": [
         "amdgcn",

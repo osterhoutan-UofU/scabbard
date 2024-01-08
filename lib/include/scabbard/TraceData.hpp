@@ -135,7 +135,7 @@ struct TraceData {
   const std::size_t   time_stamp  = 0ul;                //  8B ( 64b)  8B ( 64b)
   const InstrData     data        = InstrData::NEVER;   //  2B ( 16b)  8B ( 64b)
   const ThreadId      threadId    = ((void*)nullptr);   // 16B (128b) 16B (128b)
-  const void*         ptr         = nullptr;            //  8B ( 64b)  8B ( 64b)
+  void const*         ptr         = nullptr;            //  8B ( 64b)  8B ( 64b)
   const LocMData_t    metadata    = {0ul,0ul,0ul};      // 24B (192b) 24B (192b)
   const std::size_t   _OPT_DATA   = 0ul;                //  8B ( 64b)  8B ( 64b)
   //                                              TOTALS:  66B (528b) 72B (576b)
@@ -170,11 +170,10 @@ struct TraceData {
     : time_stamp(time_stamp_), data(data_), threadId(blockId_, threadId_), 
       ptr(ptr_), metadata({src_id,line,col}), _OPT_DATA(size_)
     {}
-    __host__ __device__ 
-  __host__ TraceData(InstrData data_, const void* ptr_, const LocMData_t& metadata_, std::size_t opt_data=0ul)
-    : time_stamp(std::chrono::high_resolution_clock::now().time_since_epoch().count()),
-      data(data_), threadId(), ptr(ptr_), metadata(metadata_), _OPT_DATA(opt_data)
-  {}
+  // __host__ TraceData(InstrData data_, const void* ptr_, const LocMData_t& metadata_, std::size_t opt_data=0ul)
+  //   : time_stamp(std::chrono::high_resolution_clock::now().time_since_epoch().count()),
+  //     data(data_), threadId(), ptr(ptr_), metadata(metadata_), _OPT_DATA(opt_data)
+  // {}
   __host__ 
   TraceData(size_t time_stamp_, InstrData data_, const ThreadId& threadId_,
                      void* ptr_, const LocMData_t& metadata_, std::size_t opt_data)

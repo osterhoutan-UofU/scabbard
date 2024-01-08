@@ -138,7 +138,16 @@ namespace scabbard {
       __host__ 
       void trace_append$mem(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col)
       {
-        TRACE_LOGGER.append(TraceData(data, PTR, {*src_id, line,col}));
+        TRACE_LOGGER.append(
+            TraceData(
+                std::chrono::high_resolution_clock::now().time_since_epoch().count(),
+                data,
+                ThreadId(), 
+                PTR, 
+                LocationMetadata{*src_id, line,col},
+                0ul
+              )
+          );
       }
 
       __host__ 
@@ -167,7 +176,16 @@ namespace scabbard {
       __host__ 
       void trace_append$alloc(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col, std::size_t size)
       {
-        TRACE_LOGGER.append(TraceData(data, PTR, LocationMetadata{*src_id, line,col}, size));
+        TRACE_LOGGER.append(
+            TraceData(
+                std::chrono::high_resolution_clock::now().time_since_epoch().count(),
+                data,
+                ThreadId(),
+                PTR,
+                LocationMetadata{*src_id, line,col},
+                size
+              )
+          );
       }
       
     } // namespace host
