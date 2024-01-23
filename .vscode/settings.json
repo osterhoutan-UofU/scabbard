@@ -1,8 +1,9 @@
 {
     "doxdocgen.file.versionTag": "@version alpha 0.0.1",
     "doxdocgen.generic.authorEmail": "osterhoutan+scabbard@gmail.com",
-    "cmake.generator": "Ninja",
+    // "cmake.generator": "Ninja",
     "cmake.parallelJobs": 6,
+    "cmake.environment": {"ROCM_PATH":"/opt/rocm-5.4.1"},
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "C_Cpp.formatting": "vcFormat",
     "C_Cpp.vcFormat.newLine.beforeOpenBrace.lambda": "sameLine",
@@ -105,7 +106,9 @@
         "ios": "cpp",
         "queue": "cpp",
         "semaphore": "cpp",
-        "stack": "c"
+        "stack": "c",
+        "format": "cpp",
+        "iomanip": "cpp"
     },
     "cSpell.words": [
         "amdgcn",
@@ -116,10 +119,12 @@
         "endswith",
         "hipcc",
         "Instramentable",
+        "instrumenter",
         "LIBTRACE",
         "Malloc",
         "Memcpy",
         "startswith",
+        "syncthreads",
         "tracefiles",
         "unifmem",
         "verif"

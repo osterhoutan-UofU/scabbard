@@ -45,7 +45,7 @@ namespace scabbard {
       {
         const size_t lId = getLaneId();
         DEVICE_TRACE_LOGGER->data[lId].data[(++(DEVICE_TRACE_LOGGER->data[lId].next))  // atomic so increment should happen at same time as load/copy
-                  % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH] = TraceData(clock64(), data,
+                  % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH] = TraceData(wall_clock64(), data,
                                                                           blockIdx, threadIdx,
                                                                           PTR, 
                                                                          *src_id, line, col);

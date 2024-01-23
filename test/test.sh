@@ -5,7 +5,10 @@
 #flux: -g1
 #flux: -c8
 
+# load prefered rocm version via declaration of ROCM_PATH env var
 source $HOME/.zshenv
+
+# make sure you are operating from the correct file location (top dir in scabbard project)
 cd $HOME/repos/scabbard
 
 export SCABBARD_PATH="$(pwd)/build/libtrace"

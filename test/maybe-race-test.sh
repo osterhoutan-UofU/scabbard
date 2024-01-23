@@ -20,7 +20,8 @@ echo -e "\n\n==== RUNNING instrumented executable ====\n\n"
 export SCABBARD_INSTRUMENTED_EXE_NAME="$(pwd)/test/maybe-race-test.instr.out"
 export SCABBARD_TRACE_FILE="$(pwd)/test/maybe-race-test.scabbard.trace"
 
-./test/maybe-race-test.instr.out
+$ROCM_PATH/bin/rocgdb ./test/maybe-race-test.instr.out
+# ./test/maybe-race-test.instr.out
 
 echo -e "\n\n==== VERIFYING generated trace file ====\n\n"
 
