@@ -179,6 +179,19 @@ namespace scabbard {
     // << ========================================================================================== >> 
 
 
+    __host__
+    DeviceAsyncQueue::DeviceAsyncQueue() 
+      : data()
+    {
+      std::memset(data, 0u, sizeof(DeviceAsyncQueue::Lane)*SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT);
+    }
+    __host__
+    DeviceAsyncQueue::Lane::Lane() 
+      : data()
+    {
+      std::memset(data, 0u, sizeof(TraceData)*SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH);
+    }
+
     // __device__ inline 
     // DeviceAsyncQueue::Lane& DeviceAsyncQueue::operator [] (size_t i) { return data[i]; }
     __host__ inline 

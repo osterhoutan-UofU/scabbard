@@ -36,6 +36,8 @@
 #define SCABBARD_METADATA_INSTR_srcPath_VAR_HOST_PREFIX "scabbard.metadata.srcFilePath$"
 #define SCABBARD_METADATA_INSTR_srcId_VAR_DEVICE_PREFIX "scabbard.metadata.device.srcId$"
 
+#define SCABBARD_DEVICE_DUMMY_FUNC_NAME "scabbard.trace.device.dummyFunc"
+
 
 
 #endif

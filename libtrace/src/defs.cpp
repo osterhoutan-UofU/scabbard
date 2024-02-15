@@ -92,7 +92,7 @@ namespace scabbard {
         }
         exit(EXIT_FAILURE);
       }
-      DeviceAsyncQueue tmp2;
+      DeviceAsyncQueue tmp2; // build default config of Device async queue
       if (hipMemcpy(tmp1, &tmp2, sizeof(DeviceAsyncQueue), hipMemcpyHostToDevice)
             != hipSuccess) {
         std::cerr << "\n[scabbard::trace::init::ERROR] failed to copy the initial device side async queue to the device(s)! [hipError_t: " << hipRes << "]\n" 

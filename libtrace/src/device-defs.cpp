@@ -12,6 +12,7 @@
 #include <scabbard/trace/calls.hpp>
 #include <scabbard/trace/globals.hpp>
 #include <scabbard/trace/AsyncQueue.hpp>
+#include <scabbard/instr-names.def>
 
 #include <hip/hip_ext.h>
 #include <hip/hip_runtime_api.h>
@@ -43,12 +44,18 @@ namespace scabbard {
       __device__ __noinline__
       void trace_append$mem(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col)
       {
+        // printf("function called");
         const size_t lId = getLaneId();
-        DEVICE_TRACE_LOGGER->data[lId].data[(++(DEVICE_TRACE_LOGGER->data[lId].next))  // atomic so increment should happen at same time as load/copy
-                  % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH] = TraceData(wall_clock64(), data,
+        auto& _tmp0 = DEVICE_TRACE_LOGGER->data;
+        auto& _tmp1 = _tmp0[lId];
+        auto& _tmp2 = _tmp1.next;
+        const size_t _tmp3 = _tmp2;   // <<<< THIS OPERATION CAUSES THE SIGSEGV 
+        const size_t _li = ++_tmp2;  // atomic so increment should happen at same time as load/copy // <<<< THIS OPERATION CAUSES THE SIGSEGV 
+        const size_t li = _li % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH;
+        DEVICE_TRACE_LOGGER->data[lId].data[li] = TraceData(wall_clock64(), data,
                                                                           blockIdx, threadIdx,
                                                                           PTR, 
-                                                                         *src_id, line, col);
+                                                                         *src_id, line, col, 0ul);
       }
 
       __device__ __noinline__
@@ -56,7 +63,7 @@ namespace scabbard {
       {
         const size_t lId = getLaneId();
         DEVICE_TRACE_LOGGER->data[lId].data[(++(DEVICE_TRACE_LOGGER->data[lId].next))  // atomic so increment should happen at same time as load/copy
-                  % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH] = TraceData(clock64(), data,
+                  % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH] = TraceData(wall_clock64(), data,
                                                                           blockIdx, threadIdx,
                                                                           PTR, 
                                                                           *src_id, line, col, 
@@ -83,6 +90,9 @@ namespace scabbard {
        * @brief waisted space used to that the device side function does not optimized out
        *        from not being called from inside the llvm device module pre-instrumentation
        */
+      __global__ 
+      void call_for_looks(InstrData tmp, void* ptr, void* meta, const std::uint64_t* src_id) asm (SCABBARD_DEVICE_DUMMY_FUNC_NAME);
+
       __global__ 
       void call_for_looks(InstrData tmp, void* ptr, void* meta, const std::uint64_t* src_id)
       {

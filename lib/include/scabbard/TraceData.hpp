@@ -131,13 +131,13 @@ inline const T& reading_cast(const char* buffer, const std::size_t index, const 
 struct TraceData {
   using LocMData_t = ::scabbard::LocationMetadata;
 # ifdef __scabbard_hip_compile
-  //DATA TYPE         NAME          DEFAULT VALUE          SIZE       W/PADDING (64b arch)
-  const std::size_t   time_stamp  = 0ul;                //  8B ( 64b)  8B ( 64b)
-  const InstrData     data        = InstrData::NEVER;   //  2B ( 16b)  8B ( 64b)
-  const ThreadId      threadId    = ((void*)nullptr);   // 16B (128b) 16B (128b)
-  void const*         ptr         = nullptr;            //  8B ( 64b)  8B ( 64b)
-  const LocMData_t    metadata    = {0ul,0ul,0ul};      // 24B (192b) 24B (192b)
-  const std::size_t   _OPT_DATA   = 0ul;                //  8B ( 64b)  8B ( 64b)
+  //DATA TYPE   NAME          DEFAULT VALUE          SIZE       W/PADDING (64b arch)
+  std::size_t   time_stamp  = 0ul;                //  8B ( 64b)  8B ( 64b)
+  InstrData     data        = InstrData::NEVER;   //  2B ( 16b)  8B ( 64b)
+  ThreadId      threadId    = ((void*)nullptr);   // 16B (128b) 16B (128b)
+  const void*   ptr         = nullptr;            //  8B ( 64b)  8B ( 64b)
+  LocMData_t    metadata    = {0ul,0ul,0ul};      // 24B (192b) 24B (192b)
+  std::size_t   _OPT_DATA   = 0ul;                //  8B ( 64b)  8B ( 64b)
   //                                              TOTALS:  66B (528b) 72B (576b)
 # else
   std::size_t   time_stamp  = 0ul;
@@ -187,9 +187,19 @@ struct TraceData {
   inline bool empty() const { return data == InstrData::NEVER; }
   // Explicit operators
 # ifdef __scabbard_hip_compile
-    __host__ __device__ 
+  __device__ __host__
+  inline TraceData& operator = (const TraceData& other) = default; /* { 
+    this->time_stamp = other.time_stamp; 
+    this->data = other.data; 
+    this->threadId = other.threadId;
+    this->ptr = other.ptr;
+    this->metadata = other.metadata;
+    this->_OPT_DATA = other._OPT_DATA;
+    return *this; 
+  } */
+# else
+  inline TraceData& operator = (const TraceData& other) { std::memcpy(this, &other, sizeof(TraceData)); return *this; }
 # endif
-  inline TraceData& operator = (const TraceData& other) { std::memcpy(this, &other, sizeof(TraceData)); return *this; };
 # ifdef __scabbard_hip_compile
     __host__ __device__ 
 # endif 

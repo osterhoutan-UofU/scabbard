@@ -111,8 +111,11 @@ namespace scabbard {
                                               .getManager();
       DepTraceDevice dt(M);
       for (auto& f : M.getFunctionList())
-        if (f.getName() != device.trace_append$mem_name && f.getName() != device.trace_append$alloc_name)
+        if (f.getName() != device.trace_append$mem_name && f.getName() != device.trace_append$alloc_name && f.getName() != "__ockl_hostcall_internal")
           run_device(f, fam, dt);
+
+      // remove the dummy caller function from device_def
+      // M.getFunction(SCABBARD_DEVICE_DUMMY_FUNC_NAME)->eraseFromParent(); //note: causes all linked functions to also be removed
     }
 
     // void ScabbardPassPlugin::instrCallbacks_device(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)

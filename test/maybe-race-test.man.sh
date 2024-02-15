@@ -12,16 +12,16 @@ export SCABBARD_PATH="$(pwd)/build/libtrace"
 
 echo -e "\n\n==== BUILDING instrumented executable ====\n\n"
 
-$ROCM_PATH/bin/hipcc -fpass-plugin=build/instr/libinstr.so -Lbuild/libtrace -ltrace -pthread -x hip -std=c++17 -g -o test/maybe-race-test.instr.out test/maybe-race-test.cpp
+$ROCM_PATH/bin/hipcc -Lbuild/libtrace -ltrace -pthread -Ilib/include -Ilibtrace/include -Ilibtrace/src -x hip -std=c++17 -g -o test/maybe-race-test.man.out test/maybe-race-test.man.cpp
 
 
 echo -e "\n\n==== RUNNING instrumented executable ====\n\n"
 
-export SCABBARD_INSTRUMENTED_EXE_NAME="$(pwd)/test/maybe-race-test.instr.out"
-export SCABBARD_TRACE_FILE="$(pwd)/test/maybe-race-test.scabbard.trace"
+export SCABBARD_INSTRUMENTED_EXE_NAME="$(pwd)/test/maybe-race-test.man.out"
+export SCABBARD_TRACE_FILE="$(pwd)/test/maybe-race-test.man.scabbard.trace"
 
 ml rocm/6.0.0
-/opt/rocm-6.0.0/bin/rocgdb ./test/maybe-race-test.instr.out
+/opt/rocm-6.0.0/bin/rocgdb ./test/maybe-race-test.man.out
 # ./test/maybe-race-test.instr.out
 
 echo -e "\n\n==== VERIFYING generated trace file ====\n\n"

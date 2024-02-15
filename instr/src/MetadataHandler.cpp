@@ -100,6 +100,8 @@ namespace scabbard {
 
     LocResult MetadataHandler::trace(llvm::Function& F, const llvm::DebugLoc& DI, bool is_device)
     {
+      if (not DI)
+        llvm::errs() << "\n[scabbard::instr::metadata::ERROR] The Debug location data does not exist! Try compiling with debug data! [in `" << F.getName() << "`]\n";
       assert(DI && "[scabbard::instr::metadata::ERROR] The Debug location data does not exist! Try compiling with debug data!");
       return {_trace_scope(F, llvm::dyn_cast_or_null<llvm::DIScope>(DI.getScope()), is_device), DI.getLine(), DI.getCol()};
     }

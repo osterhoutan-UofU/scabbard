@@ -51,16 +51,16 @@ namespace scabbard {
       struct Lane {
         _Atomic(size_t) next = 0ul;
         TraceData data[SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH];
-        __host__ __device__ Lane() = default;
+        __host__ Lane();
         // __device__ inline TraceData& operator [] (size_t j);
         __host__ inline const TraceData& operator [] (size_t j) const;
         friend class AsyncQueue;
       };
-    private:
+
       Lane data[SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT];
-    public:
+
       // __device__ inline void append(TraceData tData);
-      __host__ __device__ DeviceAsyncQueue() = default;
+      __host__ DeviceAsyncQueue();
       // __host__ __device__ inline DeviceAsyncQueue& operator += (const TraceData& tData);
       // __device__ inline Lane& operator [] (size_t i);
       __host__ inline const Lane& operator [] (size_t i) const;

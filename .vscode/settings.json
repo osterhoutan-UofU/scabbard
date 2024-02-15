@@ -108,7 +108,16 @@
         "semaphore": "cpp",
         "stack": "c",
         "format": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "hash_map": "cpp",
+        "hash_set": "cpp",
+        "strstream": "cpp",
+        "charconv": "cpp",
+        "complex": "cpp",
+        "csignal": "cpp",
+        "span": "cpp",
+        "cfenv": "cpp",
+        "valarray": "cpp"
     },
     "cSpell.words": [
         "amdgcn",
