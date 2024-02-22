@@ -76,31 +76,31 @@ namespace scabbard {
                                       : "./" + EXE_NAME + ".scabbard.trace");
       TRACE_LOGGER.set_trace_writer(TRACE_FILE, EXE_NAME, 
                                     std::chrono::system_clock::now().time_since_epoch().count());
-      hipError_t hipRes;
-      DeviceAsyncQueue* tmp1;
-      if ((hipRes = hipMalloc(&tmp1, sizeof(DeviceAsyncQueue))) != hipSuccess) {
-        std::cerr << "\n[scabbard::trace::init::ERROR] could not allocate space for the device side async queue! [hipError_t: " << hipRes << "]\n" 
-                  << std::endl;
-        int device_count = 0;
-        if (hipRes == hipErrorInvalidDevice) {
-          if ((hipRes = hipGetDeviceCount(&device_count)) == hipSuccess)
-            std::cerr << "\n[scabbard::trace::init::INFO] api reports " << device_count << " compatible devices on this system\n" 
-                      << std::endl;
-          else
-            std::cerr << "\n[scabbard::trace::init::ERROR] could not get the number of compatible devices! [hipError_t: " << hipRes << "]\n" 
-                      << std::endl;
-        }
-        exit(EXIT_FAILURE);
-      }
-      DeviceAsyncQueue tmp2; // build default config of Device async queue
-      if (hipMemcpy(tmp1, &tmp2, sizeof(DeviceAsyncQueue), hipMemcpyHostToDevice)
-            != hipSuccess) {
-        std::cerr << "\n[scabbard::trace::init::ERROR] failed to copy the initial device side async queue to the device(s)! [hipError_t: " << hipRes << "]\n" 
-                  << std::endl;
-        exit(EXIT_FAILURE);
-      }
-      DEVICE_TRACE_LOGGER = tmp1;
-      TRACE_LOGGER.set_device_queue(tmp1);
+      // hipError_t hipRes;
+      // DeviceAsyncQueue* tmp1;
+      // if ((hipRes = hipMalloc(&tmp1, sizeof(DeviceAsyncQueue))) != hipSuccess) {
+      //   std::cerr << "\n[scabbard::trace::init::ERROR] could not allocate space for the device side async queue! [hipError_t: " << hipRes << "]\n" 
+      //             << std::endl;
+      //   int device_count = 0;
+      //   if (hipRes == hipErrorInvalidDevice) {
+      //     if ((hipRes = hipGetDeviceCount(&device_count)) == hipSuccess)
+      //       std::cerr << "\n[scabbard::trace::init::INFO] api reports " << device_count << " compatible devices on this system\n" 
+      //                 << std::endl;
+      //     else
+      //       std::cerr << "\n[scabbard::trace::init::ERROR] could not get the number of compatible devices! [hipError_t: " << hipRes << "]\n" 
+      //                 << std::endl;
+      //   }
+      //   exit(EXIT_FAILURE);
+      // }
+      // DeviceAsyncQueue tmp2; // build default config of Device async queue
+      // if (hipMemcpy(tmp1, &tmp2, sizeof(DeviceAsyncQueue), hipMemcpyHostToDevice)
+      //       != hipSuccess) {
+      //   std::cerr << "\n[scabbard::trace::init::ERROR] failed to copy the initial device side async queue to the device(s)! [hipError_t: " << hipRes << "]\n" 
+      //             << std::endl;
+      //   exit(EXIT_FAILURE);
+      // }
+      // DEVICE_TRACE_LOGGER = tmp1;
+      // TRACE_LOGGER.set_device_queue(tmp1);
       //TODO setup basics for scabbard trace
       TRACE_LOGGER.start();
     }
@@ -117,6 +117,14 @@ namespace scabbard {
     {
       return TRACE_LOGGER.register_src(src_file);
     }
+
+
+    __host__
+    void* register_job(int DEVICE, const hipStream_t const * STREAM)
+    {
+      return ((void*) TRACE_LOGGER.add_job(DEVICE, STREAM));
+    }
+
     
     
     // << ======================================== Device ========================================== >> 

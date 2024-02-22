@@ -42,10 +42,10 @@ namespace scabbard {
     namespace device {
       
       __device__ __noinline__
-      void trace_append$mem(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col) 
+      void trace_append$mem(void* deviceTracker, InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col) 
         asm (SCABBARD_DEVICE_CALLBACK_APPEND_MEM_NAME);
       __device__ 
-      void trace_append$alloc(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col, std::size_t size) 
+      void trace_append$alloc(void* deviceTracker, InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col, std::size_t size) 
         asm (SCABBARD_DEVICE_CALLBACK_APPEND_ALLOC_NAME);
 
 
@@ -64,6 +64,16 @@ namespace scabbard {
         asm (SCABBARD_HOST_CALLBACK_APPEND_ALLOC_NAME);
       
     } // namespace host
+
+
+    /**
+     * @brief during runtime this call gets instrumented befor a kernel launch function
+     *        it returns a pointer to a scabbard::trace::DeviceTracker object in device memory.
+     *        That will be passed into the kernel and through all user defined kernel functions.
+     */
+    __host__
+    void* register_job(int DEVICE, const hipStream_t const * STREAM)
+      asm (SCABBARD_CALLBACK_REGISTER_JOB);
 
 
     /**

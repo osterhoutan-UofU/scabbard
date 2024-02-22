@@ -1,22 +1,22 @@
 cmake_minimum_required(VERSION 3.16)
-project(scabbard VERSION 0.2.0)
+project(scabbard VERSION 0.2.1)
 
 include(GNUInstallDirs)
 configure_file(${CMAKE_SOURCE_DIR}/config/version.h.config
                 ${CMAKE_SOURCE_DIR}/lib/include/scabbard/version.h)
 
 # tmp build with debug llvm-project on external drive
-set(ENV{LLVM_HOME} /mnt/d/repos/llvm-project/build)
+# set(ENV{LLVM_HOME} /mnt/d/repos/llvm-project/build)
 
 # we need rocm and hip paths to be defined
 if (DEFINED ENV{ROCM_PATH} OR DEFINED ENV{HIP_PATH})
     if (NOT DEFINED ENV{ROCM_PATH})
         set(ENV{ROCM_PATH} "$ENV{HIP_PATH}/..")
         # set(ENV{LLVM_HOME} $ENV{ROCM_PATH}/llvm)
-        elseif (NOT DEFINED ENV{HIP_PATH} AND EXISTS )
+    elseif (NOT DEFINED ENV{HIP_PATH} AND EXISTS )
         set(ENV{HIP_PATH} "$ENV{ROCM_PATH}/hip")
     endif()
-elseif (EXISTS "/opt/rocm") # if both are nto defined define them if possible
+elseif (EXISTS "/opt/rocm") # if both are not defined define them if possible
         set(ENV{ROCM_PATH} "/opt/rocm")
         set(ENV{HIP_PATH} "$ENV{ROCM_PATH}/hip")
         # set(ENV{LLVM_HOME} $ENV{ROCM_PATH}/llvm)

@@ -19,6 +19,7 @@
 #include "TraceWriter.hpp"
 #include "MetadataStrore.hpp"
 #include "calls.hpp"
+#include "DeviceTracker.hpp"
 
 #include <scabbard/TraceData.hpp>
 
@@ -26,8 +27,11 @@
 #include <hip/hip_runtime.h>
 
 #include <string>
+#include <vector>
+#include <map>
 #include <queue>
 #include <mutex>
+#include <memory>
 #include <atomic>
 #include <thread>
 #include <chrono>
@@ -43,33 +47,33 @@
 namespace scabbard {
   namespace trace {
 
-    /**
-     * @brief Just a lazy holder of reference pointers that will be handled with 
-     *        external functions.
-     */
-    struct DeviceAsyncQueue {
-      struct Lane {
-        _Atomic(size_t) next = 0ul;
-        TraceData data[SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH];
-        __host__ Lane();
-        // __device__ inline TraceData& operator [] (size_t j);
-        __host__ inline const TraceData& operator [] (size_t j) const;
-        friend class AsyncQueue;
-      };
-
-      Lane data[SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT];
-
-      // __device__ inline void append(TraceData tData);
-      __host__ DeviceAsyncQueue();
-      // __host__ __device__ inline DeviceAsyncQueue& operator += (const TraceData& tData);
-      // __device__ inline Lane& operator [] (size_t i);
-      __host__ inline const Lane& operator [] (size_t i) const;
-    protected:
-      // __device__ static inline size_t getLaneId(); // const;
-      friend class AsyncQueue;
-      friend __device__ void scabbard::trace::device::trace_append$mem(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col);
-      friend __device__ void scabbard::trace::device::trace_append$alloc(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col, std::size_t size);
-    };
+    // /**
+    //  * @brief Just a lazy holder of reference pointers that will be handled with 
+    //  *        external functions.
+    //  */
+    // struct DeviceAsyncQueue {
+    //   struct Lane {
+    //     _Atomic(size_t) next = 0ul;
+    //     TraceData data[SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH];
+    //     __host__ Lane();
+    //     // __device__ inline TraceData& operator [] (size_t j);
+    //     __host__ inline const TraceData& operator [] (size_t j) const;
+    //     friend class AsyncQueue;
+    //   };
+    //
+    //   Lane data[SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT];
+    //
+    //   // __device__ inline void append(TraceData tData);
+    //   __host__ DeviceAsyncQueue();
+    //   // __host__ __device__ inline DeviceAsyncQueue& operator += (const TraceData& tData);
+    //   // __device__ inline Lane& operator [] (size_t i);
+    //   __host__ inline const Lane& operator [] (size_t i) const;
+    // protected:
+    //   // __device__ static inline size_t getLaneId(); // const;
+    //   friend class AsyncQueue;
+    //   friend __device__ void scabbard::trace::device::trace_append$mem(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col);
+    //   friend __device__ void scabbard::trace::device::trace_append$alloc(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col, std::size_t size);
+    // };
   
 
     /**
@@ -82,15 +86,30 @@ namespace scabbard {
      */
     class AsyncQueue {
       
-      /// @brief host side storage of the device ptr where the device side.
-      ///        NOTE: this is a device ptr and is set during scabbard_init()
-      DeviceAsyncQueue* deviceQ = nullptr;        
-      
-      /// @brief array of the last place we read from when processing the device side async queue
-      size_t device_last_read[SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT];
+      // /// @brief host side storage of the device ptr where the device side.
+      // ///        NOTE: this is a device ptr and is set during scabbard_init()
+      // DeviceAsyncQueue* deviceQ = nullptr;        
+      //
+      // /// @brief array of the last place we read from when processing the device side async queue
+      // size_t device_last_read[SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT];
+      //
+      // /// @brief aka \c _device_buffer - local place to store the device side async queue during processing
+      // DeviceAsyncQueue _db;
 
-      /// @brief aka \c _device_buffer - local place to store the device side async queue during processing
-      DeviceAsyncQueue _db;
+      /// @brief the owning list of device trackers
+      std::vector<DeviceTracker*> device_trackers;
+      
+      typedef std::vector<DeviceTracker*>::iterator DTRef;
+
+      /// @brief a map connecting device trackers to their job streams (non-owning)
+      std::multimap<hipStream_t*,DTRef> dts_by_stream;
+
+      /// @brief a map connecting device trackers to their GPU device (non-owning)
+      ///        the result is the index in the device_tracker vector that owns the pointer
+      std::multimap<int,DTRef> dts_by_device;
+
+      /// @brief the mutex protecting access to the device side buffer objects
+      std::mutex mx_device;
 
       /// @brief the host buffer
       std::queue<TraceData> hostQ;
@@ -146,11 +165,19 @@ namespace scabbard {
       template<class Rep, class Period = std::ratio<1>>
       __host__ void set_delay(const std::chrono::duration<Rep,Period>& delay_);
 
+      // /**
+      //  * @brief Set the device queue object (takes ownership of the pointer)
+      //  * @param dq_ pointer to a valid DeviceAsyncQueue located in device memory (shared mem or the device heap)
+      //  */
+      // __host__ void set_device_queue(DeviceAsyncQueue* dq_);
+
       /**
-       * @brief Set the device queue object (takes ownership of the pointer)
-       * @param dq_ pointer to a valid DeviceAsyncQueue located in device memory (shared mem or the device heap)
+       * @brief register a job to the async queue to monitor it
+       * @param DEVICE the device id associated with the job launch
+       * @param STREAM pointer to the stream object associated with the job launch
+       * @return \c DeviceTracker* - pointer to the device side object the kernel will work with
        */
-      __host__ void set_device_queue(DeviceAsyncQueue* dq_);
+      DeviceTracker* add_job(int DEVICE, const hipStream_t const * STREAM);
       
       /**
        * @brief Set the trace writer object

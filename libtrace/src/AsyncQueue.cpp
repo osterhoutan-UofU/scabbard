@@ -96,18 +96,23 @@ namespace scabbard {
       tw->init(exe_path, start_time, metadata);
     }
 
-    __host__ 
-    void AsyncQueue::set_device_queue(DeviceAsyncQueue* dq_)
+    // __host__ 
+    // void AsyncQueue::set_device_queue(DeviceAsyncQueue* dq_)
+    // {
+    //   if (dq_ == nullptr)
+    //     return;
+    //   if (deviceQ != nullptr)
+    //     if (hipFree(deviceQ) != hipSuccess) {
+    //       std::cerr << "\n[scabbard::trace::AsyncQueue::ERROR] could not properly deallocate device side buffer!\n"
+    //                 << std::endl;
+    //       exit(EXIT_FAILURE);
+    //     }
+    //   deviceQ = dq_;
+    // }
+
+    DeviceTracker* AsyncQueue::add_job(int DEVICE, const hipStream_t const * STREAM)
     {
-      if (dq_ == nullptr)
-        return;
-      if (deviceQ != nullptr)
-        if (hipFree(deviceQ) != hipSuccess) {
-          std::cerr << "\n[scabbard::trace::AsyncQueue::ERROR] could not properly deallocate device side buffer!\n"
-                    << std::endl;
-          exit(EXIT_FAILURE);
-        }
-      deviceQ = dq_;
+      
     }
 
 
