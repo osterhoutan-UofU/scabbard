@@ -37,11 +37,11 @@
 #include <chrono>
 #include <cinttypes>
 
-#define WARP_SIZE (size_t(32ul))
+// #define WARP_SIZE (size_t(32ul))
 
-#define SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH ((size_t)64ul)
-#define SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT_MODIFIER ((size_t)2ul)
-#define SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT ((size_t)SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT_MODIFIER * WARP_SIZE)
+// #define SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH ((size_t)64ul)
+// #define SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT_MODIFIER ((size_t)2ul)
+// #define SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT ((size_t)SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT_MODIFIER * WARP_SIZE)
 
 
 namespace scabbard {
@@ -85,7 +85,12 @@ namespace scabbard {
      *        WARNING: this class is designed to only have one instantiation in an entire program.
      */
     class AsyncQueue {
-      
+
+    public:
+      /// @brief a logical clock used to determine when things occur
+      _Atomic(size_t) vClk = 0u;
+    
+    protected:
       // /// @brief host side storage of the device ptr where the device side.
       // ///        NOTE: this is a device ptr and is set during scabbard_init()
       // DeviceAsyncQueue* deviceQ = nullptr;        
@@ -99,14 +104,14 @@ namespace scabbard {
       /// @brief the owning list of device trackers
       std::vector<DeviceTracker*> device_trackers;
       
-      typedef std::vector<DeviceTracker*>::iterator DTRef;
+      // typedef std::vector<DeviceTracker*>::iterator DTRef;
 
-      /// @brief a map connecting device trackers to their job streams (non-owning)
-      std::multimap<hipStream_t*,DTRef> dts_by_stream;
+      /// @brief a map connecting counters to each streams jobs
+      std::map<hipStream_t,uint16_t> stream_job_counters;
 
-      /// @brief a map connecting device trackers to their GPU device (non-owning)
-      ///        the result is the index in the device_tracker vector that owns the pointer
-      std::multimap<int,DTRef> dts_by_device;
+      // /// @brief a map connecting device trackers to their GPU device (non-owning)
+      // ///        the result is the index in the device_tracker vector that owns the pointer
+      // std::multimap<int,DTRef> dts_by_device;
 
       /// @brief the mutex protecting access to the device side buffer objects
       std::mutex mx_device;
@@ -177,7 +182,7 @@ namespace scabbard {
        * @param STREAM pointer to the stream object associated with the job launch
        * @return \c DeviceTracker* - pointer to the device side object the kernel will work with
        */
-      DeviceTracker* add_job(int DEVICE, const hipStream_t const * STREAM);
+      DeviceTracker* add_job(const hipStream_t STREAM);
       
       /**
        * @brief Set the trace writer object

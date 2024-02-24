@@ -72,8 +72,18 @@ namespace scabbard {
      *        That will be passed into the kernel and through all user defined kernel functions.
      */
     __host__
-    void* register_job(int DEVICE, const hipStream_t const * STREAM)
+    void* register_job(const hipStream_t STREAM)
       asm (SCABBARD_CALLBACK_REGISTER_JOB);
+    
+    
+    /**
+     * @brief Register a callback with the stream for the specific job just entered into queue
+     *        it will mark the device tracker as finished so that it can be cleaned up,
+     *        and rebalance the logical vector clock.
+     */
+    __host__
+    void register_job_callback(void* dt, hipStream_t stream)
+      asm (SCABBARD_CALLBACK_REGISTER_JOB_CALLBACK);
 
 
     /**

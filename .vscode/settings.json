@@ -136,6 +136,7 @@
         "syncthreads",
         "tracefiles",
         "unifmem",
+        "Unqual",
         "verif"
     ]
 }

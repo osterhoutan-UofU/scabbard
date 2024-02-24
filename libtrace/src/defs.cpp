@@ -51,6 +51,9 @@ namespace scabbard {
     // << ========================================================================================== >> 
 
     AsyncQueue TRACE_LOGGER; // created in scabbard init
+
+    
+
     // __device__ DeviceAsyncQueue* DEVICE_TRACE_LOGGER;
 
 
@@ -120,9 +123,32 @@ namespace scabbard {
 
 
     __host__
-    void* register_job(int DEVICE, const hipStream_t const * STREAM)
+    void* register_job(const hipStream_t const * STREAM)
     {
-      return ((void*) TRACE_LOGGER.add_job(DEVICE, STREAM));
+      return ((void*) TRACE_LOGGER.add_job(STREAM));
+    }
+
+    __host__
+    void scabbard_stream_callback(hipStream_t stream, hipError_t status, void* dt)
+    {
+      // mark the device tracker as finished for the TRACE_LOGGER to take care of during next device upkeep cycle
+      dt->finished = true;
+      // rebalance logical vClk
+      const size_t dvClk = dt->vClk;
+      if (dvClk > TRACE_LOGGER.vClk)
+        TRACE_LOGGER.vClk = dvClk;
+    }
+
+    __host__
+    void register_job_callback(void* dt, hipStream_t stream)
+    {
+      auto hipRes = hipStreamAddCallback(stream, scabbard_stream_callback, dt, 0);
+      if (hipRes != hipSuccess) {
+        std::cerr << "\n[scabbard.trace:ERROR] failed to register callback on "
+                     "{stream: "<< dt->JOB_ID.STREAM<< ", "
+                      "device: " << dt->JOB_ID.DEVICE << ", "
+                      "job: " << dt->JOB_ID.JOB  << "}\n" << std::endl;
+      }
     }
 
     
@@ -148,7 +174,7 @@ namespace scabbard {
       {
         TRACE_LOGGER.append(
             TraceData(
-                std::chrono::high_resolution_clock::now().time_since_epoch().count(),
+                TRACE_LOGGER.vClk++,
                 data,
                 ThreadId(), 
                 PTR, 
@@ -186,7 +212,8 @@ namespace scabbard {
       {
         TRACE_LOGGER.append(
             TraceData(
-                std::chrono::high_resolution_clock::now().time_since_epoch().count(),
+                TRACE_LOGGER.vClk++,
+                // std::chrono::high_resolution_clock::now().time_since_epoch().count(),
                 data,
                 ThreadId(),
                 PTR,

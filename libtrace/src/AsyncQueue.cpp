@@ -110,12 +110,24 @@ namespace scabbard {
     //   deviceQ = dq_;
     // }
 
-    DeviceTracker* AsyncQueue::add_job(int DEVICE, const hipStream_t const * STREAM)
+    __host__
+    DeviceTracker* AsyncQueue::add_job(const hipStream_t STREAM)
     {
-      
+      DeviceTracker* dt = nullptr;
+      hipError_t hipRes = hipMallocManaged(&dt, sizeof(DeviceTracker), hipMemAttachGlobal);
+      if (hipRes != hipSuccess) {
+        std::cerr << "\n[scabbard.trace:ERROR] failed to allocate managed memory before kernel launch!\n" << std::endl;
+        exit(EXIT_FAILURE);
+      }
+      mx_device.lock();
+      auto tmp = stream_job_counter.find(STREAM);
+      if (tmp == stream_job_counter.end())
+        stream_job_counter.emplace(std::make_pair(STREAM,0u));
+      device_trackers.push_back(new DeviceTracker(jobId_t(tmp->second,STREAM), vClk++));
+      stream_job_counter[STREAM] = tmp->second+1u; 
+      mx_device.unlock();
+      return dt;
     }
-
-
 
     __host__ 
     void AsyncQueue::append(TraceData tData)
@@ -137,27 +149,28 @@ namespace scabbard {
     __host__ 
     void AsyncQueue::process_device(TraceWriter& tw)
     {
-      using Lane = ::scabbard::trace::DeviceAsyncQueue::Lane;
-      if (hipMemcpyAsync(&_db, deviceQ, sizeof(DeviceAsyncQueue), hipMemcpyDeviceToHost) 
-            != hipSuccess) {
-        std::cerr << "\n[scabbard::trace::ERROR] failed to copy the device side of the AsyncQueue for processing!\n";
-#       ifdef DEBUG
-          exit(EXIT_FAILURE);
-#       else
-          return;
-#       endif
-      }
-      for (size_t lID=0; lID<SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT; ++lID) {
-        const Lane& LANE = _db[lID];
-        size_t ii = 0ul; // prevent from cycling forever when we roll over the limits of size_t
-        const size_t LANE_NEXT = LANE.next; // get copy of atomic value to skip atomic reads since the buffer is frozen
-        for (size_t i = device_last_read[lID]; 
-              i != LANE_NEXT && ii < SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH;
-              (++i) + (++ii)) {
-          if (not LANE[i].empty())
-            tw << LANE[i];
-        }
-      }
+      //TODO modify this to work with new device tracker
+//       using Lane = ::scabbard::trace::DeviceAsyncQueue::Lane;
+//       if (hipMemcpyAsync(&_db, deviceQ, sizeof(DeviceAsyncQueue), hipMemcpyDeviceToHost) 
+//             != hipSuccess) {
+//         std::cerr << "\n[scabbard::trace::ERROR] failed to copy the device side of the AsyncQueue for processing!\n";
+// #       ifdef DEBUG
+//           exit(EXIT_FAILURE);
+// #       else
+//           return;
+// #       endif
+//       }
+//       for (size_t lID=0; lID<SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT; ++lID) {
+//         const Lane& LANE = _db[lID];
+//         size_t ii = 0ul; // prevent from cycling forever when we roll over the limits of size_t
+//         const size_t LANE_NEXT = LANE.next; // get copy of atomic value to skip atomic reads since the buffer is frozen
+//         for (size_t i = device_last_read[lID]; 
+//               i != LANE_NEXT && ii < SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH;
+//               (++i) + (++ii)) {
+//           if (not LANE[i].empty())
+//             tw << LANE[i];
+//         }
+//       }
     }
 
     __host__ 
@@ -184,28 +197,28 @@ namespace scabbard {
     // << ========================================================================================== >> 
 
 
-    __host__
-    DeviceAsyncQueue::DeviceAsyncQueue() 
-      : data()
-    {
-      std::memset(data, 0u, sizeof(DeviceAsyncQueue::Lane)*SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT);
-    }
-    __host__
-    DeviceAsyncQueue::Lane::Lane() 
-      : data()
-    {
-      std::memset(data, 0u, sizeof(TraceData)*SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH);
-    }
+    // __host__
+    // DeviceAsyncQueue::DeviceAsyncQueue() 
+    //   : data()
+    // {
+    //   std::memset(data, 0u, sizeof(DeviceAsyncQueue::Lane)*SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT);
+    // }
+    // __host__
+    // DeviceAsyncQueue::Lane::Lane() 
+    //   : data()
+    // {
+    //   std::memset(data, 0u, sizeof(TraceData)*SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH);
+    // }
 
-    // __device__ inline 
-    // DeviceAsyncQueue::Lane& DeviceAsyncQueue::operator [] (size_t i) { return data[i]; }
-    __host__ inline 
-    const DeviceAsyncQueue::Lane& DeviceAsyncQueue::operator [] (size_t i) const { return data[i]; }
+    // // __device__ inline 
+    // // DeviceAsyncQueue::Lane& DeviceAsyncQueue::operator [] (size_t i) { return data[i]; }
+    // __host__ inline 
+    // const DeviceAsyncQueue::Lane& DeviceAsyncQueue::operator [] (size_t i) const { return data[i]; }
 
-    // __device__ inline 
-    // TraceData& DeviceAsyncQueue::Lane::operator [] (size_t j) { return data[j]; }
-    __host__ inline 
-    const TraceData& DeviceAsyncQueue::Lane::operator [] (size_t j) const { return data[j]; }
+    // // __device__ inline 
+    // // TraceData& DeviceAsyncQueue::Lane::operator [] (size_t j) { return data[j]; }
+    // __host__ inline 
+    // const TraceData& DeviceAsyncQueue::Lane::operator [] (size_t j) const { return data[j]; }
 
 
     // __device__ inline 

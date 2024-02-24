@@ -13,9 +13,9 @@
 #ifndef SCABBARD_VERSION
 
 
-#define SCABBARD_VERSION  "0.2.1"
+#define SCABBARD_VERSION  "0.3.0"
 #define SCABBARD_VER_MAJOR ((uint8_t)0u)
-#define SCABBARD_VER_MINOR ((uint8_t)2u)
-#define SCABBARD_VER_PATCH ((uint8_t)1u)
+#define SCABBARD_VER_MINOR ((uint8_t)3u)
+#define SCABBARD_VER_PATCH ((uint8_t)0u)
 
 #endif

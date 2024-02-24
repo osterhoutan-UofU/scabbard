@@ -64,6 +64,10 @@ namespace instr {
         const std::string trace_append$mem$cond_name = SCABBARD_HOST_CALLBACK_APPEND_MEM_COND_NAME;
         llvm::FunctionCallee trace_append$alloc;
         const std::string trace_append$alloc_name = SCABBARD_HOST_CALLBACK_APPEND_ALLOC_NAME;
+        llvm::FunctionCallee register_job;
+        const std::string register_job_name = SCABBARD_CALLBACK_REGISTER_JOB;
+        llvm::FunctionCallee register_job_callback;
+        const std::string register_job_callback_name = SCABBARD_CALLBACK_REGISTER_JOB_CALLBACK;
       } host;
     struct {
         llvm::FunctionCallee trace_append$mem;

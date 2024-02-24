@@ -46,7 +46,7 @@ namespace scabbard {
       void trace_append$mem(void* deviceTracker, InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col)
       {
         DeviceTracker& DT = *((DeviceTracker) deviceTracker);
-        DT.buffer[(++DT.next) % SCABBARD_DEVICE_TRACKER_BUFF_LENGTH] = TraceData(++(DT.vClk), data,
+        DT.buffer[(DT.next++) % SCABBARD_DEVICE_TRACKER_BUFF_LENGTH] = TraceData(DT.vClk++, data,
                                                                                   DT.JOB_ID, blockIdx, threadIdx,
                                                                                   PTR, 
                                                                                   *src_id, line, col, 
@@ -68,7 +68,7 @@ namespace scabbard {
       void trace_append$alloc(void* deviceTracker, InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col, std::size_t size)
       {
         DeviceTracker& DT = *((DeviceTracker) deviceTracker);
-        DT.buffer[(++DT.next) % SCABBARD_DEVICE_TRACKER_BUFF_LENGTH] = TraceData(++(DT.vClk), data,
+        DT.buffer[(DT.next++) % SCABBARD_DEVICE_TRACKER_BUFF_LENGTH] = TraceData(DT.vClk++, data,
                                                                                   DT.JOB_ID, blockIdx, threadIdx,
                                                                                   PTR, 
                                                                                   *src_id, line, col, 

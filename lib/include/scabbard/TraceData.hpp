@@ -73,8 +73,19 @@ static_assert(sizeof(threadId_t) <= __WORDSIZE, "threadId_t is of the correct si
 #pragma pack(1)
 struct jobId_t {
   uint16_t JOB = 0u;
-  uint8_t DEVICE = 0u;
-  uint8_t STREAM = 0u;
+  uint16_t STREAM = 0u;
+# ifdef __scabbard_hip_compile
+  __host__
+  static inline uint8_t hash_stream_ptr(const hipStream_t STREAM) 
+  {
+    if (STREAM == nullptr) return 0u;
+    return (((uint64_t)STREAM) % (UINT16_MAX-1u)) + 1u;
+  }
+  __host__
+  jobId_t(uint16_t JOB_, const hipStream_t STREAM_)
+    : JOB(JOB_), STREAM(jobId_t::hash_stream_ptr(STREAM_))
+  {}
+# endif
 };
 #pragma pack()
 
@@ -85,7 +96,7 @@ struct DeviceThreadId {
 # ifdef __scabbard_hip_compile
     __host__ __device__ 
   inline DeviceThreadId(const jobId_t& jobId, const dim3& blockId, const dim3& threadId) 
-    : block(blockId), thread(threadId) 
+    : job(jobId), block(blockId), thread(threadId) 
   {}
 # else
   inline DeviceThreadId(const jobId_t& jobId, const blockId_t& b, const threadId_t& t)

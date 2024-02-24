@@ -237,6 +237,27 @@ namespace scabbard {
               false
             )
         );
+      host.register_job = M.getOrInsertFunction(
+          host.register_job_name,
+          llvm::FunctionType::get(
+              llvm::PointerType::getUnqual(M.getContext()),
+              llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
+                  llvm::PointerType::getUnqual(M.getContext())
+                }),
+              false
+            )
+        );
+      host.register_job_callback = M.getOrInsertFunction(
+          host.register_job_callback_name,
+          llvm::FunctionType::get(
+              llvm::Type::getVoidTy(M.getContext()),
+              llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
+                  llvm::PointerType::getUnqual(M.getContext()),
+                  llvm::PointerType::getUnqual(M.getContext())
+                }),
+              false
+            )
+        );
     }
 
 
@@ -495,6 +516,11 @@ namespace scabbard {
             })
         );
         ci->insertBefore(CI);
+      }
+      else if (fnName == "hipLaunchKernel")
+      {
+        //TODO instrument in `scabbard.trace.register_job` before this function and instrument in `scabbard.trace.register_job_callback` after this function call
+        //TODO trace back args var and expand it to include the pointer to the DeviceTracker that is returned as the result of `scabbard.trace.register_job`
       }
       else if (fnName == "hipMemcpy" || fnName == "hipMemcpyAsync")
       {

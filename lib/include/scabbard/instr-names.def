@@ -24,6 +24,7 @@
 // #define SCABBARD_CALLBACK_UNREGISTER_LOC_NAME "scabbard.trace.metadata_unregister$loc"
 
 #define SCABBARD_CALLBACK_REGISTER_JOB "scabbard.trace.register_job"
+#define SCABBARD_CALLBACK_REGISTER_JOB_CALLBACK "scabbard.trace.register_job_callback"
 
 #define SCABBARD_DEVICE_CALLBACK_APPEND_MEM_NAME "scabbard.trace.device.trace_append$mem"
 #define SCABBARD_DEVICE_CALLBACK_APPEND_ALLOC_NAME "scabbard.trace.device.trace_append$alloc"
