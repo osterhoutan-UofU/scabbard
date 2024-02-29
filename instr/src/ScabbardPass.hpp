@@ -173,6 +173,9 @@ namespace instr {
     auto instr_mem_func_host(llvm::Function& F, 
                               llvm::Instruction& I, llvm::Value* V, 
                               const InstrData& data, bool InsertAfter=true) -> void;
+
+    auto instr_launch_func_host(llvm::Function& F,
+                                llvm::CallInst& CI) -> void;
     
   };//?END class ScabbardPassPlugin
 

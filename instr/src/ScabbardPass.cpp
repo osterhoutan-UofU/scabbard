@@ -23,6 +23,7 @@
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Metadata.h>
 #include <llvm/Transforms/Utils/ModuleUtils.h>
+#include <llvm/Transforms/Utils/BasicBlockUtils.h>
 
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/Support/SourceMgr.h>
@@ -280,6 +281,10 @@ namespace scabbard {
     void ScabbardPassPlugin::run_device(llvm::Function& F, llvm::FunctionAnalysisManager& FAM, const DepTraceDevice& DT)
     {
       //TODO make any necessary additions to the function (i.e. getting thread, block, tile and stream ids)
+      //TODO modify the function type and parameters to include the instrumented in device tracker parameter
+      std::string name = F.getName().str();
+      F.setName(name+"__old__");
+      // search for instructions to instrument and instrument them
       for (auto& bb : F)
         for (auto& i : bb)
           if (auto* store = llvm::dyn_cast<llvm::StoreInst>(&i)) {
@@ -519,8 +524,8 @@ namespace scabbard {
       }
       else if (fnName == "hipLaunchKernel")
       {
-        //TODO instrument in `scabbard.trace.register_job` before this function and instrument in `scabbard.trace.register_job_callback` after this function call
-        //TODO trace back args var and expand it to include the pointer to the DeviceTracker that is returned as the result of `scabbard.trace.register_job`
+       instr_launch_func_host(F,*CI);
+       return;
       }
       else if (fnName == "hipMemcpy" || fnName == "hipMemcpyAsync")
       {
@@ -575,6 +580,95 @@ namespace scabbard {
         ci->insertBefore(CI);
         return;
       }
+    }
+
+
+    llvm::GetElementPtrInst* expand_param_args_alloc(llvm::AllocaInst& alloc)
+    {
+      auto oldAllocTy = alloc.getAllocatedType();
+      size_t old_size = 0ul;
+      if (auto arrTy = llvm::dyn_cast<llvm::ArrayType>(oldAllocTy)) { // case: >=2 function parameter length
+        old_size = arrTy.getNumElements();
+      } else { // case: single or zero length function parameter
+        old_size = 1ul;
+      }
+      auto plainPtrTy = llvm::PointerType::get(alloc.getContext(),0ul);
+      auto newAllocTy = llvm::ArrayType::get(plainPtrTy, old_size+1);
+      auto newAlloc = new llvm::AllocaInst(
+                              newAllocTy,
+                              0u,
+                              "instrParamAlloc",
+                              &alloc
+                            );
+      auto memLoc = llvm::GetElementPtrInst::Create(
+                      plainPtrTy,
+                      newAlloc, 
+                      llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,1>{
+                          llvm::ConstantInt::get(
+                              llvm::IntegerType::get(alloc.getContext(), 64u),
+                              llvm::APInt(64u, 0u)
+                            )
+                        })
+                      );
+      memLoc->insertAfter(newAlloc);
+      alloc.replaceAllUsesWith(memLoc);
+      alloc.eraseFromParent();
+      return llvm::GetElementPtrInst::Create(
+                plainPtrTy,
+                newAlloc, 
+                llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,1>{
+                    llvm::ConstantInt::get(
+                        llvm::IntegerType::get(alloc.getContext(), 64u),
+                        llvm::APInt(64u, old_size)
+                      )
+                  })
+              );
+    }
+
+
+    void ScabbardPass::instr_launch_func_host(llvm::Function& F, llvm::CallInst& CI)
+    {
+      // instrument in `scabbard.trace.register_job` before this function and instrument in `scabbard.trace.register_job_callback` after this function call
+      auto regFn = llvm::CallInst::Create(
+          host.register_job.getFunctionType(),
+          host.register_job.getCallee(),
+          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,1>{
+              CI.getOperand(5)
+            })
+        );
+      regFn->insertBefore(&CI);
+      auto regCbFn = llvm::CallInst::Create(
+          host.register_job_callback.getFunctionType(),
+          host.register_job_callback.getCallee(),
+          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,2>{
+              regFn,
+              CI.getOperand(5)
+            })
+        );
+      regCbFn->insertAfter(&CI);
+      //TODO? modify the type of the last operand (should be a global or function pass)
+      // trace back args var and expand it to include the pointer to the DeviceTracker that is returned as the result of `scabbard.trace.register_job` as the last parameter
+      auto plainPtrTy = llvm::PointerType::get(alloc.getContext(),0ul);
+      llvm::GetElementPtrInst* paramPtr = nullptr;
+      if (auto argElmPtr = llvm::dyn_cast<llvm::GetElementPtrInst>(CI.getOperand(3))) { // case: >=2 function parameter length
+        if (auto argAlloc = llvm::dyn_cast<llvm::AllocaInst>(argElmPtr->getPointerOperand())) {
+          paramPt = expand_param_args_alloc(*argAlloc);
+        } else {
+          llvm::errs() << "\n[scabbard.instr:ERROR] kernel launch user args could not be traced to param args construct allocation\n";
+        }
+      } else if (auto argAlloc = llvm::dyn_cast<llvm::AllocaInst>(CI.getOperand(3))) { // case: single or zero function parameter length
+        paramPt = expand_param_args_alloc(*argAlloc);
+      } else {
+        llvm::errs() << "\n[scabbard.instr:DBG] kernel launch user args are not loaded from local frame\n";
+      }
+      if (paramPt == nullptr) {
+        llvm::errs() << "\n[scabbard.instr:ERROR] could not instrument kernel call (instrumentation failed)\n";
+        return;
+      }
+      auto dtAlloc = new llvm::AllocaInst(plainPtrTy, 0u, "dtPtr", regFn);
+      paramPtr->insertAfter(regFn);
+      auto dtStore = new llvm::StoreInst(regFn, dtAlloc, paramPtr);
+      auto dtParamStore = new llvm::StoreInst(dtAlloc, paramPtr, &CI);
     }
 
     // void ScabbardPassPlugin::instr_call_host(const llvm::Function& F, llvm::CallInst* ci)

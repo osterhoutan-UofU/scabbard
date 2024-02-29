@@ -54,16 +54,16 @@ void dummy_init(int64_t* dummy_data);
 // << ========================================================================================== >> 
 
 __global__
-void tick_all_kernel(_Atomic(uint64_t)* clk, uint64_t* vals, int64_t* dummy_data)
+void tick_all_kernel(_Atomic(uint64_t)* clk, uint64_t* vals, int64_t* dummy_data, int test)
 {
   dummy_work(dummy_data);
-  vals[threadIdx.x] = (*clk += 1);
+  vals[threadIdx.x+test] = (*clk += 1);
   __syncthreads();
   dummy_work(dummy_data);
 }
 
-__host__ 
-void tick_all_test()
+__host__ __noinline__
+void tick_all_test(int test)
 {
   int device = 0;
   __HIP_CHECK__(hipGetDevice(&device));
@@ -110,7 +110,7 @@ void tick_all_test()
 
 
 
-  tick_all_kernel<<<dim3(1), dim3(SIZE), 0,0>>>(clk, d_vals, dummy_data);
+  tick_all_kernel<<<dim3(1), dim3(SIZE), 0,0>>>(clk, d_vals, dummy_data, test);
 
 
 
@@ -151,13 +151,18 @@ void tick_all_test()
   delete[] h_vals; delete[] h_dummy_data;
   std::cout << "\n==== ENDING TEST: tick all ====\n\n" << std::flush;
 }
+__global__
+void dummy_kernel()
+{
+  __syncthreads();
+}
 
 
 // << ========================================================================================== >> 
 // <<                                           MAIN                                             >> 
 // << ========================================================================================== >> 
 
-int main()
+int main(int argc, char** argv)
 {
   using namespace std;
   hipDeviceProp_t devProp;
@@ -166,7 +171,8 @@ int main()
   cout << " System major " << devProp.major << endl;
   cout << " agent prop name " << devProp.name << endl;
   // tick_single_test();
-  tick_all_test();
+  tick_all_test(argc);
+  dummy_kernel<<<dim3(1024),dim3(1024),0,0>>>();
   return 0;
 }
 
