@@ -24,6 +24,7 @@
 #include <llvm/IR/Metadata.h>
 #include <llvm/Transforms/Utils/ModuleUtils.h>
 #include <llvm/Transforms/Utils/BasicBlockUtils.h>
+#include <llvm/Transforms/Utils/Cloning.h>
 
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/Support/SourceMgr.h>
@@ -276,14 +277,14 @@ namespace scabbard {
     // }
 
 
+    llvm::Function* replace_device_function(llvm::Function& F);
+
     // << ======================================== Device ========================================== >> 
 
-    void ScabbardPassPlugin::run_device(llvm::Function& F, llvm::FunctionAnalysisManager& FAM, const DepTraceDevice& DT)
+    void ScabbardPassPlugin::run_device(llvm::Function& _F, llvm::FunctionAnalysisManager& FAM, const DepTraceDevice& DT)
     {
-      //TODO make any necessary additions to the function (i.e. getting thread, block, tile and stream ids)
       //TODO modify the function type and parameters to include the instrumented in device tracker parameter
-      std::string name = F.getName().str();
-      F.setName(name+"__old__");
+      llvm::Function& F = *replace_device_function(_F);
       // search for instructions to instrument and instrument them
       for (auto& bb : F)
         for (auto& i : bb)
@@ -312,8 +313,7 @@ namespace scabbard {
             //instrument load instructions
             instr_mem_func_device(F, i, load->getPointerOperand(), data);
           } else if (auto* call = llvm::dyn_cast<llvm::CallInst>(&i)) {
-            //TODO instrument calls to thread id, block id, etc.
-            // instr_call_device(F, call);
+            instr_call_device(F, call);
           } else if (auto atomic = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
             auto data = DT.getInstrData(*atomic);
             LLVM_DEBUG(
@@ -339,7 +339,8 @@ namespace scabbard {
       auto loc = metadata.trace(F, I.getDebugLoc(), true);
       auto ci = llvm::CallInst::Create(
           device.trace_append$mem,
-          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,5>{
+          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,6>{
+              F.getOperand(F.getNumOperands()-1),
               llvm::ConstantInt::get(
                   llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
                   llvm::APInt(sizeof(InstrData)*8, data)
@@ -358,7 +359,36 @@ namespace scabbard {
 
     void ScabbardPassPlugin::instr_call_device(const llvm::Function& F, llvm::CallInst* ci)
     {
-      //TODO
+      //TODO modify to pass device tracker through as last parameter to all functions defined in this module
+
+      //TODO modify to register reads and writes from builtin functions
+    }
+
+
+    llvm::Function* replace_device_function(llvm::Function& F)
+    {
+      std::string old_name = F.getName().str();
+      F.setName(old_name+"__old__");
+      auto oldParamTys = F.getFunctionType()->params();
+      std::vector<llvm::Type*> paramTys(oldParamTys.begin(), oldParamTys.end());
+      paramTys.push_back(llvm::PointerType::get(F.getContext(),0ul));
+      llvm::Function* fn = llvm::Function::Create(
+                              llvm::FunctionType::get(
+                                  F.getFunctionType()->getReturnType(),
+                                  llvm::ArrayRef<llvm::Type*>(paramTys),
+                                  F.getFunctionType()->isVarArg()
+                                ),
+                              F.getLinkage(),
+                              old_name,
+                              F.getParent()
+                            );
+      llvm::ValueToValueMapTy vMap;
+      for (size_t i=0; i<F.getNumOperands(); ++i)
+        vMap.insert(std::make_pair(F.getOperand(i),llvm::WeakTrackingVH(fn->getOperand(i))));
+      llvm::SmallVector<llvm::ReturnInst*> rets;
+      //NOTE: this might be used wrong double check results in testing to make sure it works correctly
+      llvm::CloneFunctionInto(fn, &F, vMap, llvm::CloneFunctionChangeType::LocalChangesOnly, rets);
+      return fn;
     }
 
 
@@ -648,7 +678,7 @@ namespace scabbard {
       regCbFn->insertAfter(&CI);
       //TODO? modify the type of the last operand (should be a global or function pass)
       // trace back args var and expand it to include the pointer to the DeviceTracker that is returned as the result of `scabbard.trace.register_job` as the last parameter
-      auto plainPtrTy = llvm::PointerType::get(alloc.getContext(),0ul);
+      auto plainPtrTy = llvm::PointerType::get(F.getContext(),0ul);
       llvm::GetElementPtrInst* paramPtr = nullptr;
       if (auto argElmPtr = llvm::dyn_cast<llvm::GetElementPtrInst>(CI.getOperand(3))) { // case: >=2 function parameter length
         if (auto argAlloc = llvm::dyn_cast<llvm::AllocaInst>(argElmPtr->getPointerOperand())) {

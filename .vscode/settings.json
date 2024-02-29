@@ -117,7 +117,8 @@
         "csignal": "cpp",
         "span": "cpp",
         "cfenv": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "codecvt": "cpp"
     },
     "cSpell.words": [
         "amdgcn",
