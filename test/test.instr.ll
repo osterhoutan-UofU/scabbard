@@ -5,413 +5,48 @@ source_filename = "test/test.cpp"
 target datalayout = "e-p:64:64-p1:64:64-p2:32:32-p3:32:32-p4:64:64-p5:32:32-p6:32:32-i64:64-v16:16-v24:32-v32:32-v48:64-v96:128-v192:256-v256:256-v512:512-v1024:1024-v2048:2048-n32:64-S32-A5-G1-ni:7"
 target triple = "amdgcn-amd-amdhsa"
 
-%"struct.scabbard::trace::DeviceAsyncQueue::Lane" = type { i64, [64 x %"struct.scabbard::TraceData"] }
-%"struct.scabbard::TraceData" = type { i64, i16, %"union.scabbard::ThreadId", ptr, %"struct.scabbard::LocationMetadata", i64 }
-%"union.scabbard::ThreadId" = type { %"class.std::thread::id", [8 x i8] }
-%"class.std::thread::id" = type { i64 }
-%"struct.scabbard::LocationMetadata" = type { i64, i32, i32 }
 %"struct.__HIP_Coordinates<__HIP_ThreadIdx>::__X" = type { i8 }
-
-$_ZN8scabbard5trace12_GLOBAL__N_114call_for_looksENS_9InstrDataEPvS3_PKm = comdat any
-
-@llvm.compiler.used = appending addrspace(1) global [1 x ptr] [ptr addrspacecast (ptr addrspace(1) @_ZN8scabbard5trace19DEVICE_TRACE_LOGGERE to ptr)], section "llvm.metadata"
-@_ZN8scabbard5trace19DEVICE_TRACE_LOGGERE = protected addrspace(1) externally_initialized global ptr null, align 8
-@_ZN8scabbard5trace12_GLOBAL__N_114src_id_reg_tmpE = internal addrspace(1) global i64 84, align 8
-@_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp2E = internal addrspace(1) global i64 84, align 8
-@_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp3E = internal addrspace(1) global i64 84, align 8
 
 ; Function Attrs: convergent mustprogress nofree norecurse nounwind willreturn
 define protected amdgpu_kernel void @_Z13__d_incrementPi(ptr addrspace(1) nocapture %0) local_unnamed_addr #0 !dbg !1723 {
-  unreachable
+  %2 = tail call i32 @llvm.amdgcn.workitem.id.x(), !dbg !1730, !range !1743, !noundef !1744
+  %3 = icmp eq i32 %2, 0, !dbg !1745
+  br i1 %3, label %10, label %4, !dbg !1746
+
+4:                                                ; preds = %1
+  %5 = add nsw i32 %2, -1, !dbg !1747
+  %6 = zext i32 %5 to i64, !dbg !1749
+  %7 = getelementptr inbounds i32, ptr addrspace(1) %0, i64 %6, !dbg !1749
+  %8 = load i32, ptr addrspace(1) %7, align 4, !dbg !1749, !tbaa !1750, !amdgpu.noclobber !1744
+  %9 = add nsw i32 %8, 1, !dbg !1754
+  br label %10
+
+10:                                               ; preds = %1, %4
+  %11 = phi i32 [ %9, %4 ], [ 1, %1 ]
+  fence syncscope("workgroup") release, !dbg !1755
+  tail call void @llvm.amdgcn.s.barrier(), !dbg !1771
+  fence syncscope("workgroup") acquire, !dbg !1772
+  %12 = zext i32 %2 to i64, !dbg !1773
+  %13 = getelementptr inbounds i32, ptr addrspace(1) %0, i64 %12, !dbg !1773
+  store i32 %11, ptr addrspace(1) %13, align 4, !dbg !1774, !tbaa !1750
+  ret void, !dbg !1775
 }
+
+; Function Attrs: convergent mustprogress nocallback nofree nounwind willreturn
+declare void @llvm.amdgcn.s.barrier() #1
 
 ; Function Attrs: mustprogress nocallback nofree nosync nounwind speculatable willreturn memory(none)
-declare i32 @llvm.amdgcn.workitem.id.x() #1
-
-; Function Attrs: mustprogress nofree norecurse nounwind willreturn
-define amdgpu_kernel void @_ZN8scabbard5trace12_GLOBAL__N_114call_for_looksENS_9InstrDataEPvS3_PKm(i16 %0, ptr addrspace(1) %1, ptr addrspace(1) nocapture readnone %2, ptr addrspace(1) nocapture readonly %3) local_unnamed_addr #2 comdat {
-  %5 = addrspacecast ptr addrspace(1) %1 to ptr
-  %6 = addrspacecast ptr addrspace(1) %3 to ptr
-  tail call fastcc void @"scabbard.trace.device.trace_append$mem"(i16 zeroext %0, ptr %5, ptr addrspacecast (ptr addrspace(1) @_ZN8scabbard5trace12_GLOBAL__N_114src_id_reg_tmpE to ptr), i32 19, i32 9) #6
-  tail call fastcc void @"scabbard.trace.device.trace_append$mem"(i16 zeroext %0, ptr %5, ptr addrspacecast (ptr addrspace(1) @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp2E to ptr), i32 1024, i32 4) #6
-  tail call fastcc void @"scabbard.trace.device.trace_append$mem"(i16 zeroext %0, ptr %5, ptr %6, i32 10240, i32 40) #6
-  tail call fastcc void @"scabbard.trace.device.trace_append$alloc"(i16 zeroext %0, ptr %5, ptr addrspacecast (ptr addrspace(1) @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp2E to ptr), i32 88, i32 256, i64 7) #6
-  tail call fastcc void @"scabbard.trace.device.trace_append$alloc"(i16 zeroext %0, ptr %5, ptr addrspacecast (ptr addrspace(1) @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp3E to ptr), i32 98, i32 6, i64 23) #6
-  tail call fastcc void @"scabbard.trace.device.trace_append$alloc"(i16 zeroext %0, ptr %5, ptr %6, i32 980, i32 60, i64 230) #6
-  ret void
-}
-
-; Function Attrs: mustprogress nofree noinline norecurse nounwind willreturn
-define internal fastcc void @"scabbard.trace.device.trace_append$mem"(i16 zeroext %0, ptr %1, ptr nocapture readonly %2, i32 %3, i32 %4) unnamed_addr #3 {
-  %6 = tail call i32 @llvm.amdgcn.workgroup.id.x()
-  %7 = tail call ptr addrspace(4) @llvm.amdgcn.implicitarg.ptr()
-  %8 = load i32, ptr addrspace(4) %7, align 4, !tbaa !1730
-  %9 = icmp ult i32 %6, %8
-  %10 = select i1 %9, i64 6, i64 9
-  %11 = getelementptr inbounds i16, ptr addrspace(4) %7, i64 %10
-  %12 = load i16, ptr addrspace(4) %11, align 2, !tbaa !1734
-  %13 = zext i16 %12 to i32
-  %14 = mul i32 %6, %13
-  %15 = tail call i32 @llvm.amdgcn.workgroup.id.y()
-  %16 = getelementptr inbounds i32, ptr addrspace(4) %7, i64 1
-  %17 = load i32, ptr addrspace(4) %16, align 4, !tbaa !1730
-  %18 = icmp ult i32 %15, %17
-  %19 = select i1 %18, i64 7, i64 10
-  %20 = getelementptr inbounds i16, ptr addrspace(4) %7, i64 %19
-  %21 = load i16, ptr addrspace(4) %20, align 2, !tbaa !1734
-  %22 = zext i16 %21 to i32
-  %23 = mul i32 %15, %22
-  %24 = tail call i32 @llvm.amdgcn.workgroup.id.z()
-  %25 = getelementptr inbounds i32, ptr addrspace(4) %7, i64 2
-  %26 = load i32, ptr addrspace(4) %25, align 4, !tbaa !1730
-  %27 = icmp ult i32 %24, %26
-  %28 = select i1 %27, i64 8, i64 11
-  %29 = getelementptr inbounds i16, ptr addrspace(4) %7, i64 %28
-  %30 = load i16, ptr addrspace(4) %29, align 2, !tbaa !1734
-  %31 = zext i16 %30 to i32
-  %32 = mul i32 %24, %31
-  %33 = tail call i32 @llvm.amdgcn.workitem.id.x(), !range !1736, !noundef !1737
-  %34 = tail call i32 @llvm.amdgcn.workitem.id.y(), !range !1736, !noundef !1737
-  %35 = tail call i32 @llvm.amdgcn.workitem.id.z(), !range !1736, !noundef !1737
-  %36 = add nuw nsw i32 %34, %33
-  %37 = add nuw nsw i32 %36, %35
-  %38 = add i32 %37, %14
-  %39 = add i32 %38, %23
-  %40 = add i32 %39, %32
-  %41 = and i32 %40, 63
-  %42 = zext i32 %41 to i64
-  %43 = tail call i64 @llvm.amdgcn.s.memtime()
-  %44 = load i64, ptr %2, align 8, !tbaa !1738
-  %45 = trunc i32 %35 to i8
-  %46 = load ptr, ptr addrspace(1) @_ZN8scabbard5trace19DEVICE_TRACE_LOGGERE, align 8, !tbaa !1742
-  %47 = getelementptr inbounds [64 x %"struct.scabbard::trace::DeviceAsyncQueue::Lane"], ptr %46, i64 0, i64 %42
-  %48 = atomicrmw add ptr %47, i64 1 seq_cst, align 8
-  %49 = add i64 %48, 1
-  %50 = and i64 %49, 63
-  %51 = getelementptr inbounds [64 x %"struct.scabbard::trace::DeviceAsyncQueue::Lane"], ptr %46, i64 0, i64 %42, i32 1, i64 %50
-  %52 = lshr i64 %43, 8
-  %53 = lshr i64 %43, 16
-  %54 = lshr i64 %43, 24
-  %55 = insertelement <4 x i64> poison, i64 %43, i64 0
-  %56 = insertelement <4 x i64> %55, i64 %52, i64 1
-  %57 = insertelement <4 x i64> %56, i64 %53, i64 2
-  %58 = insertelement <4 x i64> %57, i64 %54, i64 3
-  %59 = trunc <4 x i64> %58 to <4 x i8>
-  store <4 x i8> %59, ptr %51, align 8, !tbaa !1744
-  %60 = getelementptr inbounds i8, ptr %51, i64 4
-  %61 = shufflevector <4 x i64> %55, <4 x i64> poison, <4 x i32> zeroinitializer
-  %62 = lshr <4 x i64> %61, <i64 32, i64 40, i64 48, i64 56>
-  %63 = trunc <4 x i64> %62 to <4 x i8>
-  store <4 x i8> %63, ptr %60, align 4, !tbaa !1744
-  %64 = getelementptr inbounds i8, ptr %51, i64 8
-  %65 = trunc i16 %0 to i8
-  store i8 %65, ptr %64, align 8, !tbaa !1744
-  %66 = lshr i16 %0, 8
-  %67 = trunc i16 %66 to i8
-  %68 = getelementptr inbounds i8, ptr %51, i64 9
-  store i8 %67, ptr %68, align 1, !tbaa !1744
-  %69 = getelementptr inbounds i8, ptr %51, i64 16
-  %70 = lshr i32 %6, 8
-  %71 = lshr i32 %6, 16
-  %72 = lshr i32 %6, 24
-  %73 = insertelement <4 x i32> poison, i32 %6, i64 0
-  %74 = insertelement <4 x i32> %73, i32 %70, i64 1
-  %75 = insertelement <4 x i32> %74, i32 %71, i64 2
-  %76 = insertelement <4 x i32> %75, i32 %72, i64 3
-  %77 = trunc <4 x i32> %76 to <4 x i8>
-  store <4 x i8> %77, ptr %69, align 8, !tbaa !1744
-  %78 = getelementptr inbounds i8, ptr %51, i64 20
-  %79 = lshr i32 %15, 8
-  %80 = lshr i32 %24, 8
-  %81 = insertelement <4 x i32> poison, i32 %15, i64 0
-  %82 = insertelement <4 x i32> %81, i32 %79, i64 1
-  %83 = insertelement <4 x i32> %82, i32 %24, i64 2
-  %84 = insertelement <4 x i32> %83, i32 %80, i64 3
-  %85 = trunc <4 x i32> %84 to <4 x i8>
-  store <4 x i8> %85, ptr %78, align 4, !tbaa !1744
-  %86 = getelementptr inbounds i8, ptr %51, i64 24
-  %87 = lshr i32 %33, 8
-  %88 = lshr i32 %34, 8
-  %89 = insertelement <4 x i32> poison, i32 %33, i64 0
-  %90 = insertelement <4 x i32> %89, i32 %87, i64 1
-  %91 = insertelement <4 x i32> %90, i32 %34, i64 2
-  %92 = insertelement <4 x i32> %91, i32 %88, i64 3
-  %93 = trunc <4 x i32> %92 to <4 x i8>
-  store <4 x i8> %93, ptr %86, align 8, !tbaa !1744
-  %94 = getelementptr inbounds i8, ptr %51, i64 28
-  store i8 %45, ptr %94, align 4, !tbaa !1744
-  %95 = getelementptr inbounds i8, ptr %51, i64 32
-  %96 = ptrtoint ptr %1 to i64
-  %97 = lshr i64 %96, 8
-  %98 = lshr i64 %96, 16
-  %99 = lshr i64 %96, 24
-  %100 = insertelement <4 x i64> poison, i64 %96, i64 0
-  %101 = insertelement <4 x i64> %100, i64 %97, i64 1
-  %102 = insertelement <4 x i64> %101, i64 %98, i64 2
-  %103 = insertelement <4 x i64> %102, i64 %99, i64 3
-  %104 = trunc <4 x i64> %103 to <4 x i8>
-  store <4 x i8> %104, ptr %95, align 8, !tbaa !1744
-  %105 = getelementptr inbounds i8, ptr %51, i64 36
-  %106 = shufflevector <4 x i64> %100, <4 x i64> poison, <4 x i32> zeroinitializer
-  %107 = lshr <4 x i64> %106, <i64 32, i64 40, i64 48, i64 56>
-  %108 = trunc <4 x i64> %107 to <4 x i8>
-  store <4 x i8> %108, ptr %105, align 4, !tbaa !1744
-  %109 = getelementptr inbounds i8, ptr %51, i64 40
-  %110 = lshr i64 %44, 8
-  %111 = lshr i64 %44, 16
-  %112 = lshr i64 %44, 24
-  %113 = insertelement <4 x i64> poison, i64 %44, i64 0
-  %114 = insertelement <4 x i64> %113, i64 %110, i64 1
-  %115 = insertelement <4 x i64> %114, i64 %111, i64 2
-  %116 = insertelement <4 x i64> %115, i64 %112, i64 3
-  %117 = trunc <4 x i64> %116 to <4 x i8>
-  store <4 x i8> %117, ptr %109, align 8, !tbaa !1744
-  %118 = getelementptr inbounds i8, ptr %51, i64 44
-  %119 = shufflevector <4 x i64> %113, <4 x i64> poison, <4 x i32> zeroinitializer
-  %120 = lshr <4 x i64> %119, <i64 32, i64 40, i64 48, i64 56>
-  %121 = trunc <4 x i64> %120 to <4 x i8>
-  store <4 x i8> %121, ptr %118, align 4, !tbaa !1744
-  %122 = getelementptr inbounds i8, ptr %51, i64 48
-  %123 = lshr i32 %3, 8
-  %124 = lshr i32 %3, 16
-  %125 = lshr i32 %3, 24
-  %126 = insertelement <4 x i32> poison, i32 %3, i64 0
-  %127 = insertelement <4 x i32> %126, i32 %123, i64 1
-  %128 = insertelement <4 x i32> %127, i32 %124, i64 2
-  %129 = insertelement <4 x i32> %128, i32 %125, i64 3
-  %130 = trunc <4 x i32> %129 to <4 x i8>
-  store <4 x i8> %130, ptr %122, align 8, !tbaa !1744
-  %131 = getelementptr inbounds i8, ptr %51, i64 52
-  %132 = lshr i32 %4, 8
-  %133 = lshr i32 %4, 16
-  %134 = lshr i32 %4, 24
-  %135 = insertelement <4 x i32> poison, i32 %4, i64 0
-  %136 = insertelement <4 x i32> %135, i32 %132, i64 1
-  %137 = insertelement <4 x i32> %136, i32 %133, i64 2
-  %138 = insertelement <4 x i32> %137, i32 %134, i64 3
-  %139 = trunc <4 x i32> %138 to <4 x i8>
-  store <4 x i8> %139, ptr %131, align 4, !tbaa !1744
-  %140 = getelementptr inbounds i8, ptr %51, i64 56
-  store i8 0, ptr %140, align 8, !tbaa !1744
-  %141 = getelementptr inbounds i8, ptr %51, i64 57
-  store i8 0, ptr %141, align 1, !tbaa !1744
-  %142 = getelementptr inbounds i8, ptr %51, i64 58
-  store i8 0, ptr %142, align 2, !tbaa !1744
-  %143 = getelementptr inbounds i8, ptr %51, i64 59
-  store i8 0, ptr %143, align 1, !tbaa !1744
-  %144 = getelementptr inbounds i8, ptr %51, i64 60
-  store i8 0, ptr %144, align 4, !tbaa !1744
-  %145 = getelementptr inbounds i8, ptr %51, i64 61
-  store i8 0, ptr %145, align 1, !tbaa !1744
-  %146 = getelementptr inbounds i8, ptr %51, i64 62
-  store i8 0, ptr %146, align 2, !tbaa !1744
-  %147 = getelementptr inbounds i8, ptr %51, i64 63
-  store i8 0, ptr %147, align 1, !tbaa !1744
-  ret void
-}
-
-; Function Attrs: mustprogress nofree noinline norecurse nounwind willreturn
-define internal fastcc void @"scabbard.trace.device.trace_append$alloc"(i16 zeroext %0, ptr %1, ptr nocapture readonly %2, i32 %3, i32 %4, i64 %5) unnamed_addr #3 {
-  %7 = tail call i32 @llvm.amdgcn.workgroup.id.x()
-  %8 = tail call ptr addrspace(4) @llvm.amdgcn.implicitarg.ptr()
-  %9 = load i32, ptr addrspace(4) %8, align 4, !tbaa !1730
-  %10 = icmp ult i32 %7, %9
-  %11 = select i1 %10, i64 6, i64 9
-  %12 = getelementptr inbounds i16, ptr addrspace(4) %8, i64 %11
-  %13 = load i16, ptr addrspace(4) %12, align 2, !tbaa !1734
-  %14 = zext i16 %13 to i32
-  %15 = mul i32 %7, %14
-  %16 = tail call i32 @llvm.amdgcn.workgroup.id.y()
-  %17 = getelementptr inbounds i32, ptr addrspace(4) %8, i64 1
-  %18 = load i32, ptr addrspace(4) %17, align 4, !tbaa !1730
-  %19 = icmp ult i32 %16, %18
-  %20 = select i1 %19, i64 7, i64 10
-  %21 = getelementptr inbounds i16, ptr addrspace(4) %8, i64 %20
-  %22 = load i16, ptr addrspace(4) %21, align 2, !tbaa !1734
-  %23 = zext i16 %22 to i32
-  %24 = mul i32 %16, %23
-  %25 = tail call i32 @llvm.amdgcn.workgroup.id.z()
-  %26 = getelementptr inbounds i32, ptr addrspace(4) %8, i64 2
-  %27 = load i32, ptr addrspace(4) %26, align 4, !tbaa !1730
-  %28 = icmp ult i32 %25, %27
-  %29 = select i1 %28, i64 8, i64 11
-  %30 = getelementptr inbounds i16, ptr addrspace(4) %8, i64 %29
-  %31 = load i16, ptr addrspace(4) %30, align 2, !tbaa !1734
-  %32 = zext i16 %31 to i32
-  %33 = mul i32 %25, %32
-  %34 = tail call i32 @llvm.amdgcn.workitem.id.x(), !range !1736, !noundef !1737
-  %35 = tail call i32 @llvm.amdgcn.workitem.id.y(), !range !1736, !noundef !1737
-  %36 = tail call i32 @llvm.amdgcn.workitem.id.z(), !range !1736, !noundef !1737
-  %37 = add nuw nsw i32 %35, %34
-  %38 = add nuw nsw i32 %37, %36
-  %39 = add i32 %38, %15
-  %40 = add i32 %39, %24
-  %41 = add i32 %40, %33
-  %42 = and i32 %41, 63
-  %43 = zext i32 %42 to i64
-  %44 = tail call i64 @llvm.amdgcn.s.memtime()
-  %45 = load i64, ptr %2, align 8, !tbaa !1738
-  %46 = trunc i32 %36 to i8
-  %47 = load ptr, ptr addrspace(1) @_ZN8scabbard5trace19DEVICE_TRACE_LOGGERE, align 8, !tbaa !1742
-  %48 = getelementptr inbounds [64 x %"struct.scabbard::trace::DeviceAsyncQueue::Lane"], ptr %47, i64 0, i64 %43
-  %49 = atomicrmw add ptr %48, i64 1 seq_cst, align 8
-  %50 = add i64 %49, 1
-  %51 = and i64 %50, 63
-  %52 = getelementptr inbounds [64 x %"struct.scabbard::trace::DeviceAsyncQueue::Lane"], ptr %47, i64 0, i64 %43, i32 1, i64 %51
-  %53 = lshr i64 %44, 8
-  %54 = lshr i64 %44, 16
-  %55 = lshr i64 %44, 24
-  %56 = insertelement <4 x i64> poison, i64 %44, i64 0
-  %57 = insertelement <4 x i64> %56, i64 %53, i64 1
-  %58 = insertelement <4 x i64> %57, i64 %54, i64 2
-  %59 = insertelement <4 x i64> %58, i64 %55, i64 3
-  %60 = trunc <4 x i64> %59 to <4 x i8>
-  store <4 x i8> %60, ptr %52, align 8, !tbaa !1744
-  %61 = getelementptr inbounds i8, ptr %52, i64 4
-  %62 = shufflevector <4 x i64> %56, <4 x i64> poison, <4 x i32> zeroinitializer
-  %63 = lshr <4 x i64> %62, <i64 32, i64 40, i64 48, i64 56>
-  %64 = trunc <4 x i64> %63 to <4 x i8>
-  store <4 x i8> %64, ptr %61, align 4, !tbaa !1744
-  %65 = getelementptr inbounds i8, ptr %52, i64 8
-  %66 = trunc i16 %0 to i8
-  store i8 %66, ptr %65, align 8, !tbaa !1744
-  %67 = lshr i16 %0, 8
-  %68 = trunc i16 %67 to i8
-  %69 = getelementptr inbounds i8, ptr %52, i64 9
-  store i8 %68, ptr %69, align 1, !tbaa !1744
-  %70 = getelementptr inbounds i8, ptr %52, i64 16
-  %71 = lshr i32 %7, 8
-  %72 = lshr i32 %7, 16
-  %73 = lshr i32 %7, 24
-  %74 = insertelement <4 x i32> poison, i32 %7, i64 0
-  %75 = insertelement <4 x i32> %74, i32 %71, i64 1
-  %76 = insertelement <4 x i32> %75, i32 %72, i64 2
-  %77 = insertelement <4 x i32> %76, i32 %73, i64 3
-  %78 = trunc <4 x i32> %77 to <4 x i8>
-  store <4 x i8> %78, ptr %70, align 8, !tbaa !1744
-  %79 = getelementptr inbounds i8, ptr %52, i64 20
-  %80 = lshr i32 %16, 8
-  %81 = lshr i32 %25, 8
-  %82 = insertelement <4 x i32> poison, i32 %16, i64 0
-  %83 = insertelement <4 x i32> %82, i32 %80, i64 1
-  %84 = insertelement <4 x i32> %83, i32 %25, i64 2
-  %85 = insertelement <4 x i32> %84, i32 %81, i64 3
-  %86 = trunc <4 x i32> %85 to <4 x i8>
-  store <4 x i8> %86, ptr %79, align 4, !tbaa !1744
-  %87 = getelementptr inbounds i8, ptr %52, i64 24
-  %88 = lshr i32 %34, 8
-  %89 = lshr i32 %35, 8
-  %90 = insertelement <4 x i32> poison, i32 %34, i64 0
-  %91 = insertelement <4 x i32> %90, i32 %88, i64 1
-  %92 = insertelement <4 x i32> %91, i32 %35, i64 2
-  %93 = insertelement <4 x i32> %92, i32 %89, i64 3
-  %94 = trunc <4 x i32> %93 to <4 x i8>
-  store <4 x i8> %94, ptr %87, align 8, !tbaa !1744
-  %95 = getelementptr inbounds i8, ptr %52, i64 28
-  store i8 %46, ptr %95, align 4, !tbaa !1744
-  %96 = getelementptr inbounds i8, ptr %52, i64 32
-  %97 = ptrtoint ptr %1 to i64
-  %98 = lshr i64 %97, 8
-  %99 = lshr i64 %97, 16
-  %100 = lshr i64 %97, 24
-  %101 = insertelement <4 x i64> poison, i64 %97, i64 0
-  %102 = insertelement <4 x i64> %101, i64 %98, i64 1
-  %103 = insertelement <4 x i64> %102, i64 %99, i64 2
-  %104 = insertelement <4 x i64> %103, i64 %100, i64 3
-  %105 = trunc <4 x i64> %104 to <4 x i8>
-  store <4 x i8> %105, ptr %96, align 8, !tbaa !1744
-  %106 = getelementptr inbounds i8, ptr %52, i64 36
-  %107 = shufflevector <4 x i64> %101, <4 x i64> poison, <4 x i32> zeroinitializer
-  %108 = lshr <4 x i64> %107, <i64 32, i64 40, i64 48, i64 56>
-  %109 = trunc <4 x i64> %108 to <4 x i8>
-  store <4 x i8> %109, ptr %106, align 4, !tbaa !1744
-  %110 = getelementptr inbounds i8, ptr %52, i64 40
-  %111 = lshr i64 %45, 8
-  %112 = lshr i64 %45, 16
-  %113 = lshr i64 %45, 24
-  %114 = insertelement <4 x i64> poison, i64 %45, i64 0
-  %115 = insertelement <4 x i64> %114, i64 %111, i64 1
-  %116 = insertelement <4 x i64> %115, i64 %112, i64 2
-  %117 = insertelement <4 x i64> %116, i64 %113, i64 3
-  %118 = trunc <4 x i64> %117 to <4 x i8>
-  store <4 x i8> %118, ptr %110, align 8, !tbaa !1744
-  %119 = getelementptr inbounds i8, ptr %52, i64 44
-  %120 = shufflevector <4 x i64> %114, <4 x i64> poison, <4 x i32> zeroinitializer
-  %121 = lshr <4 x i64> %120, <i64 32, i64 40, i64 48, i64 56>
-  %122 = trunc <4 x i64> %121 to <4 x i8>
-  store <4 x i8> %122, ptr %119, align 4, !tbaa !1744
-  %123 = getelementptr inbounds i8, ptr %52, i64 48
-  %124 = lshr i32 %3, 8
-  %125 = lshr i32 %3, 16
-  %126 = lshr i32 %3, 24
-  %127 = insertelement <4 x i32> poison, i32 %3, i64 0
-  %128 = insertelement <4 x i32> %127, i32 %124, i64 1
-  %129 = insertelement <4 x i32> %128, i32 %125, i64 2
-  %130 = insertelement <4 x i32> %129, i32 %126, i64 3
-  %131 = trunc <4 x i32> %130 to <4 x i8>
-  store <4 x i8> %131, ptr %123, align 8, !tbaa !1744
-  %132 = getelementptr inbounds i8, ptr %52, i64 52
-  %133 = lshr i32 %4, 8
-  %134 = lshr i32 %4, 16
-  %135 = lshr i32 %4, 24
-  %136 = insertelement <4 x i32> poison, i32 %4, i64 0
-  %137 = insertelement <4 x i32> %136, i32 %133, i64 1
-  %138 = insertelement <4 x i32> %137, i32 %134, i64 2
-  %139 = insertelement <4 x i32> %138, i32 %135, i64 3
-  %140 = trunc <4 x i32> %139 to <4 x i8>
-  store <4 x i8> %140, ptr %132, align 4, !tbaa !1744
-  %141 = getelementptr inbounds i8, ptr %52, i64 56
-  %142 = lshr i64 %5, 8
-  %143 = lshr i64 %5, 16
-  %144 = lshr i64 %5, 24
-  %145 = insertelement <4 x i64> poison, i64 %5, i64 0
-  %146 = insertelement <4 x i64> %145, i64 %142, i64 1
-  %147 = insertelement <4 x i64> %146, i64 %143, i64 2
-  %148 = insertelement <4 x i64> %147, i64 %144, i64 3
-  %149 = trunc <4 x i64> %148 to <4 x i8>
-  store <4 x i8> %149, ptr %141, align 8, !tbaa !1744
-  %150 = getelementptr inbounds i8, ptr %52, i64 60
-  %151 = shufflevector <4 x i64> %145, <4 x i64> poison, <4 x i32> zeroinitializer
-  %152 = lshr <4 x i64> %151, <i64 32, i64 40, i64 48, i64 56>
-  %153 = trunc <4 x i64> %152 to <4 x i8>
-  store <4 x i8> %153, ptr %150, align 4, !tbaa !1744
-  ret void
-}
-
-; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-declare i32 @llvm.amdgcn.workgroup.id.x() #4
-
-; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-declare align 4 ptr addrspace(4) @llvm.amdgcn.implicitarg.ptr() #4
-
-; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-declare i32 @llvm.amdgcn.workgroup.id.y() #4
-
-; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-declare i32 @llvm.amdgcn.workgroup.id.z() #4
-
-; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-declare i32 @llvm.amdgcn.workitem.id.y() #4
-
-; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-declare i32 @llvm.amdgcn.workitem.id.z() #4
-
-; Function Attrs: nocallback nofree nosync nounwind willreturn
-declare i64 @llvm.amdgcn.s.memtime() #5
+declare i32 @llvm.amdgcn.workitem.id.x() #2
 
 attributes #0 = { convergent mustprogress nofree norecurse nounwind willreturn "amdgpu-flat-work-group-size"="1,1024" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="gfx1030" "target-features"="+16-bit-insts,+ci-insts,+dl-insts,+dot1-insts,+dot2-insts,+dot5-insts,+dot6-insts,+dot7-insts,+dpp,+gfx10-3-insts,+gfx10-insts,+gfx8-insts,+gfx9-insts,+s-memrealtime,+s-memtime-inst,+wavefrontsize32" "uniform-work-group-size"="true" }
-attributes #1 = { mustprogress nocallback nofree nosync nounwind speculatable willreturn memory(none) }
-attributes #2 = { mustprogress nofree norecurse nounwind willreturn "amdgpu-flat-work-group-size"="1,1024" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="gfx1030" "target-features"="+16-bit-insts,+ci-insts,+dl-insts,+dot1-insts,+dot2-insts,+dot5-insts,+dot6-insts,+dot7-insts,+dpp,+gfx10-3-insts,+gfx10-insts,+gfx8-insts,+gfx9-insts,+s-memrealtime,+s-memtime-inst,+wavefrontsize32" "uniform-work-group-size"="true" }
-attributes #3 = { mustprogress nofree noinline norecurse nounwind willreturn "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="gfx1030" "target-features"="+16-bit-insts,+ci-insts,+dl-insts,+dot1-insts,+dot2-insts,+dot5-insts,+dot6-insts,+dot7-insts,+dpp,+gfx10-3-insts,+gfx10-insts,+gfx8-insts,+gfx9-insts,+s-memrealtime,+s-memtime-inst,+wavefrontsize32" }
-attributes #4 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
-attributes #5 = { nocallback nofree nosync nounwind willreturn }
-attributes #6 = { nounwind }
+attributes #1 = { convergent mustprogress nocallback nofree nounwind willreturn }
+attributes #2 = { mustprogress nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
 !llvm.dbg.cu = !{!0}
 !llvm.dbg.retainedNodes = !{!1674}
 !llvm.module.flags = !{!1716, !1717, !1718, !1719, !1720}
-!opencl.ocl.version = !{!1721, !1721}
-!llvm.ident = !{!1722, !1722}
+!opencl.ocl.version = !{!1721}
+!llvm.ident = !{!1722}
 
 !0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus_14, file: !1, producer: "AMD clang version 16.0.0 (https://github.com/RadeonOpenCompute/llvm-project roc-5.6.0 23243 be997b2f3651a41597d7a41441fff8ade4ac59ac)", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug, retainedTypes: !2, imports: !20, splitDebugInlining: false, nameTableKind: None)
 !1 = !DIFile(filename: "test/test.cpp", directory: "/home/oster/repos/scabbard", checksumkind: CSK_MD5, checksum: "1fcac1539165077b349c25ecf97b1c1a")
@@ -2143,21 +1778,52 @@ attributes #6 = { nounwind }
 !1727 = !DILocalVariable(name: "d_mem", arg: 1, scope: !1723, file: !1, line: 18, type: !62)
 !1728 = !DILocalVariable(name: "Id", scope: !1723, file: !1, line: 19, type: !1679)
 !1729 = !DILocalVariable(name: "tmp", scope: !1723, file: !1, line: 20, type: !27)
-!1730 = !{!1731, !1731, i64 0}
-!1731 = !{!"int", !1732, i64 0}
-!1732 = !{!"omnipotent char", !1733, i64 0}
-!1733 = !{!"Simple C/C++ TBAA"}
-!1734 = !{!1735, !1735, i64 0}
-!1735 = !{!"short", !1732, i64 0}
-!1736 = !{i32 0, i32 1024}
-!1737 = !{}
-!1738 = !{!1739, !1739, i64 0}
-!1739 = !{!"long", !1740, i64 0}
-!1740 = !{!"omnipotent char", !1741, i64 0}
-!1741 = !{!"Simple C++ TBAA"}
-!1742 = !{!1743, !1743, i64 0}
-!1743 = !{!"any pointer", !1740, i64 0}
-!1744 = !{!1740, !1740, i64 0}
+!1730 = !DILocation(line: 263, column: 12, scope: !1731, inlinedAt: !1736)
+!1731 = distinct !DISubprogram(name: "operator()", linkageName: "_ZNK15__HIP_ThreadIdxclEj", scope: !1696, file: !1676, line: 262, type: !1699, scopeLine: 262, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, declaration: !1698, retainedNodes: !1732)
+!1732 = !{!1733, !1735}
+!1733 = !DILocalVariable(name: "this", arg: 1, scope: !1731, type: !1734, flags: DIFlagArtificial | DIFlagObjectPointer)
+!1734 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !1702, size: 64)
+!1735 = !DILocalVariable(name: "x", arg: 2, scope: !1731, file: !1676, line: 262, type: !10)
+!1736 = distinct !DILocation(line: 283, column: 53, scope: !1737, inlinedAt: !1741)
+!1737 = distinct !DISubprogram(name: "operator unsigned int", linkageName: "_ZNK17__HIP_CoordinatesI15__HIP_ThreadIdxE3__XcvjEv", scope: !1678, file: !1676, line: 283, type: !1705, scopeLine: 283, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, declaration: !1704, retainedNodes: !1738)
+!1738 = !{!1739}
+!1739 = !DILocalVariable(name: "this", arg: 1, scope: !1737, type: !1740, flags: DIFlagArtificial | DIFlagObjectPointer)
+!1740 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !1677, size: 64)
+!1741 = distinct !DILocation(line: 21, column: 9, scope: !1742)
+!1742 = distinct !DILexicalBlock(scope: !1723, file: !1, line: 21, column: 9)
+!1743 = !{i32 0, i32 1024}
+!1744 = !{}
+!1745 = !DILocation(line: 21, column: 14, scope: !1742)
+!1746 = !DILocation(line: 21, column: 9, scope: !1723)
+!1747 = !DILocation(line: 24, column: 23, scope: !1748)
+!1748 = distinct !DILexicalBlock(scope: !1742, file: !1, line: 23, column: 12)
+!1749 = !DILocation(line: 24, column: 13, scope: !1748)
+!1750 = !{!1751, !1751, i64 0}
+!1751 = !{!"int", !1752, i64 0}
+!1752 = !{!"omnipotent char", !1753, i64 0}
+!1753 = !{!"Simple C++ TBAA"}
+!1754 = !DILocation(line: 27, column: 9, scope: !1723)
+!1755 = !DILocation(line: 873, column: 9, scope: !1756, inlinedAt: !1764)
+!1756 = distinct !DILexicalBlock(scope: !1758, file: !1757, line: 872, column: 16)
+!1757 = !DIFile(filename: "/opt/rocm-5.6.0/include/hip/amd_detail/amd_device_functions.h", directory: "", checksumkind: CSK_MD5, checksum: "007b363385afd7b068da381439832c46")
+!1758 = distinct !DILexicalBlock(scope: !1759, file: !1757, line: 872, column: 9)
+!1759 = distinct !DISubprogram(name: "__work_group_barrier", linkageName: "_ZL20__work_group_barrierj", scope: !1757, file: !1757, line: 871, type: !1760, scopeLine: 871, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1762)
+!1760 = !DISubroutineType(types: !1761)
+!1761 = !{null, !3}
+!1762 = !{!1763}
+!1763 = !DILocalVariable(name: "flags", arg: 1, scope: !1759, file: !1757, line: 871, type: !3)
+!1764 = distinct !DILocation(line: 885, column: 3, scope: !1765, inlinedAt: !1768)
+!1765 = distinct !DISubprogram(name: "__barrier", linkageName: "_ZL9__barrieri", scope: !1757, file: !1757, line: 883, type: !431, scopeLine: 884, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1766)
+!1766 = !{!1767}
+!1767 = !DILocalVariable(name: "n", arg: 1, scope: !1765, file: !1757, line: 883, type: !27)
+!1768 = distinct !DILocation(line: 893, column: 3, scope: !1769, inlinedAt: !1770)
+!1769 = distinct !DISubprogram(name: "__syncthreads", linkageName: "_Z13__syncthreadsv", scope: !1757, file: !1757, line: 891, type: !384, scopeLine: 892, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1744)
+!1770 = distinct !DILocation(line: 26, column: 5, scope: !1723)
+!1771 = !DILocation(line: 874, column: 9, scope: !1756, inlinedAt: !1764)
+!1772 = !DILocation(line: 875, column: 9, scope: !1756, inlinedAt: !1764)
+!1773 = !DILocation(line: 28, column: 5, scope: !1723)
+!1774 = !DILocation(line: 28, column: 17, scope: !1723)
+!1775 = !DILocation(line: 29, column: 1, scope: !1723)
 
 ; __CLANG_OFFLOAD_BUNDLE____END__ hip-amdgcn-amd-amdhsa-gfx1030
 
@@ -2212,7 +1878,7 @@ define dso_local void @_Z28__device_stub____d_incrementPi(ptr noundef %0) #3 {
   %5 = alloca i64, align 8
   %6 = alloca ptr, align 8
   store ptr %0, ptr %2, align 8, !tbaa !2042
-  %7 = alloca ptr, align 16
+  %7 = alloca [2 x ptr], align 8
   store ptr %2, ptr %7, align 16
   %8 = call i32 @__hipPopCallConfiguration(ptr nonnull %3, ptr nonnull %4, ptr nonnull %5, ptr nonnull %6)
   %9 = load i64, ptr %5, align 8
@@ -2223,7 +1889,13 @@ define dso_local void @_Z28__device_stub____d_incrementPi(ptr noundef %0) #3 {
   %14 = load i64, ptr %4, align 8
   %15 = getelementptr inbounds i8, ptr %4, i64 8
   %16 = load i32, ptr %15, align 8
-  %17 = call noundef i32 @hipLaunchKernel(ptr noundef nonnull @_Z13__d_incrementPi, i64 %11, i32 %13, i64 %14, i32 %16, ptr noundef nonnull %7, i64 noundef %9, ptr noundef %10)
+  %17 = alloca ptr, align 8
+  %18 = call ptr @scabbard.trace.register_job(ptr %10)
+  store ptr %18, ptr %17, align 8
+  %19 = getelementptr inbounds ptr, ptr %7, i64 1
+  store ptr %17, ptr %19, align 8
+  %20 = call noundef i32 @hipLaunchKernel(ptr noundef nonnull @_Z13__d_incrementPi, i64 %11, i32 %13, i64 %14, i32 %16, ptr noundef nonnull %7, i64 noundef %9, ptr noundef %10)
+  call void @scabbard.trace.register_job_callback(ptr %18, ptr %10)
   ret void
 }
 
@@ -2238,7 +1910,7 @@ define dso_local void @_Z13hip_incrementPiS_m(ptr noundef %0, ptr noundef %1, i6
   %6 = alloca %struct.dim3, align 8
   %7 = alloca i64, align 8
   %8 = alloca ptr, align 8
-  %9 = alloca ptr, align 16
+  %9 = alloca [2 x ptr], align 8
   %10 = alloca ptr, align 8
   call void @llvm.dbg.value(metadata ptr %0, metadata !2051, metadata !DIExpression()), !dbg !2056
   call void @llvm.dbg.value(metadata ptr %1, metadata !2052, metadata !DIExpression()), !dbg !2056
@@ -2257,7 +1929,7 @@ define dso_local void @_Z13hip_incrementPiS_m(ptr noundef %0, ptr noundef %1, i6
   %16 = or i64 %15, 4294967296, !dbg !2062
   %17 = call i32 @__hipPushCallConfiguration(i64 4294967297, i32 1, i64 %16, i32 1, i64 noundef 0, ptr noundef null), !dbg !2062
   %18 = icmp eq i32 %17, 0, !dbg !2062
-  br i1 %18, label %19, label %31, !dbg !2062
+  br i1 %18, label %19, label %34, !dbg !2062
 
 19:                                               ; preds = %3
   %20 = load ptr, ptr %10, align 8, !dbg !2062, !tbaa !2042
@@ -2279,27 +1951,33 @@ define dso_local void @_Z13hip_incrementPiS_m(ptr noundef %0, ptr noundef %1, i6
   %27 = load i64, ptr %6, align 8, !dbg !2062
   %28 = getelementptr inbounds i8, ptr %6, i64 8, !dbg !2062
   %29 = load i32, ptr %28, align 8, !dbg !2062
-  %30 = call noundef i32 @hipLaunchKernel(ptr noundef nonnull @_Z13__d_incrementPi, i64 %24, i32 %26, i64 %27, i32 %29, ptr noundef nonnull %9, i64 noundef %22, ptr noundef %23), !dbg !2062
+  %30 = alloca ptr, align 8
+  %31 = call ptr @scabbard.trace.register_job(ptr %23)
+  store ptr %31, ptr %30, align 8
+  %32 = getelementptr inbounds ptr, ptr %9, i64 1
+  store ptr %30, ptr %32, align 8
+  %33 = call noundef i32 @hipLaunchKernel(ptr noundef nonnull @_Z13__d_incrementPi, i64 %24, i32 %26, i64 %27, i32 %29, ptr noundef nonnull %9, i64 noundef %22, ptr noundef %23), !dbg !2062
+  call void @scabbard.trace.register_job_callback(ptr %31, ptr %23)
   call void @llvm.lifetime.end.p0(i64 8, ptr nonnull %4), !dbg !2062
   call void @llvm.lifetime.end.p0(i64 12, ptr nonnull %5), !dbg !2062
   call void @llvm.lifetime.end.p0(i64 12, ptr nonnull %6), !dbg !2062
   call void @llvm.lifetime.end.p0(i64 8, ptr nonnull %7), !dbg !2062
   call void @llvm.lifetime.end.p0(i64 8, ptr nonnull %8), !dbg !2062
   call void @llvm.lifetime.end.p0(i64 8, ptr nonnull %9), !dbg !2062
-  br label %31, !dbg !2062
+  br label %34, !dbg !2062
 
-31:                                               ; preds = %19, %3
-  %32 = call i32 @hipDeviceSynchronize(), !dbg !2064
+34:                                               ; preds = %19, %3
+  %35 = call i32 @hipDeviceSynchronize(), !dbg !2064
   call void @"scabbard.trace.host.trace_append$mem"(i16 -32768, ptr null, ptr nonnull @"scabbard.metadata.host.srcId$0x0000", i32 55, i32 5)
-  %33 = load ptr, ptr %10, align 8, !dbg !2065, !tbaa !2042
-  call void @llvm.dbg.value(metadata ptr %33, metadata !2055, metadata !DIExpression()), !dbg !2056
+  %36 = load ptr, ptr %10, align 8, !dbg !2065, !tbaa !2042
+  call void @llvm.dbg.value(metadata ptr %36, metadata !2055, metadata !DIExpression()), !dbg !2056
   call void @"scabbard.trace.host.trace_append$mem"(i16 -32768, ptr null, ptr nonnull @"scabbard.metadata.host.srcId$0x0000", i32 57, i32 5)
   call void @"scabbard.trace.host.trace_append$alloc"(i16 4138, ptr %0, ptr nonnull @"scabbard.metadata.host.srcId$0x0000", i32 57, i32 5, i64 %11)
-  %34 = call i32 @hipMemcpy(ptr noundef %0, ptr noundef %33, i64 noundef %11, i32 noundef 2), !dbg !2066
-  %35 = load ptr, ptr %10, align 8, !dbg !2067, !tbaa !2042
-  call void @llvm.dbg.value(metadata ptr %35, metadata !2055, metadata !DIExpression()), !dbg !2056
+  %37 = call i32 @hipMemcpy(ptr noundef %0, ptr noundef %36, i64 noundef %11, i32 noundef 2), !dbg !2066
+  %38 = load ptr, ptr %10, align 8, !dbg !2067, !tbaa !2042
+  call void @llvm.dbg.value(metadata ptr %38, metadata !2055, metadata !DIExpression()), !dbg !2056
   call void @"scabbard.trace.host.trace_append$alloc"(i16 4160, ptr null, ptr nonnull @"scabbard.metadata.host.srcId$0x0000", i32 59, i32 5, i64 0)
-  %36 = call i32 @hipFree(ptr noundef %35), !dbg !2068
+  %39 = call i32 @hipFree(ptr noundef %38), !dbg !2068
   call void @llvm.lifetime.end.p0(i64 8, ptr nonnull %10) #12, !dbg !2069
   ret void, !dbg !2069
 }
@@ -2649,6 +2327,10 @@ declare void @"scabbard.trace.host.trace_append$mem"(i16, ptr, ptr, i32, i32)
 declare void @"scabbard.trace.host.trace_append$mem$cond"(i16, ptr, ptr, i32, i32)
 
 declare void @"scabbard.trace.host.trace_append$alloc"(i16, ptr, ptr, i32, i32, i64)
+
+declare ptr @scabbard.trace.register_job(ptr)
+
+declare void @scabbard.trace.register_job_callback(ptr, ptr)
 
 declare i64 @"scabbard.trace.metadata_register$src"(ptr)
 

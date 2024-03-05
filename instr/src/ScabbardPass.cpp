@@ -366,7 +366,7 @@ namespace scabbard {
     llvm::Function* ScabbardPassPlugin::replace_device_function(llvm::Function& F)
     {
       std::string old_name = F.getName().str();
-      F.setName(old_name+"__old__");
+      F.setName(old_name+"__old__scabbard_instr_replaced__old__");
       auto oldParamTys = F.getFunctionType()->params();
       std::vector<llvm::Type*> paramTys(oldParamTys.begin(), oldParamTys.end());
       paramTys.push_back(llvm::PointerType::get(F.getContext(),0ul));
@@ -400,7 +400,11 @@ namespace scabbard {
         for (auto& u : F->uses()) {
           if (auto CI = llvm::dyn_cast<llvm::CallInst>(u.get())) {
             llvm::Function* pFn = CI->getFunction();
-            llvm::SmallVector<llvm::Value*> operands(llvm::iterator_range<llvm::Value*>(CI->operands()));
+            if (pFn->getName().ends_with("__old__scabbard_instr_replaced__old__"))
+              continue;
+            std::vector<llvm::Value*> operands;
+            for (auto& op : CI->operands())
+              operands.push_back(op.get());
             operands.push_back(pFn->getOperand(pFn->getNumOperands()-1));
             auto ci = llvm::CallInst::Create(
                           fn->getFunctionType(),
@@ -692,14 +696,14 @@ namespace scabbard {
     }
 
 
-    void ScabbardPass::instr_launch_func_host(llvm::Function& F, llvm::CallInst& CI)
+    void ScabbardPassPlugin::instr_launch_func_host(llvm::Function& F, llvm::CallInst& CI)
     {
       // instrument in `scabbard.trace.register_job` before this function and instrument in `scabbard.trace.register_job_callback` after this function call
       auto regFn = llvm::CallInst::Create(
           host.register_job.getFunctionType(),
           host.register_job.getCallee(),
           llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,1>{
-              CI.getOperand(5)
+              CI.getOperand(7)
             })
         );
       regFn->insertBefore(&CI);
@@ -708,7 +712,7 @@ namespace scabbard {
           host.register_job_callback.getCallee(),
           llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,2>{
               regFn,
-              CI.getOperand(5)
+              CI.getOperand(7)
             })
         );
       regCbFn->insertAfter(&CI);
@@ -716,18 +720,20 @@ namespace scabbard {
       // trace back args var and expand it to include the pointer to the DeviceTracker that is returned as the result of `scabbard.trace.register_job` as the last parameter
       auto plainPtrTy = llvm::PointerType::get(F.getContext(),0ul);
       llvm::GetElementPtrInst* paramPtr = nullptr;
-      if (auto argElmPtr = llvm::dyn_cast<llvm::GetElementPtrInst>(CI.getOperand(3))) { // case: >=2 function parameter length
+      if (auto argElmPtr = llvm::dyn_cast<llvm::GetElementPtrInst>(CI.getOperand(5))) { // case: >=2 function parameter length
         if (auto argAlloc = llvm::dyn_cast<llvm::AllocaInst>(argElmPtr->getPointerOperand())) {
-          paramPt = expand_param_args_alloc(*argAlloc);
+          paramPtr = expand_param_args_alloc(*argAlloc);
         } else {
-          llvm::errs() << "\n[scabbard.instr:ERROR] kernel launch user args could not be traced to param args construct allocation\n";
+          llvm::errs() << "\n[scabbard.instr.host:ERROR] kernel launch user args could not be traced to param args construct allocation\n";
         }
-      } else if (auto argAlloc = llvm::dyn_cast<llvm::AllocaInst>(CI.getOperand(3))) { // case: single or zero function parameter length
-        paramPt = expand_param_args_alloc(*argAlloc);
+      } else if (auto argAlloc = llvm::dyn_cast<llvm::AllocaInst>(CI.getOperand(5))) { // case: single or zero function parameter length
+        paramPtr = expand_param_args_alloc(*argAlloc);
       } else {
-        llvm::errs() << "\n[scabbard.instr:DBG] kernel launch user args are not loaded from local frame\n";
+        llvm::errs() << "\n[scabbard.instr.host:DBG] kernel launch user args are not loaded from local frame\n```\n";
+        CI.getOperand(3)->print(llvm::errs());
+        llvm::errs() << "\n```\n\n";
       }
-      if (paramPt == nullptr) {
+      if (paramPtr == nullptr) {
         llvm::errs() << "\n[scabbard.instr:ERROR] could not instrument kernel call (instrumentation failed)\n";
         return;
       }
