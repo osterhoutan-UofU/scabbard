@@ -116,6 +116,8 @@ namespace scabbard {
         if (f.getName() != device.trace_append$mem_name && f.getName() != device.trace_append$alloc_name && f.getName() != "__ockl_hostcall_internal")
           run_device(f, fam, dt);
 
+      finish_replacing_old_funcs_device();
+
       // remove the dummy caller function from device_def
       // M.getFunction(SCABBARD_DEVICE_DUMMY_FUNC_NAME)->eraseFromParent(); //note: causes all linked functions to also be removed
     }
@@ -277,8 +279,6 @@ namespace scabbard {
     // }
 
 
-    llvm::Function* replace_device_function(llvm::Function& F);
-
     // << ======================================== Device ========================================== >> 
 
     void ScabbardPassPlugin::run_device(llvm::Function& _F, llvm::FunctionAnalysisManager& FAM, const DepTraceDevice& DT)
@@ -359,13 +359,11 @@ namespace scabbard {
 
     void ScabbardPassPlugin::instr_call_device(const llvm::Function& F, llvm::CallInst* ci)
     {
-      //TODO modify to pass device tracker through as last parameter to all functions defined in this module
-
       //TODO modify to register reads and writes from builtin functions
     }
 
 
-    llvm::Function* replace_device_function(llvm::Function& F)
+    llvm::Function* ScabbardPassPlugin::replace_device_function(llvm::Function& F)
     {
       std::string old_name = F.getName().str();
       F.setName(old_name+"__old__");
@@ -386,9 +384,44 @@ namespace scabbard {
       for (size_t i=0; i<F.getNumOperands(); ++i)
         vMap.insert(std::make_pair(F.getOperand(i),llvm::WeakTrackingVH(fn->getOperand(i))));
       llvm::SmallVector<llvm::ReturnInst*> rets;
-      //NOTE: this might be used wrong double check results in testing to make sure it works correctly
+      //?NOTE: this might be used wrong double check results in testing to make sure it works correctly
+      //?     if wrong likely due to not creating vMap properly
       llvm::CloneFunctionInto(fn, &F, vMap, llvm::CloneFunctionChangeType::LocalChangesOnly, rets);
+      to_replace.push_back(std::make_pair(&F,fn));
       return fn;
+    }
+
+    void ScabbardPassPlugin::finish_replacing_old_funcs_device()
+    {
+      //modify to pass device tracker through as last parameter to all functions defined in this module
+      for (auto& tr : to_replace) {
+        auto F = tr.first;
+        auto fn = tr.second;
+        for (auto& u : F->uses()) {
+          if (auto CI = llvm::dyn_cast<llvm::CallInst>(u.get())) {
+            llvm::Function* pFn = CI->getFunction();
+            llvm::SmallVector<llvm::Value*> operands(llvm::iterator_range<llvm::Value*>(CI->operands()));
+            operands.push_back(pFn->getOperand(pFn->getNumOperands()-1));
+            auto ci = llvm::CallInst::Create(
+                          fn->getFunctionType(),
+                          fn,
+                          llvm::ArrayRef<llvm::Value*>(operands)            
+                        );
+            if (CI->isTailCall())
+              ci->setTailCallKind(CI->getTailCallKind());
+            if (CI->canReturnTwice())
+              ci->setCanReturnTwice();
+            CI->replaceAllUsesWith(ci);
+            CI->eraseFromParent();
+          } else {
+            LLVM_DEBUG(
+              llvm::errs() << "\n[scabbard.instr.DBG] ERR: overwritten device function used in non-call instruction!\n";
+            );
+          }
+        }
+        F->eraseFromParent();
+      }
+      to_replace.clear();
     }
 
 
@@ -617,10 +650,13 @@ namespace scabbard {
     {
       auto oldAllocTy = alloc.getAllocatedType();
       size_t old_size = 0ul;
-      if (auto arrTy = llvm::dyn_cast<llvm::ArrayType>(oldAllocTy)) { // case: >=2 function parameter length
-        old_size = arrTy.getNumElements();
-      } else { // case: single or zero length function parameter
-        old_size = 1ul;
+      if (auto arrTy = llvm::dyn_cast<llvm::ArrayType>(oldAllocTy)) { // case: alloc array type
+        old_size = arrTy->getNumElements();
+      } else if (auto C = llvm::dyn_cast<llvm::ConstantInt>(alloc.getArraySize())) { // case: built in alloc array concept
+        old_size = C->getSExtValue();
+      } else {  // case: unknown size 
+        LLVM_DEBUG(llvm::errs() << "\n[scabbard.instr.ERR] could not determine size of alloc instr!\n";);
+        old_size = 1;
       }
       auto plainPtrTy = llvm::PointerType::get(alloc.getContext(),0ul);
       auto newAllocTy = llvm::ArrayType::get(plainPtrTy, old_size+1);
