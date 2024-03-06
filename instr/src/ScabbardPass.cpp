@@ -340,7 +340,7 @@ namespace scabbard {
       auto ci = llvm::CallInst::Create(
           device.trace_append$mem,
           llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,6>{
-              F.getOperand(F.getNumOperands()-1),
+              F.getArg(F.arg_size()-1),
               llvm::ConstantInt::get(
                   llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
                   llvm::APInt(sizeof(InstrData)*8, data)
@@ -365,25 +365,27 @@ namespace scabbard {
 
     llvm::Function* ScabbardPassPlugin::replace_device_function(llvm::Function& F)
     {
+      llvm::Module& M = *F.getParent();
       std::string old_name = F.getName().str();
       F.setName(old_name+"__old__scabbard_instr_replaced__old__");
       auto oldParamTys = F.getFunctionType()->params();
       std::vector<llvm::Type*> paramTys(oldParamTys.begin(), oldParamTys.end());
       paramTys.push_back(llvm::PointerType::get(F.getContext(),0ul));
-      llvm::Function* fn = llvm::Function::Create(
-                              llvm::FunctionType::get(
-                                  F.getFunctionType()->getReturnType(),
-                                  llvm::ArrayRef<llvm::Type*>(paramTys),
-                                  F.getFunctionType()->isVarArg()
-                                ),
-                              F.getLinkage(),
-                              old_name,
-                              F.getParent()
-                            );
+      auto fn_callee = M.getOrInsertFunction(
+                          old_name,
+                          llvm::FunctionType::get(
+                              F.getFunctionType()->getReturnType(),
+                              llvm::ArrayRef<llvm::Type*>(paramTys),
+                              F.getFunctionType()->isVarArg()
+                            ),
+                          F.getAttributes()
+                        );
+      llvm::Function* fn = llvm::dyn_cast<llvm::Function>(fn_callee.getCallee()); // new function (F is old function)
       llvm::ValueToValueMapTy vMap;
-      for (size_t i=0; i<F.getNumOperands(); ++i)
-        vMap.insert(std::make_pair(F.getOperand(i),llvm::WeakTrackingVH(fn->getOperand(i))));
-      llvm::SmallVector<llvm::ReturnInst*> rets;
+      for (size_t i=0; i<F.arg_size(); ++i)
+        vMap[fn->getArg(i)] = llvm::WeakTrackingVH(F.getArg(i));
+        // vMap.insert(std::make_pair(fn->getArg(i),llvm::WeakTrackingVH(F.getArg(i))));
+      llvm::SmallVector<llvm::ReturnInst*,8> rets;
       //?NOTE: this might be used wrong double check results in testing to make sure it works correctly
       //?     if wrong likely due to not creating vMap properly
       llvm::CloneFunctionInto(fn, &F, vMap, llvm::CloneFunctionChangeType::LocalChangesOnly, rets);
@@ -403,9 +405,9 @@ namespace scabbard {
             if (pFn->getName().ends_with("__old__scabbard_instr_replaced__old__"))
               continue;
             std::vector<llvm::Value*> operands;
-            for (auto& op : CI->operands())
+            for (auto& op : CI->args())
               operands.push_back(op.get());
-            operands.push_back(pFn->getOperand(pFn->getNumOperands()-1));
+            operands.push_back(pFn->getArg(pFn->arg_size()-1));
             auto ci = llvm::CallInst::Create(
                           fn->getFunctionType(),
                           fn,
@@ -527,7 +529,7 @@ namespace scabbard {
       {
       auto loc = metadata.trace(F, CI->getDebugLoc(), false);
       // auto ptrtoint = llvm::CastInst::Create(llvm::CastInst::CastOps::PtrToInt, 
-      //                                         CI->getOperand(0), 
+      //                                         CI->getArgOperand(0), 
       //                                         llvm::IntegerType::getInt64PtrTy(F.getContext()));
       auto ci = llvm::CallInst::Create(
           host.trace_append$mem,
@@ -538,7 +540,7 @@ namespace scabbard {
                 ),
               ((fnName == "hipDeviceSynchronize") 
                 ? llvm::ConstantPointerNull::get(llvm::PointerType::get(F.getContext(), 0u))
-                : CI->getOperand(0)), // ptrtoint
+                : CI->getArgOperand(0)), // ptrtoint
               loc.src_id_ptr,
               loc.getLineAsConstant(F.getContext()),
               loc.getColAsConstant(F.getContext())
@@ -558,11 +560,11 @@ namespace scabbard {
                 ),
               ((fnName == "hipDeviceSynchronize") 
                 ? llvm::ConstantPointerNull::get(llvm::PointerType::get(F.getContext(), 0u))
-                : CI->getOperand(0)), // ptrtoint
+                : CI->getArgOperand(0)), // ptrtoint
               loc.src_id_ptr,
               loc.getLineAsConstant(F.getContext()),
               loc.getColAsConstant(F.getContext()),
-              CI->getOperand(1)
+              CI->getArgOperand(1)
             })
         );
         ci->insertAfter(CI);
@@ -607,7 +609,7 @@ namespace scabbard {
                     llvm::APInt(sizeof(InstrData)*8, InstrData::SYNC_EVENT)
                   ),
                 ((fnName == "hipMemcpyWithStream") 
-                  ? CI->getOperand(0)
+                  ? CI->getArgOperand(0)
                   : llvm::ConstantPointerNull::get(llvm::PointerType::get(F.getContext(), 0u))),
                 loc.src_id_ptr,
                 loc.getLineAsConstant(F.getContext()),
@@ -617,7 +619,7 @@ namespace scabbard {
           cis->insertBefore(CI);
         }
         // we only need to register the cpy as a read if it's from device to host 
-        if (auto* TrTy = llvm::dyn_cast<llvm::ConstantInt>(CI->getOperand(3))) {
+        if (auto* TrTy = llvm::dyn_cast<llvm::ConstantInt>(CI->getArgOperand(3))) {
           switch (TrTy->getSExtValue()) {
             case 2: // D->H
               break; // we only care about instrumenting copies that count as reading read by the host
@@ -637,11 +639,11 @@ namespace scabbard {
                 ),
               ((fnName == "hipDeviceSynchronize") 
                 ? llvm::ConstantPointerNull::get(llvm::PointerType::get(F.getContext(), 0u))
-                : CI->getOperand(0)), // ptrtoint
+                : CI->getArgOperand(0)), // ptrtoint
               loc.src_id_ptr,
               loc.getLineAsConstant(F.getContext()),
               loc.getColAsConstant(F.getContext()),
-              CI->getOperand(2)
+              CI->getArgOperand(2)
             })
         );
         ci->insertBefore(CI);
@@ -703,7 +705,7 @@ namespace scabbard {
           host.register_job.getFunctionType(),
           host.register_job.getCallee(),
           llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,1>{
-              CI.getOperand(7)
+              CI.getArgOperand(7)
             })
         );
       regFn->insertBefore(&CI);
@@ -712,7 +714,7 @@ namespace scabbard {
           host.register_job_callback.getCallee(),
           llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,2>{
               regFn,
-              CI.getOperand(7)
+              CI.getArgOperand(5)
             })
         );
       regCbFn->insertAfter(&CI);
@@ -720,17 +722,17 @@ namespace scabbard {
       // trace back args var and expand it to include the pointer to the DeviceTracker that is returned as the result of `scabbard.trace.register_job` as the last parameter
       auto plainPtrTy = llvm::PointerType::get(F.getContext(),0ul);
       llvm::GetElementPtrInst* paramPtr = nullptr;
-      if (auto argElmPtr = llvm::dyn_cast<llvm::GetElementPtrInst>(CI.getOperand(5))) { // case: >=2 function parameter length
+      if (auto argElmPtr = llvm::dyn_cast<llvm::GetElementPtrInst>(CI.getArgOperand(3))) { // case: >=2 function parameter length
         if (auto argAlloc = llvm::dyn_cast<llvm::AllocaInst>(argElmPtr->getPointerOperand())) {
           paramPtr = expand_param_args_alloc(*argAlloc);
         } else {
           llvm::errs() << "\n[scabbard.instr.host:ERROR] kernel launch user args could not be traced to param args construct allocation\n";
         }
-      } else if (auto argAlloc = llvm::dyn_cast<llvm::AllocaInst>(CI.getOperand(5))) { // case: single or zero function parameter length
+      } else if (auto argAlloc = llvm::dyn_cast<llvm::AllocaInst>(CI.getArgOperand(3))) { // case: single or zero function parameter length
         paramPtr = expand_param_args_alloc(*argAlloc);
       } else {
         llvm::errs() << "\n[scabbard.instr.host:DBG] kernel launch user args are not loaded from local frame\n```\n";
-        CI.getOperand(3)->print(llvm::errs());
+        CI.getArgOperand(3)->print(llvm::errs());
         llvm::errs() << "\n```\n\n";
       }
       if (paramPtr == nullptr) {

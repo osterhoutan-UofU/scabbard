@@ -55,7 +55,7 @@ namespace scabbard {
                 case 1: // H->D
                   return throughConstExpr(C.getArgOperand(0)) == _V;
                 case 2: // D->H
-                  return throughConstExpr(C.getOperand(1)) == _V;
+                  return throughConstExpr(C.getArgOperand(1)) == _V;
                 case 3: // D->D
                   return (throughConstExpr(C.getArgOperand(0)) == _V) || (throughConstExpr(C.getArgOperand(1)) == _V);
                 case 0: // H->H
