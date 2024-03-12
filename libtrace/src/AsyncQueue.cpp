@@ -32,19 +32,19 @@ namespace scabbard {
     __host__ 
     AsyncQueue::AsyncQueue()
     {
-      //TODO handle the construction
       // set the values in the device last read tracker
-      std::memset(&this->device_last_read,0u,sizeof(size_t)*SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT);
+      // std::memset(&this->device_last_read,0u,sizeof(size_t)*SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT);
     }
 
     __host__ 
     AsyncQueue::~AsyncQueue()
     {
       stop();
-      if (deviceQ != nullptr)
-        if (hipFree(deviceQ) != hipSuccess)
-          std::cerr << "\n[scabbard::trace::dtor::ERROR] could not deallocate device side buffer!\n" 
-                    << std::endl;
+      for (auto dt : device_trackers)
+        if (dt != nullptr)
+          if (hipFree(dt) != hipSuccess)
+            std::cerr << "\n[scabbard::trace::dtor::ERROR] could not deallocate device side buffer!\n" 
+                      << std::endl;
       if (tw != nullptr) {
         tw->finalize(metadata);
         tw->close();
@@ -111,20 +111,20 @@ namespace scabbard {
     // }
 
     __host__
-    DeviceTracker* AsyncQueue::add_job(const hipStream_t STREAM)
+    device::DeviceTracker* AsyncQueue::add_job(const hipStream_t STREAM)
     {
-      DeviceTracker* dt = nullptr;
-      hipError_t hipRes = hipMallocManaged(&dt, sizeof(DeviceTracker), hipMemAttachGlobal);
+      device::DeviceTracker* dt = nullptr;
+      hipError_t hipRes = hipMallocManaged(&dt, sizeof(device::DeviceTracker), hipMemAttachGlobal);
       if (hipRes != hipSuccess) {
         std::cerr << "\n[scabbard.trace:ERROR] failed to allocate managed memory before kernel launch!\n" << std::endl;
         exit(EXIT_FAILURE);
       }
       mx_device.lock();
-      auto tmp = stream_job_counter.find(STREAM);
-      if (tmp == stream_job_counter.end())
-        stream_job_counter.emplace(std::make_pair(STREAM,0u));
-      device_trackers.push_back(new DeviceTracker(jobId_t(tmp->second,STREAM), vClk++));
-      stream_job_counter[STREAM] = tmp->second+1u; 
+      auto tmp = stream_job_counters.find(STREAM);
+      if (tmp == stream_job_counters.end())
+        stream_job_counters.emplace(std::make_pair(STREAM,0u));
+      device_trackers.push_back(new device::DeviceTracker(jobId_t(tmp->second,STREAM), vClk++));
+      stream_job_counters[STREAM] = tmp->second+1u; 
       mx_device.unlock();
       return dt;
     }

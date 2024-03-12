@@ -45,7 +45,7 @@ namespace scabbard {
       __device__ __noinline__
       void trace_append$mem(void* deviceTracker, InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col)
       {
-        DeviceTracker& DT = *((DeviceTracker) deviceTracker);
+        DeviceTracker& DT = *((DeviceTracker*) deviceTracker);
         DT.buffer[(DT.next++) % SCABBARD_DEVICE_TRACKER_BUFF_LENGTH] = TraceData(DT.vClk++, data,
                                                                                   DT.JOB_ID, blockIdx, threadIdx,
                                                                                   PTR, 
@@ -67,7 +67,7 @@ namespace scabbard {
       __device__ __noinline__
       void trace_append$alloc(void* deviceTracker, InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col, std::size_t size)
       {
-        DeviceTracker& DT = *((DeviceTracker) deviceTracker);
+        DeviceTracker& DT = *((DeviceTracker*) deviceTracker);
         DT.buffer[(DT.next++) % SCABBARD_DEVICE_TRACKER_BUFF_LENGTH] = TraceData(DT.vClk++, data,
                                                                                   DT.JOB_ID, blockIdx, threadIdx,
                                                                                   PTR, 
@@ -101,12 +101,13 @@ namespace scabbard {
       __global__ 
       void call_for_looks(InstrData tmp, void* ptr, void* meta, const std::uint64_t* src_id)
       {
-        ::scabbard::trace::device::trace_append$mem(tmp,ptr,&src_id_reg_tmp,19u,9u);
-        ::scabbard::trace::device::trace_append$mem(tmp,ptr,&src_id_reg_tmp2,1024u,4u);
-        ::scabbard::trace::device::trace_append$mem(tmp,ptr,src_id,10240u,40u);
-        ::scabbard::trace::device::trace_append$alloc(tmp,ptr,&src_id_reg_tmp2,88u,256u,7ul);
-        ::scabbard::trace::device::trace_append$alloc(tmp,ptr,&src_id_reg_tmp3,98u,6u,23ul);
-        ::scabbard::trace::device::trace_append$alloc(tmp,ptr,src_id,980u,60u,230ul);
+        size_t dt_stand_in;
+        ::scabbard::trace::device::trace_append$mem((void*)&dt_stand_in,tmp,ptr,&src_id_reg_tmp,19u,9u);
+        ::scabbard::trace::device::trace_append$mem((void*)&dt_stand_in,tmp,ptr,&src_id_reg_tmp2,1024u,4u);
+        ::scabbard::trace::device::trace_append$mem((void*)&dt_stand_in,tmp,ptr,src_id,10240u,40u);
+        ::scabbard::trace::device::trace_append$alloc((void*)&dt_stand_in,tmp,ptr,&src_id_reg_tmp2,88u,256u,7ul);
+        ::scabbard::trace::device::trace_append$alloc((void*)&dt_stand_in,tmp,ptr,&src_id_reg_tmp3,98u,6u,23ul);
+        ::scabbard::trace::device::trace_append$alloc((void*)&dt_stand_in,tmp,ptr,src_id,980u,60u,230ul);
       }
 
       // __global__ void call_for_differentiation(InstrData tmp, void* ptr, void* meta)

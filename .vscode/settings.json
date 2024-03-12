@@ -3,7 +3,7 @@
     "doxdocgen.generic.authorEmail": "osterhoutan+scabbard@gmail.com",
     // "cmake.generator": "Ninja",
     "cmake.parallelJobs": 6,
-    // "cmake.environment": {"ROCM_PATH":"/opt/rocm"},
+    "cmake.environment": {"ROCM_PATH":"/opt/rocm-5.4.3"},
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "C_Cpp.formatting": "vcFormat",
     "C_Cpp.vcFormat.newLine.beforeOpenBrace.lambda": "sameLine",

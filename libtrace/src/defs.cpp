@@ -123,15 +123,16 @@ namespace scabbard {
 
 
     __host__
-    void* register_job(const hipStream_t const * STREAM)
+    void* register_job(const hipStream_t STREAM)
     {
       return ((void*) TRACE_LOGGER.add_job(STREAM));
     }
 
     __host__
-    void scabbard_stream_callback(hipStream_t stream, hipError_t status, void* dt)
+    void scabbard_stream_callback(hipStream_t stream, hipError_t status, void* dt_)
     {
       // mark the device tracker as finished for the TRACE_LOGGER to take care of during next device upkeep cycle
+      device::DeviceTracker* dt = (device::DeviceTracker*) dt_;
       dt->finished = true;
       // rebalance logical vClk
       const size_t dvClk = dt->vClk;
@@ -140,13 +141,13 @@ namespace scabbard {
     }
 
     __host__
-    void register_job_callback(void* dt, hipStream_t stream)
+    void register_job_callback(void* dt_, hipStream_t stream)
     {
+      device::DeviceTracker* dt = (device::DeviceTracker*) dt_;
       auto hipRes = hipStreamAddCallback(stream, scabbard_stream_callback, dt, 0);
       if (hipRes != hipSuccess) {
         std::cerr << "\n[scabbard.trace:ERROR] failed to register callback on "
                      "{stream: "<< dt->JOB_ID.STREAM<< ", "
-                      "device: " << dt->JOB_ID.DEVICE << ", "
                       "job: " << dt->JOB_ID.JOB  << "}\n" << std::endl;
       }
     }

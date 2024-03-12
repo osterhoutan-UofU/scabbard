@@ -112,9 +112,12 @@ namespace scabbard {
       llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
                                               .getManager();
       DepTraceDevice dt(M);
+      llvm::SmallVector<llvm::Function*> funcs;
       for (auto& f : M.getFunctionList())
-        if (f.getName() != device.trace_append$mem_name && f.getName() != device.trace_append$alloc_name && f.getName() != "__ockl_hostcall_internal")
-          run_device(f, fam, dt);
+        funcs.push_back(&f);
+      for (auto* f : funcs)
+        if (f->getName() != device.trace_append$mem_name && f->getName() != device.trace_append$alloc_name && f->getName() != "__ockl_hostcall_internal")
+          run_device(*f, fam, dt);
 
       finish_replacing_old_funcs_device();
 
@@ -283,6 +286,7 @@ namespace scabbard {
 
     void ScabbardPassPlugin::run_device(llvm::Function& _F, llvm::FunctionAnalysisManager& FAM, const DepTraceDevice& DT)
     {
+      if (_F.isDeclaration()) return; // skip functions not defined (only declared) in this module
       //TODO modify the function type and parameters to include the instrumented in device tracker parameter
       llvm::Function& F = *replace_device_function(_F);
       // search for instructions to instrument and instrument them
@@ -292,11 +296,11 @@ namespace scabbard {
             auto data = DT.getInstrData(*store);
             LLVM_DEBUG(
               if (not data) continue;
-            llvm::errs() << "[scabbard::device] Found a `store` inst to instrument!\n"
-              "[scabbard::device]    prop: " << data << "\n"
-              "[scabbard::device]    repr: `";
-            i.print(llvm::errs());
-            llvm::errs() << "`\n[scabbard::device]\n";
+              llvm::errs() << "[scabbard::device] Found a `store` inst to instrument!\n"
+                "[scabbard::device]    prop: " << data << "\n"
+                "[scabbard::device]    repr: `";
+              i.print(llvm::errs());
+              llvm::errs() << "`\n[scabbard::device]\n";
             );
             //instrument store instructions to update trace
             instr_mem_func_device(F, i, store->getPointerOperand(), data);
@@ -305,10 +309,10 @@ namespace scabbard {
             if (not data) continue;
             LLVM_DEBUG(
               llvm::errs() << "[scabbard::device] Found a `load` inst to instrument!\n"
-              "[scabbard::device]    prop: " << data << "\n"
-              "[scabbard::device]    repr: `";
-            i.print(llvm::errs());
-            llvm::errs() << "`\n[scabbard::device]\n";
+                "[scabbard::device]    prop: " << data << "\n"
+                "[scabbard::device]    repr: `";
+              i.print(llvm::errs());
+              llvm::errs() << "`\n[scabbard::device]\n";
             );
             //instrument load instructions
             instr_mem_func_device(F, i, load->getPointerOperand(), data);
@@ -318,15 +322,16 @@ namespace scabbard {
             auto data = DT.getInstrData(*atomic);
             LLVM_DEBUG(
               if (not data) continue;
-            llvm::errs() << "[scabbard::device] Found an `atomicrmw` inst to instrument!\n"
-              "[scabbard::device]    prop: " << data << "\n"
-              "[scabbard::device]    repr: `";
-            i.print(llvm::errs());
-            llvm::errs() << "`\n[scabbard::device]\n";
+              llvm::errs() << "[scabbard::device] Found an `atomicrmw` inst to instrument!\n"
+                "[scabbard::device]    prop: " << data << "\n"
+                "[scabbard::device]    repr: `";
+              i.print(llvm::errs());
+              llvm::errs() << "`\n[scabbard::device]\n";
             );
             //instrument atomic readwrite instructions
             instr_mem_func_device(F, i, atomic->getPointerOperand(), data);
           }
+          // llvm::errs() << "\n[scabbard.instr.device:DBG] fully instrumented `"<< F.getName()  <<"`\n";
           // return llvm::PreservedAnalyses::all();
     }
 
@@ -383,49 +388,53 @@ namespace scabbard {
       llvm::Function* fn = llvm::dyn_cast<llvm::Function>(fn_callee.getCallee()); // new function (F is old function)
       llvm::ValueToValueMapTy vMap;
       for (size_t i=0; i<F.arg_size(); ++i)
-        vMap[fn->getArg(i)] = llvm::WeakTrackingVH(F.getArg(i));
-        // vMap.insert(std::make_pair(fn->getArg(i),llvm::WeakTrackingVH(F.getArg(i))));
+        vMap[F.getArg(i)] = fn->getArg(i);
       llvm::SmallVector<llvm::ReturnInst*,8> rets;
       //?NOTE: this might be used wrong double check results in testing to make sure it works correctly
       //?     if wrong likely due to not creating vMap properly
-      llvm::CloneFunctionInto(fn, &F, vMap, llvm::CloneFunctionChangeType::LocalChangesOnly, rets);
+      llvm::CloneFunctionInto(fn, &F, vMap, llvm::CloneFunctionChangeType::LocalChangesOnly, rets, "si");
       to_replace.push_back(std::make_pair(&F,fn));
       return fn;
     }
 
     void ScabbardPassPlugin::finish_replacing_old_funcs_device()
     {
-      //modify to pass device tracker through as last parameter to all functions defined in this module
+      //modify to pass device tracker through as last parameter to all functions defined in this module'
       for (auto& tr : to_replace) {
-        auto F = tr.first;
-        auto fn = tr.second;
-        for (auto& u : F->uses()) {
+        auto OldFn = tr.first;
+        auto NewFn = tr.second;
+        for (auto& u : OldFn->uses()) {
           if (auto CI = llvm::dyn_cast<llvm::CallInst>(u.get())) {
-            llvm::Function* pFn = CI->getFunction();
-            if (pFn->getName().ends_with("__old__scabbard_instr_replaced__old__"))
-              continue;
-            std::vector<llvm::Value*> operands;
+//             llvm::Function* pFn = CI->getFunction();
+// #           if __clang_major__ <= 16
+//               if (not pFn->getName().endswith("__old__scabbard_instr_replaced__old__"))
+//                 continue;
+// #           else
+//               if (not pFn->getName().ends_with("__old__scabbard_instr_replaced__old__"))
+//                 continue;
+// #           endif
+            llvm::SmallVector<llvm::Value*,4u> operands;
             for (auto& op : CI->args())
               operands.push_back(op.get());
-            operands.push_back(pFn->getArg(pFn->arg_size()-1));
+            operands.push_back(NewFn->getArg(NewFn->arg_size()-1));
             auto ci = llvm::CallInst::Create(
-                          fn->getFunctionType(),
-                          fn,
+                          NewFn->getFunctionType(),
+                          NewFn,
                           llvm::ArrayRef<llvm::Value*>(operands)            
                         );
             if (CI->isTailCall())
               ci->setTailCallKind(CI->getTailCallKind());
             if (CI->canReturnTwice())
               ci->setCanReturnTwice();
+            ci->insertBefore(CI);
             CI->replaceAllUsesWith(ci);
+            ci->setDebugLoc(CI->getDebugLoc());
             CI->eraseFromParent();
           } else {
-            LLVM_DEBUG(
-              llvm::errs() << "\n[scabbard.instr.DBG] ERR: overwritten device function used in non-call instruction!\n";
-            );
+            LLVM_DEBUG(llvm::errs() << "\n[scabbard.instr.device:DBG] overwritten device function used in non-call instruction!\n";);
           }
         }
-        F->eraseFromParent();
+        // OldFn->eraseFromParent();
       }
       to_replace.clear();
     }

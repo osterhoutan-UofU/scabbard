@@ -102,7 +102,7 @@ namespace scabbard {
       // DeviceAsyncQueue _db;
 
       /// @brief the owning list of device trackers
-      std::vector<DeviceTracker*> device_trackers;
+      std::vector<device::DeviceTracker*> device_trackers;
       
       // typedef std::vector<DeviceTracker*>::iterator DTRef;
 
@@ -182,7 +182,7 @@ namespace scabbard {
        * @param STREAM pointer to the stream object associated with the job launch
        * @return \c DeviceTracker* - pointer to the device side object the kernel will work with
        */
-      DeviceTracker* add_job(const hipStream_t STREAM);
+      __host__ device::DeviceTracker* add_job(const hipStream_t STREAM);
       
       /**
        * @brief Set the trace writer object
