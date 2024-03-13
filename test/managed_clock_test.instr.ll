@@ -5,475 +5,321 @@ source_filename = "test/managed_clock_test.cpp"
 target datalayout = "e-p:64:64-p1:64:64-p2:32:32-p3:32:32-p4:64:64-p5:32:32-p6:32:32-i64:64-v16:16-v24:32-v32:32-v48:64-v96:128-v192:256-v256:256-v512:512-v1024:1024-v2048:2048-n32:64-S32-A5-G1-ni:7"
 target triple = "amdgcn-amd-amdhsa"
 
-%"struct.scabbard::trace::DeviceAsyncQueue" = type { [64 x %"struct.scabbard::trace::DeviceAsyncQueue::Lane"] }
-%"struct.scabbard::trace::DeviceAsyncQueue::Lane" = type { i64, [64 x %"struct.scabbard::TraceData"] }
 %"struct.scabbard::TraceData" = type { i64, i16, %"union.scabbard::ThreadId", i8*, %"struct.scabbard::LocationMetadata", i64 }
-%"union.scabbard::ThreadId" = type { %"class.std::thread::id", [8 x i8] }
+%"union.scabbard::ThreadId" = type { %"class.std::thread::id", [16 x i8] }
 %"class.std::thread::id" = type { i64 }
 %"struct.scabbard::LocationMetadata" = type { i64, i32, i32 }
 
 $scabbard.trace.device.dummyFunc = comdat any
 
-@llvm.compiler.used = appending addrspace(1) global [1 x i8*] [i8* addrspacecast (i8 addrspace(1)* bitcast (%"struct.scabbard::trace::DeviceAsyncQueue"* addrspace(1)* @_ZN8scabbard5trace19DEVICE_TRACE_LOGGERE to i8 addrspace(1)*) to i8*)], section "llvm.metadata"
-@_ZN8scabbard5trace19DEVICE_TRACE_LOGGERE = protected addrspace(1) externally_initialized global %"struct.scabbard::trace::DeviceAsyncQueue"* null, align 8
 @_ZN8scabbard5trace12_GLOBAL__N_114src_id_reg_tmpE = internal addrspace(1) global i64 84, align 8
 @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp2E = internal addrspace(1) global i64 84, align 8
 @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp3E = internal addrspace(1) global i64 84, align 8
 
 ; Function Attrs: convergent mustprogress norecurse nounwind willreturn
-define protected amdgpu_kernel void @_Z15tick_all_kernelPU7_AtomicmPmPl(i64 addrspace(1)* nocapture %0, i64 addrspace(1)* nocapture writeonly %1, i64 addrspace(1)* nocapture %2) local_unnamed_addr #0 !dbg !1764 {
-  unreachable
+define protected amdgpu_kernel void @_Z15tick_all_kernelPU7_AtomicmPmPli__old__scabbard_instr_replaced__old__(i64 addrspace(1)* nocapture %0, i64 addrspace(1)* nocapture writeonly %1, i64 addrspace(1)* nocapture %2, i32 %3) local_unnamed_addr #0 !dbg !1763 {
+  %5 = tail call i32 @llvm.amdgcn.workitem.id.x(), !dbg !1775, !range !1783
+  %6 = zext i32 %5 to i64, !dbg !1775
+  %7 = tail call align 4 dereferenceable(64) i8 addrspace(4)* @llvm.amdgcn.dispatch.ptr(), !dbg !1784
+  %8 = tail call i32 @llvm.amdgcn.workgroup.id.x(), !dbg !1784
+  %9 = getelementptr i8, i8 addrspace(4)* %7, i64 4, !dbg !1784
+  %10 = bitcast i8 addrspace(4)* %9 to i16 addrspace(4)*, !dbg !1784
+  %11 = load i16, i16 addrspace(4)* %10, align 4, !dbg !1784, !range !1785, !invariant.load !1786
+  %12 = zext i16 %11 to i64, !dbg !1784
+  %13 = zext i32 %8 to i64, !dbg !1787
+  %14 = mul nuw nsw i64 %12, %13, !dbg !1788
+  %15 = add nuw nsw i64 %14, %6, !dbg !1789
+  %16 = shl i64 %15, 32, !dbg !1790
+  %17 = ashr exact i64 %16, 32, !dbg !1790
+  %18 = getelementptr inbounds i64, i64 addrspace(1)* %2, i64 %17
+  %19 = load i64, i64 addrspace(1)* %18, align 8, !dbg !1791, !tbaa !1792, !amdgpu.noclobber !1786
+  %20 = add nsw i64 %17, %19, !dbg !1791
+  store i64 %20, i64 addrspace(1)* %18, align 8, !dbg !1791, !tbaa !1792
+  %21 = atomicrmw add i64 addrspace(1)* %0, i64 1 seq_cst, align 8, !dbg !1796
+  %22 = add i64 %21, 1, !dbg !1796
+  %23 = add i32 %5, %3, !dbg !1797
+  %24 = zext i32 %23 to i64, !dbg !1798
+  %25 = getelementptr inbounds i64, i64 addrspace(1)* %1, i64 %24, !dbg !1798
+  store i64 %22, i64 addrspace(1)* %25, align 8, !dbg !1799, !tbaa !1792
+  fence syncscope("workgroup") release, !dbg !1800
+  tail call void @llvm.amdgcn.s.barrier(), !dbg !1818
+  fence syncscope("workgroup") acquire, !dbg !1819
+  %26 = load i64, i64 addrspace(1)* %18, align 8, !dbg !1820, !tbaa !1792
+  %27 = add nsw i64 %26, %17, !dbg !1820
+  store i64 %27, i64 addrspace(1)* %18, align 8, !dbg !1820, !tbaa !1792
+  ret void, !dbg !1822
+}
+
+; Function Attrs: convergent mustprogress norecurse nounwind willreturn
+define protected amdgpu_kernel void @_Z12dummy_kernelv__old__scabbard_instr_replaced__old__() local_unnamed_addr #0 !dbg !1823 {
+  fence syncscope("workgroup") release, !dbg !1824
+  tail call void @llvm.amdgcn.s.barrier(), !dbg !1828
+  fence syncscope("workgroup") acquire, !dbg !1829
+  ret void, !dbg !1830
 }
 
 ; Function Attrs: argmemonly mustprogress nofree norecurse nosync nounwind willreturn writeonly
-define protected amdgpu_kernel void @_Z10dummy_initPl(i64 addrspace(1)* nocapture writeonly %0) local_unnamed_addr #1 !dbg !1775 {
+define protected amdgpu_kernel void @_Z10dummy_initPl__old__scabbard_instr_replaced__old__(i64 addrspace(1)* nocapture writeonly %0) local_unnamed_addr #1 !dbg !1831 {
+  %2 = tail call i32 @llvm.amdgcn.workitem.id.x(), !dbg !1835, !range !1783
+  %3 = zext i32 %2 to i64, !dbg !1835
+  %4 = tail call align 4 dereferenceable(64) i8 addrspace(4)* @llvm.amdgcn.dispatch.ptr(), !dbg !1836
+  %5 = tail call i32 @llvm.amdgcn.workgroup.id.x(), !dbg !1836
+  %6 = getelementptr i8, i8 addrspace(4)* %4, i64 4, !dbg !1836
+  %7 = bitcast i8 addrspace(4)* %6 to i16 addrspace(4)*, !dbg !1836
+  %8 = load i16, i16 addrspace(4)* %7, align 4, !dbg !1836, !range !1785, !invariant.load !1786
+  %9 = zext i16 %8 to i64, !dbg !1836
+  %10 = zext i32 %5 to i64, !dbg !1837
+  %11 = mul nuw nsw i64 %9, %10, !dbg !1838
+  %12 = add nuw nsw i64 %11, %3, !dbg !1839
+  %13 = shl i64 %12, 32, !dbg !1840
+  %14 = ashr exact i64 %13, 32, !dbg !1840
+  %15 = getelementptr inbounds i64, i64 addrspace(1)* %0, i64 %14, !dbg !1840
+  store i64 0, i64 addrspace(1)* %15, align 8, !dbg !1841, !tbaa !1792
+  ret void, !dbg !1842
+}
+
+; Function Attrs: convergent mustprogress nounwind willreturn
+declare void @llvm.amdgcn.s.barrier() #2
+
+; Function Attrs: mustprogress nofree nosync nounwind readnone speculatable willreturn
+declare i32 @llvm.amdgcn.workitem.id.x() #3
+
+; Function Attrs: mustprogress nofree nosync nounwind readnone speculatable willreturn
+declare align 4 i8 addrspace(4)* @llvm.amdgcn.dispatch.ptr() #3
+
+; Function Attrs: mustprogress nofree nosync nounwind readnone speculatable willreturn
+declare i32 @llvm.amdgcn.workgroup.id.x() #3
+
+; Function Attrs: convergent mustprogress nofree norecurse nounwind willreturn
+define amdgpu_kernel void @scabbard.trace.device.dummyFunc__old__scabbard_instr_replaced__old__(i16 %0, i8 addrspace(1)* %1, i8 addrspace(1)* nocapture readnone %2, i64 addrspace(1)* nocapture readonly %3) local_unnamed_addr #4 comdat($scabbard.trace.device.dummyFunc) {
+  %5 = alloca i64, align 8, addrspace(5)
+  %6 = addrspacecast i8 addrspace(1)* %1 to i8*
+  %7 = addrspacecast i64 addrspace(1)* %3 to i64*
+  %8 = bitcast i64 addrspace(5)* %5 to i8 addrspace(5)*
+  call void @llvm.lifetime.start.p5i8(i64 8, i8 addrspace(5)* %8) #9
+  %9 = addrspacecast i8 addrspace(5)* %8 to i8*
+  call fastcc void @"scabbard.trace.device.trace_append$mem"(i8* %9, i16 zeroext %0, i8* %6, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_114src_id_reg_tmpE to i64*), i32 19, i32 9) #9
+  call fastcc void @"scabbard.trace.device.trace_append$mem"(i8* %9, i16 zeroext %0, i8* %6, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp2E to i64*), i32 1024, i32 4) #9
+  call fastcc void @"scabbard.trace.device.trace_append$mem"(i8* %9, i16 zeroext %0, i8* %6, i64* %7, i32 10240, i32 40) #9
+  call fastcc void @"scabbard.trace.device.trace_append$alloc"(i8* %9, i16 zeroext %0, i8* %6, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp2E to i64*), i32 88, i32 256, i64 7) #9
+  call fastcc void @"scabbard.trace.device.trace_append$alloc"(i8* %9, i16 zeroext %0, i8* %6, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp3E to i64*), i32 98, i32 6, i64 23) #9
+  call fastcc void @"scabbard.trace.device.trace_append$alloc"(i8* %9, i16 zeroext %0, i8* %6, i64* %7, i32 980, i32 60, i64 230) #9
+  call void @llvm.lifetime.end.p5i8(i64 8, i8 addrspace(5)* %8) #9
+  ret void
+}
+
+; Function Attrs: argmemonly nocallback nofree nosync nounwind willreturn
+declare void @llvm.lifetime.start.p5i8(i64 immarg, i8 addrspace(5)* nocapture) #5
+
+; Function Attrs: mustprogress nofree noinline norecurse nounwind willreturn
+define internal fastcc void @"scabbard.trace.device.trace_append$mem"(i8* nocapture %0, i16 zeroext %1, i8* %2, i64* nocapture readonly %3, i32 %4, i32 %5) unnamed_addr #6 {
+  %7 = alloca [6 x i8], align 2, addrspace(5)
+  %8 = alloca [7 x i8], align 1, addrspace(5)
+  %9 = getelementptr inbounds [6 x i8], [6 x i8] addrspace(5)* %7, i32 0, i32 0
+  call void @llvm.lifetime.start.p5i8(i64 6, i8 addrspace(5)* %9)
+  %10 = getelementptr inbounds [7 x i8], [7 x i8] addrspace(5)* %8, i32 0, i32 0
+  call void @llvm.lifetime.start.p5i8(i64 7, i8 addrspace(5)* %10)
+  %11 = getelementptr inbounds i8, i8* %0, i64 8
+  %12 = bitcast i8* %11 to i64*
+  %13 = atomicrmw add i64* %12, i64 1 seq_cst, align 8
+  %14 = tail call i32 @llvm.amdgcn.workgroup.id.x()
+  %15 = tail call i32 @llvm.amdgcn.workgroup.id.y()
+  %16 = tail call i32 @llvm.amdgcn.workgroup.id.z()
+  %17 = tail call i32 @llvm.amdgcn.workitem.id.x(), !range !1783
+  %18 = tail call i32 @llvm.amdgcn.workitem.id.y(), !range !1783
+  %19 = tail call i32 @llvm.amdgcn.workitem.id.z(), !range !1783
+  %20 = load i64, i64* %3, align 8, !tbaa !1792
+  %21 = bitcast i8* %0 to i32*
+  %22 = load i32, i32* %21, align 1
+  %23 = trunc i32 %19 to i8
+  %24 = getelementptr inbounds i8, i8* %0, i64 40
+  %25 = bitcast i8* %24 to [128 x %"struct.scabbard::TraceData"]*
+  %26 = getelementptr inbounds i8, i8* %0, i64 16
+  %27 = bitcast i8* %26 to i64*
+  %28 = atomicrmw add i64* %27, i64 1 seq_cst, align 8
+  %29 = and i64 %28, 127
+  %30 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29
+  %31 = bitcast %"struct.scabbard::TraceData"* %30 to i8*
+  %32 = getelementptr inbounds %"struct.scabbard::TraceData", %"struct.scabbard::TraceData"* %30, i64 0, i32 0
+  store i64 %13, i64* %32, align 8, !tbaa.struct !1843
+  %33 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29, i32 1
+  store i16 %1, i16* %33, align 8, !tbaa.struct !1853
+  %34 = getelementptr inbounds i8, i8* %31, i64 10
+  call void @llvm.memcpy.p0i8.p5i8.i64(i8* noundef nonnull align 2 dereferenceable(6) %34, i8 addrspace(5)* noundef align 2 dereferenceable(6) %9, i64 6, i1 false), !tbaa.struct !1854
+  %35 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29, i32 2
+  %36 = bitcast %"union.scabbard::ThreadId"* %35 to i32*
+  store i32 %22, i32* %36, align 8, !tbaa.struct !1855
+  %37 = getelementptr inbounds i8, i8* %31, i64 20
+  %38 = bitcast i8* %37 to i32*
+  store i32 %14, i32* %38, align 4, !tbaa.struct !1856
+  %39 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29, i32 2, i32 1
+  %40 = insertelement <4 x i32> poison, i32 %15, i64 0
+  %41 = insertelement <4 x i32> %40, i32 %16, i64 1
+  %42 = insertelement <4 x i32> %41, i32 %17, i64 2
+  %43 = insertelement <4 x i32> %42, i32 %18, i64 3
+  %44 = trunc <4 x i32> %43 to <4 x i16>
+  %45 = bitcast [16 x i8]* %39 to <4 x i16>*
+  store <4 x i16> %44, <4 x i16>* %45, align 8
+  %46 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29, i32 2, i32 1, i64 8
+  store i8 %23, i8* %46, align 8, !tbaa.struct !1857
+  %47 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29, i32 2, i32 1, i64 9
+  call void @llvm.memcpy.p0i8.p5i8.i64(i8* noundef nonnull align 1 dereferenceable(7) %47, i8 addrspace(5)* noundef align 1 dereferenceable(7) %10, i64 7, i1 false), !tbaa.struct !1858
+  %48 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29, i32 3
+  store i8* %2, i8** %48, align 8, !tbaa.struct !1859
+  %49 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29, i32 4, i32 0
+  store i64 %20, i64* %49, align 8, !tbaa.struct !1860
+  %50 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29, i32 4, i32 1
+  store i32 %4, i32* %50, align 8, !tbaa.struct !1861
+  %51 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29, i32 4, i32 2
+  store i32 %5, i32* %51, align 4, !tbaa.struct !1862
+  %52 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29, i32 5
+  store i64 0, i64* %52, align 8, !tbaa.struct !1863
+  call void @llvm.lifetime.end.p5i8(i64 6, i8 addrspace(5)* %9)
+  call void @llvm.lifetime.end.p5i8(i64 7, i8 addrspace(5)* %10)
+  ret void
+}
+
+; Function Attrs: mustprogress nofree noinline norecurse nounwind willreturn
+define internal fastcc void @"scabbard.trace.device.trace_append$alloc"(i8* nocapture %0, i16 zeroext %1, i8* %2, i64* nocapture readonly %3, i32 %4, i32 %5, i64 %6) unnamed_addr #6 {
+  %8 = alloca [6 x i8], align 2, addrspace(5)
+  %9 = alloca [7 x i8], align 1, addrspace(5)
+  %10 = getelementptr inbounds [6 x i8], [6 x i8] addrspace(5)* %8, i32 0, i32 0
+  call void @llvm.lifetime.start.p5i8(i64 6, i8 addrspace(5)* %10)
+  %11 = getelementptr inbounds [7 x i8], [7 x i8] addrspace(5)* %9, i32 0, i32 0
+  call void @llvm.lifetime.start.p5i8(i64 7, i8 addrspace(5)* %11)
+  %12 = getelementptr inbounds i8, i8* %0, i64 8
+  %13 = bitcast i8* %12 to i64*
+  %14 = atomicrmw add i64* %13, i64 1 seq_cst, align 8
+  %15 = tail call i32 @llvm.amdgcn.workgroup.id.x()
+  %16 = tail call i32 @llvm.amdgcn.workgroup.id.y()
+  %17 = tail call i32 @llvm.amdgcn.workgroup.id.z()
+  %18 = tail call i32 @llvm.amdgcn.workitem.id.x(), !range !1783
+  %19 = tail call i32 @llvm.amdgcn.workitem.id.y(), !range !1783
+  %20 = tail call i32 @llvm.amdgcn.workitem.id.z(), !range !1783
+  %21 = load i64, i64* %3, align 8, !tbaa !1792
+  %22 = bitcast i8* %0 to i32*
+  %23 = load i32, i32* %22, align 1
+  %24 = trunc i32 %20 to i8
+  %25 = getelementptr inbounds i8, i8* %0, i64 40
+  %26 = bitcast i8* %25 to [128 x %"struct.scabbard::TraceData"]*
+  %27 = getelementptr inbounds i8, i8* %0, i64 16
+  %28 = bitcast i8* %27 to i64*
+  %29 = atomicrmw add i64* %28, i64 1 seq_cst, align 8
+  %30 = and i64 %29, 127
+  %31 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30
+  %32 = bitcast %"struct.scabbard::TraceData"* %31 to i8*
+  %33 = getelementptr inbounds %"struct.scabbard::TraceData", %"struct.scabbard::TraceData"* %31, i64 0, i32 0
+  store i64 %14, i64* %33, align 8, !tbaa.struct !1843
+  %34 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30, i32 1
+  store i16 %1, i16* %34, align 8, !tbaa.struct !1853
+  %35 = getelementptr inbounds i8, i8* %32, i64 10
+  call void @llvm.memcpy.p0i8.p5i8.i64(i8* noundef nonnull align 2 dereferenceable(6) %35, i8 addrspace(5)* noundef align 2 dereferenceable(6) %10, i64 6, i1 false), !tbaa.struct !1854
+  %36 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30, i32 2
+  %37 = bitcast %"union.scabbard::ThreadId"* %36 to i32*
+  store i32 %23, i32* %37, align 8, !tbaa.struct !1855
+  %38 = getelementptr inbounds i8, i8* %32, i64 20
+  %39 = bitcast i8* %38 to i32*
+  store i32 %15, i32* %39, align 4, !tbaa.struct !1856
+  %40 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30, i32 2, i32 1
+  %41 = insertelement <4 x i32> poison, i32 %16, i64 0
+  %42 = insertelement <4 x i32> %41, i32 %17, i64 1
+  %43 = insertelement <4 x i32> %42, i32 %18, i64 2
+  %44 = insertelement <4 x i32> %43, i32 %19, i64 3
+  %45 = trunc <4 x i32> %44 to <4 x i16>
+  %46 = bitcast [16 x i8]* %40 to <4 x i16>*
+  store <4 x i16> %45, <4 x i16>* %46, align 8
+  %47 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30, i32 2, i32 1, i64 8
+  store i8 %24, i8* %47, align 8, !tbaa.struct !1857
+  %48 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30, i32 2, i32 1, i64 9
+  call void @llvm.memcpy.p0i8.p5i8.i64(i8* noundef nonnull align 1 dereferenceable(7) %48, i8 addrspace(5)* noundef align 1 dereferenceable(7) %11, i64 7, i1 false), !tbaa.struct !1858
+  %49 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30, i32 3
+  store i8* %2, i8** %49, align 8, !tbaa.struct !1859
+  %50 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30, i32 4, i32 0
+  store i64 %21, i64* %50, align 8, !tbaa.struct !1860
+  %51 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30, i32 4, i32 1
+  store i32 %4, i32* %51, align 8, !tbaa.struct !1861
+  %52 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30, i32 4, i32 2
+  store i32 %5, i32* %52, align 4, !tbaa.struct !1862
+  %53 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30, i32 5
+  store i64 %6, i64* %53, align 8, !tbaa.struct !1863
+  call void @llvm.lifetime.end.p5i8(i64 6, i8 addrspace(5)* %10)
+  call void @llvm.lifetime.end.p5i8(i64 7, i8 addrspace(5)* %11)
+  ret void
+}
+
+; Function Attrs: argmemonly nocallback nofree nosync nounwind willreturn
+declare void @llvm.lifetime.end.p5i8(i64 immarg, i8 addrspace(5)* nocapture) #5
+
+; Function Attrs: nounwind readnone speculatable willreturn
+declare i32 @llvm.amdgcn.workgroup.id.y() #7
+
+; Function Attrs: nounwind readnone speculatable willreturn
+declare i32 @llvm.amdgcn.workgroup.id.z() #7
+
+; Function Attrs: nounwind readnone speculatable willreturn
+declare i32 @llvm.amdgcn.workitem.id.y() #7
+
+; Function Attrs: nounwind readnone speculatable willreturn
+declare i32 @llvm.amdgcn.workitem.id.z() #7
+
+; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+declare void @llvm.memcpy.p0i8.p5i8.i64(i8* noalias nocapture writeonly, i8 addrspace(5)* noalias nocapture readonly, i64, i1 immarg) #8
+
+; Function Attrs: convergent mustprogress norecurse nounwind willreturn
+define protected amdgpu_kernel void @_Z15tick_all_kernelPU7_AtomicmPmPli(i64 addrspace(1)* nocapture %0, i64 addrspace(1)* nocapture writeonly %1, i64 addrspace(1)* nocapture %2, i32 %3, ptr %4) local_unnamed_addr #0 !dbg !1864 {
   unreachable
 }
 
-; Function Attrs: mustprogress nofree nosync nounwind readnone speculatable willreturn
-declare i32 @llvm.amdgcn.workitem.id.x() #2
-
-; Function Attrs: mustprogress nofree nosync nounwind readnone speculatable willreturn
-declare align 4 i8 addrspace(4)* @llvm.amdgcn.dispatch.ptr() #2
-
-; Function Attrs: mustprogress nofree nosync nounwind readnone speculatable willreturn
-declare i32 @llvm.amdgcn.workgroup.id.x() #2
-
 ; Function Attrs: convergent mustprogress norecurse nounwind willreturn
-define amdgpu_kernel void @scabbard.trace.device.dummyFunc(i16 %0, i8 addrspace(1)* %1, i8 addrspace(1)* nocapture readnone %2, i64 addrspace(1)* nocapture readonly %3) local_unnamed_addr #0 comdat {
-  %5 = addrspacecast i8 addrspace(1)* %1 to i8*
-  %6 = addrspacecast i64 addrspace(1)* %3 to i64*
-  tail call fastcc void @"scabbard.trace.device.trace_append$mem"(i16 zeroext %0, i8* %5, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_114src_id_reg_tmpE to i64*), i32 19, i32 9) #7
-  tail call fastcc void @"scabbard.trace.device.trace_append$mem"(i16 zeroext %0, i8* %5, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp2E to i64*), i32 1024, i32 4) #7
-  tail call fastcc void @"scabbard.trace.device.trace_append$mem"(i16 zeroext %0, i8* %5, i64* %6, i32 10240, i32 40) #7
-  tail call fastcc void @"scabbard.trace.device.trace_append$alloc"(i16 zeroext %0, i8* %5, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp2E to i64*), i32 88, i32 256, i64 7) #7
-  tail call fastcc void @"scabbard.trace.device.trace_append$alloc"(i16 zeroext %0, i8* %5, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp3E to i64*), i32 98, i32 6, i64 23) #7
-  tail call fastcc void @"scabbard.trace.device.trace_append$alloc"(i16 zeroext %0, i8* %5, i64* %6, i32 980, i32 60, i64 230) #7
-  ret void
+define protected amdgpu_kernel void @_Z12dummy_kernelv(ptr %0) local_unnamed_addr #0 !dbg !1870 {
+  fence syncscope("workgroup") release, !dbg !1871
+  tail call void @llvm.amdgcn.s.barrier(), !dbg !1875
+  fence syncscope("workgroup") acquire, !dbg !1876
+  ret void, !dbg !1877
 }
 
-; Function Attrs: mustprogress noinline norecurse nounwind willreturn
-define internal fastcc void @"scabbard.trace.device.trace_append$mem"(i16 zeroext %0, i8* %1, i64* nocapture readonly %2, i32 %3, i32 %4) unnamed_addr #3 {
-  %6 = tail call align 4 dereferenceable(64) i8 addrspace(4)* @llvm.amdgcn.dispatch.ptr()
-  %7 = tail call i32 @llvm.amdgcn.workgroup.id.x()
-  %8 = getelementptr i8, i8 addrspace(4)* %6, i64 4
-  %9 = bitcast i8 addrspace(4)* %8 to i16 addrspace(4)*
-  %10 = load i16, i16 addrspace(4)* %9, align 4, !range !1781, !invariant.load !1782
-  %11 = zext i16 %10 to i32
-  %12 = getelementptr inbounds i8, i8 addrspace(4)* %6, i64 12
-  %13 = bitcast i8 addrspace(4)* %12 to i32 addrspace(4)*
-  %14 = load i32, i32 addrspace(4)* %13, align 4, !tbaa !1783
-  %15 = mul i32 %7, %11
-  %16 = sub i32 %14, %15
-  %17 = tail call i32 @llvm.umin.i32(i32 %16, i32 %11)
-  %18 = mul i32 %17, %7
-  %19 = tail call i32 @llvm.amdgcn.workgroup.id.y()
-  %20 = getelementptr i8, i8 addrspace(4)* %6, i64 6
-  %21 = bitcast i8 addrspace(4)* %20 to i16 addrspace(4)*
-  %22 = load i16, i16 addrspace(4)* %21, align 2, !range !1781, !invariant.load !1782
-  %23 = zext i16 %22 to i32
-  %24 = getelementptr inbounds i8, i8 addrspace(4)* %6, i64 16
-  %25 = bitcast i8 addrspace(4)* %24 to i32 addrspace(4)*
-  %26 = load i32, i32 addrspace(4)* %25, align 8, !tbaa !1792
-  %27 = mul i32 %19, %23
-  %28 = sub i32 %26, %27
-  %29 = tail call i32 @llvm.umin.i32(i32 %28, i32 %23)
-  %30 = mul i32 %29, %19
-  %31 = tail call i32 @llvm.amdgcn.workgroup.id.z()
-  %32 = getelementptr i8, i8 addrspace(4)* %6, i64 8
-  %33 = bitcast i8 addrspace(4)* %32 to i16 addrspace(4)*
-  %34 = load i16, i16 addrspace(4)* %33, align 4, !range !1781, !invariant.load !1782
-  %35 = zext i16 %34 to i32
-  %36 = getelementptr inbounds i8, i8 addrspace(4)* %6, i64 20
-  %37 = bitcast i8 addrspace(4)* %36 to i32 addrspace(4)*
-  %38 = load i32, i32 addrspace(4)* %37, align 4, !tbaa !1793
-  %39 = mul i32 %31, %35
-  %40 = sub i32 %38, %39
-  %41 = tail call i32 @llvm.umin.i32(i32 %40, i32 %35)
-  %42 = mul i32 %41, %31
-  %43 = tail call i32 @llvm.amdgcn.workitem.id.x(), !range !1794
-  %44 = tail call i32 @llvm.amdgcn.workitem.id.y(), !range !1794
-  %45 = tail call i32 @llvm.amdgcn.workitem.id.z(), !range !1794
-  %46 = add nuw nsw i32 %44, %43
-  %47 = add nuw nsw i32 %46, %45
-  %48 = add i32 %47, %18
-  %49 = add i32 %48, %30
-  %50 = add i32 %49, %42
-  %51 = and i32 %50, 63
-  %52 = zext i32 %51 to i64
-  %53 = tail call i64 @llvm.amdgcn.s.memrealtime()
-  %54 = load i64, i64* %2, align 8, !tbaa !1795
-  %55 = trunc i32 %45 to i8
-  %56 = load %"struct.scabbard::trace::DeviceAsyncQueue"*, %"struct.scabbard::trace::DeviceAsyncQueue"* addrspace(1)* @_ZN8scabbard5trace19DEVICE_TRACE_LOGGERE, align 8, !tbaa !1799
-  %57 = getelementptr inbounds %"struct.scabbard::trace::DeviceAsyncQueue", %"struct.scabbard::trace::DeviceAsyncQueue"* %56, i64 0, i32 0, i64 %52, i32 0
-  %58 = atomicrmw add i64* %57, i64 1 seq_cst, align 8
-  %59 = add i64 %58, 1
-  %60 = and i64 %59, 63
-  %61 = getelementptr inbounds %"struct.scabbard::trace::DeviceAsyncQueue", %"struct.scabbard::trace::DeviceAsyncQueue"* %56, i64 0, i32 0, i64 %52, i32 1, i64 %60
-  %62 = bitcast %"struct.scabbard::TraceData"* %61 to i8*
-  %63 = lshr i64 %53, 8
-  %64 = lshr i64 %53, 16
-  %65 = lshr i64 %53, 24
-  %66 = lshr i64 %53, 32
-  %67 = lshr i64 %53, 40
-  %68 = lshr i64 %53, 48
-  %69 = lshr i64 %53, 56
-  %70 = insertelement <8 x i64> poison, i64 %53, i64 0
-  %71 = insertelement <8 x i64> %70, i64 %63, i64 1
-  %72 = insertelement <8 x i64> %71, i64 %64, i64 2
-  %73 = insertelement <8 x i64> %72, i64 %65, i64 3
-  %74 = insertelement <8 x i64> %73, i64 %66, i64 4
-  %75 = insertelement <8 x i64> %74, i64 %67, i64 5
-  %76 = insertelement <8 x i64> %75, i64 %68, i64 6
-  %77 = insertelement <8 x i64> %76, i64 %69, i64 7
-  %78 = trunc <8 x i64> %77 to <8 x i8>
-  %79 = bitcast %"struct.scabbard::TraceData"* %61 to <8 x i8>*
-  store <8 x i8> %78, <8 x i8>* %79, align 8, !tbaa !1801
-  %80 = getelementptr inbounds %"struct.scabbard::trace::DeviceAsyncQueue", %"struct.scabbard::trace::DeviceAsyncQueue"* %56, i64 0, i32 0, i64 %52, i32 1, i64 %60, i32 1
-  %81 = bitcast i16* %80 to i8*
-  %82 = trunc i16 %0 to i8
-  store i8 %82, i8* %81, align 8, !tbaa !1801
-  %83 = lshr i16 %0, 8
-  %84 = trunc i16 %83 to i8
-  %85 = getelementptr inbounds i8, i8* %62, i64 9
-  store i8 %84, i8* %85, align 1, !tbaa !1801
-  %86 = getelementptr inbounds %"struct.scabbard::trace::DeviceAsyncQueue", %"struct.scabbard::trace::DeviceAsyncQueue"* %56, i64 0, i32 0, i64 %52, i32 1, i64 %60, i32 2
-  %87 = lshr i32 %7, 8
-  %88 = lshr i32 %7, 16
-  %89 = lshr i32 %7, 24
-  %90 = lshr i32 %19, 8
-  %91 = lshr i32 %31, 8
-  %92 = insertelement <8 x i32> poison, i32 %7, i64 0
-  %93 = insertelement <8 x i32> %92, i32 %87, i64 1
-  %94 = insertelement <8 x i32> %93, i32 %88, i64 2
-  %95 = insertelement <8 x i32> %94, i32 %89, i64 3
-  %96 = insertelement <8 x i32> %95, i32 %19, i64 4
-  %97 = insertelement <8 x i32> %96, i32 %90, i64 5
-  %98 = insertelement <8 x i32> %97, i32 %31, i64 6
-  %99 = insertelement <8 x i32> %98, i32 %91, i64 7
-  %100 = trunc <8 x i32> %99 to <8 x i8>
-  %101 = bitcast %"union.scabbard::ThreadId"* %86 to <8 x i8>*
-  store <8 x i8> %100, <8 x i8>* %101, align 8, !tbaa !1801
-  %102 = getelementptr inbounds %"struct.scabbard::trace::DeviceAsyncQueue", %"struct.scabbard::trace::DeviceAsyncQueue"* %56, i64 0, i32 0, i64 %52, i32 1, i64 %60, i32 2, i32 1, i64 0
-  %103 = lshr i32 %43, 8
-  %104 = lshr i32 %44, 8
-  %105 = insertelement <4 x i32> poison, i32 %43, i64 0
-  %106 = insertelement <4 x i32> %105, i32 %103, i64 1
-  %107 = insertelement <4 x i32> %106, i32 %44, i64 2
-  %108 = insertelement <4 x i32> %107, i32 %104, i64 3
-  %109 = trunc <4 x i32> %108 to <4 x i8>
-  %110 = bitcast i8* %102 to <4 x i8>*
-  store <4 x i8> %109, <4 x i8>* %110, align 8, !tbaa !1801
-  %111 = getelementptr inbounds %"struct.scabbard::trace::DeviceAsyncQueue", %"struct.scabbard::trace::DeviceAsyncQueue"* %56, i64 0, i32 0, i64 %52, i32 1, i64 %60, i32 2, i32 1, i64 4
-  store i8 %55, i8* %111, align 4, !tbaa !1801
-  %112 = getelementptr inbounds %"struct.scabbard::trace::DeviceAsyncQueue", %"struct.scabbard::trace::DeviceAsyncQueue"* %56, i64 0, i32 0, i64 %52, i32 1, i64 %60, i32 3
-  %113 = ptrtoint i8* %1 to i64
-  %114 = lshr i64 %113, 8
-  %115 = lshr i64 %113, 16
-  %116 = lshr i64 %113, 24
-  %117 = lshr i64 %113, 32
-  %118 = lshr i64 %113, 40
-  %119 = lshr i64 %113, 48
-  %120 = lshr i64 %113, 56
-  %121 = insertelement <8 x i64> poison, i64 %113, i64 0
-  %122 = insertelement <8 x i64> %121, i64 %114, i64 1
-  %123 = insertelement <8 x i64> %122, i64 %115, i64 2
-  %124 = insertelement <8 x i64> %123, i64 %116, i64 3
-  %125 = insertelement <8 x i64> %124, i64 %117, i64 4
-  %126 = insertelement <8 x i64> %125, i64 %118, i64 5
-  %127 = insertelement <8 x i64> %126, i64 %119, i64 6
-  %128 = insertelement <8 x i64> %127, i64 %120, i64 7
-  %129 = trunc <8 x i64> %128 to <8 x i8>
-  %130 = bitcast i8** %112 to <8 x i8>*
-  store <8 x i8> %129, <8 x i8>* %130, align 8, !tbaa !1801
-  %131 = getelementptr inbounds %"struct.scabbard::trace::DeviceAsyncQueue", %"struct.scabbard::trace::DeviceAsyncQueue"* %56, i64 0, i32 0, i64 %52, i32 1, i64 %60, i32 4
-  %132 = lshr i64 %54, 8
-  %133 = lshr i64 %54, 16
-  %134 = lshr i64 %54, 24
-  %135 = lshr i64 %54, 32
-  %136 = lshr i64 %54, 40
-  %137 = lshr i64 %54, 48
-  %138 = lshr i64 %54, 56
-  %139 = insertelement <8 x i64> poison, i64 %54, i64 0
-  %140 = insertelement <8 x i64> %139, i64 %132, i64 1
-  %141 = insertelement <8 x i64> %140, i64 %133, i64 2
-  %142 = insertelement <8 x i64> %141, i64 %134, i64 3
-  %143 = insertelement <8 x i64> %142, i64 %135, i64 4
-  %144 = insertelement <8 x i64> %143, i64 %136, i64 5
-  %145 = insertelement <8 x i64> %144, i64 %137, i64 6
-  %146 = insertelement <8 x i64> %145, i64 %138, i64 7
-  %147 = trunc <8 x i64> %146 to <8 x i8>
-  %148 = bitcast %"struct.scabbard::LocationMetadata"* %131 to <8 x i8>*
-  store <8 x i8> %147, <8 x i8>* %148, align 8, !tbaa !1801
-  %149 = getelementptr inbounds %"struct.scabbard::trace::DeviceAsyncQueue", %"struct.scabbard::trace::DeviceAsyncQueue"* %56, i64 0, i32 0, i64 %52, i32 1, i64 %60, i32 4, i32 1
-  %150 = lshr i32 %3, 8
-  %151 = lshr i32 %3, 16
-  %152 = lshr i32 %3, 24
-  %153 = lshr i32 %4, 8
-  %154 = lshr i32 %4, 16
-  %155 = lshr i32 %4, 24
-  %156 = insertelement <8 x i32> poison, i32 %3, i64 0
-  %157 = insertelement <8 x i32> %156, i32 %4, i64 4
-  %158 = insertelement <8 x i32> %157, i32 %150, i64 1
-  %159 = insertelement <8 x i32> %158, i32 %151, i64 2
-  %160 = insertelement <8 x i32> %159, i32 %152, i64 3
-  %161 = insertelement <8 x i32> %160, i32 %153, i64 5
-  %162 = insertelement <8 x i32> %161, i32 %154, i64 6
-  %163 = insertelement <8 x i32> %162, i32 %155, i64 7
-  %164 = trunc <8 x i32> %163 to <8 x i8>
-  %165 = bitcast i32* %149 to <8 x i8>*
-  store <8 x i8> %164, <8 x i8>* %165, align 8, !tbaa !1801
-  %166 = getelementptr inbounds %"struct.scabbard::trace::DeviceAsyncQueue", %"struct.scabbard::trace::DeviceAsyncQueue"* %56, i64 0, i32 0, i64 %52, i32 1, i64 %60, i32 5
-  %167 = bitcast i64* %166 to i8*
-  store i8 0, i8* %167, align 8, !tbaa !1801
-  %168 = getelementptr inbounds i8, i8* %62, i64 57
-  store i8 0, i8* %168, align 1, !tbaa !1801
-  %169 = getelementptr inbounds i8, i8* %62, i64 58
-  store i8 0, i8* %169, align 2, !tbaa !1801
-  %170 = getelementptr inbounds i8, i8* %62, i64 59
-  store i8 0, i8* %170, align 1, !tbaa !1801
-  %171 = getelementptr inbounds i8, i8* %62, i64 60
-  store i8 0, i8* %171, align 4, !tbaa !1801
-  %172 = getelementptr inbounds i8, i8* %62, i64 61
-  store i8 0, i8* %172, align 1, !tbaa !1801
-  %173 = getelementptr inbounds i8, i8* %62, i64 62
-  store i8 0, i8* %173, align 2, !tbaa !1801
-  %174 = getelementptr inbounds i8, i8* %62, i64 63
-  store i8 0, i8* %174, align 1, !tbaa !1801
-  ret void
+; Function Attrs: argmemonly mustprogress nofree norecurse nosync nounwind willreturn writeonly
+define protected amdgpu_kernel void @_Z10dummy_initPl(i64 addrspace(1)* nocapture writeonly %0, ptr %1) local_unnamed_addr #1 !dbg !1878 {
+  unreachable
 }
 
-; Function Attrs: mustprogress noinline norecurse nounwind willreturn
-define internal fastcc void @"scabbard.trace.device.trace_append$alloc"(i16 zeroext %0, i8* %1, i64* nocapture readonly %2, i32 %3, i32 %4, i64 %5) unnamed_addr #3 {
-  %7 = tail call align 4 dereferenceable(64) i8 addrspace(4)* @llvm.amdgcn.dispatch.ptr()
-  %8 = tail call i32 @llvm.amdgcn.workgroup.id.x()
-  %9 = getelementptr i8, i8 addrspace(4)* %7, i64 4
-  %10 = bitcast i8 addrspace(4)* %9 to i16 addrspace(4)*
-  %11 = load i16, i16 addrspace(4)* %10, align 4, !range !1781, !invariant.load !1782
-  %12 = zext i16 %11 to i32
-  %13 = getelementptr inbounds i8, i8 addrspace(4)* %7, i64 12
-  %14 = bitcast i8 addrspace(4)* %13 to i32 addrspace(4)*
-  %15 = load i32, i32 addrspace(4)* %14, align 4, !tbaa !1783
-  %16 = mul i32 %8, %12
-  %17 = sub i32 %15, %16
-  %18 = tail call i32 @llvm.umin.i32(i32 %17, i32 %12)
-  %19 = mul i32 %18, %8
-  %20 = tail call i32 @llvm.amdgcn.workgroup.id.y()
-  %21 = getelementptr i8, i8 addrspace(4)* %7, i64 6
-  %22 = bitcast i8 addrspace(4)* %21 to i16 addrspace(4)*
-  %23 = load i16, i16 addrspace(4)* %22, align 2, !range !1781, !invariant.load !1782
-  %24 = zext i16 %23 to i32
-  %25 = getelementptr inbounds i8, i8 addrspace(4)* %7, i64 16
-  %26 = bitcast i8 addrspace(4)* %25 to i32 addrspace(4)*
-  %27 = load i32, i32 addrspace(4)* %26, align 8, !tbaa !1792
-  %28 = mul i32 %20, %24
-  %29 = sub i32 %27, %28
-  %30 = tail call i32 @llvm.umin.i32(i32 %29, i32 %24)
-  %31 = mul i32 %30, %20
-  %32 = tail call i32 @llvm.amdgcn.workgroup.id.z()
-  %33 = getelementptr i8, i8 addrspace(4)* %7, i64 8
-  %34 = bitcast i8 addrspace(4)* %33 to i16 addrspace(4)*
-  %35 = load i16, i16 addrspace(4)* %34, align 4, !range !1781, !invariant.load !1782
-  %36 = zext i16 %35 to i32
-  %37 = getelementptr inbounds i8, i8 addrspace(4)* %7, i64 20
-  %38 = bitcast i8 addrspace(4)* %37 to i32 addrspace(4)*
-  %39 = load i32, i32 addrspace(4)* %38, align 4, !tbaa !1793
-  %40 = mul i32 %32, %36
-  %41 = sub i32 %39, %40
-  %42 = tail call i32 @llvm.umin.i32(i32 %41, i32 %36)
-  %43 = mul i32 %42, %32
-  %44 = tail call i32 @llvm.amdgcn.workitem.id.x(), !range !1794
-  %45 = tail call i32 @llvm.amdgcn.workitem.id.y(), !range !1794
-  %46 = tail call i32 @llvm.amdgcn.workitem.id.z(), !range !1794
-  %47 = add nuw nsw i32 %45, %44
-  %48 = add nuw nsw i32 %47, %46
-  %49 = add i32 %48, %19
-  %50 = add i32 %49, %31
-  %51 = add i32 %50, %43
-  %52 = and i32 %51, 63
-  %53 = zext i32 %52 to i64
-  %54 = tail call i64 @llvm.amdgcn.s.memtime()
-  %55 = load i64, i64* %2, align 8, !tbaa !1795
-  %56 = trunc i32 %46 to i8
-  %57 = load %"struct.scabbard::trace::DeviceAsyncQueue"*, %"struct.scabbard::trace::DeviceAsyncQueue"* addrspace(1)* @_ZN8scabbard5trace19DEVICE_TRACE_LOGGERE, align 8, !tbaa !1799
-  %58 = getelementptr inbounds %"struct.scabbard::trace::DeviceAsyncQueue", %"struct.scabbard::trace::DeviceAsyncQueue"* %57, i64 0, i32 0, i64 %53, i32 0
-  %59 = atomicrmw add i64* %58, i64 1 seq_cst, align 8
-  %60 = add i64 %59, 1
-  %61 = and i64 %60, 63
-  %62 = getelementptr inbounds %"struct.scabbard::trace::DeviceAsyncQueue", %"struct.scabbard::trace::DeviceAsyncQueue"* %57, i64 0, i32 0, i64 %53, i32 1, i64 %61
-  %63 = bitcast %"struct.scabbard::TraceData"* %62 to i8*
-  %64 = lshr i64 %54, 8
-  %65 = lshr i64 %54, 16
-  %66 = lshr i64 %54, 24
-  %67 = lshr i64 %54, 32
-  %68 = lshr i64 %54, 40
-  %69 = lshr i64 %54, 48
-  %70 = lshr i64 %54, 56
-  %71 = insertelement <8 x i64> poison, i64 %54, i64 0
-  %72 = insertelement <8 x i64> %71, i64 %64, i64 1
-  %73 = insertelement <8 x i64> %72, i64 %65, i64 2
-  %74 = insertelement <8 x i64> %73, i64 %66, i64 3
-  %75 = insertelement <8 x i64> %74, i64 %67, i64 4
-  %76 = insertelement <8 x i64> %75, i64 %68, i64 5
-  %77 = insertelement <8 x i64> %76, i64 %69, i64 6
-  %78 = insertelement <8 x i64> %77, i64 %70, i64 7
-  %79 = trunc <8 x i64> %78 to <8 x i8>
-  %80 = bitcast %"struct.scabbard::TraceData"* %62 to <8 x i8>*
-  store <8 x i8> %79, <8 x i8>* %80, align 8, !tbaa !1801
-  %81 = getelementptr inbounds %"struct.scabbard::trace::DeviceAsyncQueue", %"struct.scabbard::trace::DeviceAsyncQueue"* %57, i64 0, i32 0, i64 %53, i32 1, i64 %61, i32 1
-  %82 = bitcast i16* %81 to i8*
-  %83 = trunc i16 %0 to i8
-  store i8 %83, i8* %82, align 8, !tbaa !1801
-  %84 = lshr i16 %0, 8
-  %85 = trunc i16 %84 to i8
-  %86 = getelementptr inbounds i8, i8* %63, i64 9
-  store i8 %85, i8* %86, align 1, !tbaa !1801
-  %87 = getelementptr inbounds %"struct.scabbard::trace::DeviceAsyncQueue", %"struct.scabbard::trace::DeviceAsyncQueue"* %57, i64 0, i32 0, i64 %53, i32 1, i64 %61, i32 2
-  %88 = lshr i32 %8, 8
-  %89 = lshr i32 %8, 16
-  %90 = lshr i32 %8, 24
-  %91 = lshr i32 %20, 8
-  %92 = lshr i32 %32, 8
-  %93 = insertelement <8 x i32> poison, i32 %8, i64 0
-  %94 = insertelement <8 x i32> %93, i32 %88, i64 1
-  %95 = insertelement <8 x i32> %94, i32 %89, i64 2
-  %96 = insertelement <8 x i32> %95, i32 %90, i64 3
-  %97 = insertelement <8 x i32> %96, i32 %20, i64 4
-  %98 = insertelement <8 x i32> %97, i32 %91, i64 5
-  %99 = insertelement <8 x i32> %98, i32 %32, i64 6
-  %100 = insertelement <8 x i32> %99, i32 %92, i64 7
-  %101 = trunc <8 x i32> %100 to <8 x i8>
-  %102 = bitcast %"union.scabbard::ThreadId"* %87 to <8 x i8>*
-  store <8 x i8> %101, <8 x i8>* %102, align 8, !tbaa !1801
-  %103 = getelementptr inbounds %"struct.scabbard::trace::DeviceAsyncQueue", %"struct.scabbard::trace::DeviceAsyncQueue"* %57, i64 0, i32 0, i64 %53, i32 1, i64 %61, i32 2, i32 1, i64 0
-  %104 = lshr i32 %44, 8
-  %105 = lshr i32 %45, 8
-  %106 = insertelement <4 x i32> poison, i32 %44, i64 0
-  %107 = insertelement <4 x i32> %106, i32 %104, i64 1
-  %108 = insertelement <4 x i32> %107, i32 %45, i64 2
-  %109 = insertelement <4 x i32> %108, i32 %105, i64 3
-  %110 = trunc <4 x i32> %109 to <4 x i8>
-  %111 = bitcast i8* %103 to <4 x i8>*
-  store <4 x i8> %110, <4 x i8>* %111, align 8, !tbaa !1801
-  %112 = getelementptr inbounds %"struct.scabbard::trace::DeviceAsyncQueue", %"struct.scabbard::trace::DeviceAsyncQueue"* %57, i64 0, i32 0, i64 %53, i32 1, i64 %61, i32 2, i32 1, i64 4
-  store i8 %56, i8* %112, align 4, !tbaa !1801
-  %113 = getelementptr inbounds %"struct.scabbard::trace::DeviceAsyncQueue", %"struct.scabbard::trace::DeviceAsyncQueue"* %57, i64 0, i32 0, i64 %53, i32 1, i64 %61, i32 3
-  %114 = ptrtoint i8* %1 to i64
-  %115 = lshr i64 %114, 8
-  %116 = lshr i64 %114, 16
-  %117 = lshr i64 %114, 24
-  %118 = lshr i64 %114, 32
-  %119 = lshr i64 %114, 40
-  %120 = lshr i64 %114, 48
-  %121 = lshr i64 %114, 56
-  %122 = insertelement <8 x i64> poison, i64 %114, i64 0
-  %123 = insertelement <8 x i64> %122, i64 %115, i64 1
-  %124 = insertelement <8 x i64> %123, i64 %116, i64 2
-  %125 = insertelement <8 x i64> %124, i64 %117, i64 3
-  %126 = insertelement <8 x i64> %125, i64 %118, i64 4
-  %127 = insertelement <8 x i64> %126, i64 %119, i64 5
-  %128 = insertelement <8 x i64> %127, i64 %120, i64 6
-  %129 = insertelement <8 x i64> %128, i64 %121, i64 7
-  %130 = trunc <8 x i64> %129 to <8 x i8>
-  %131 = bitcast i8** %113 to <8 x i8>*
-  store <8 x i8> %130, <8 x i8>* %131, align 8, !tbaa !1801
-  %132 = getelementptr inbounds %"struct.scabbard::trace::DeviceAsyncQueue", %"struct.scabbard::trace::DeviceAsyncQueue"* %57, i64 0, i32 0, i64 %53, i32 1, i64 %61, i32 4
-  %133 = lshr i64 %55, 8
-  %134 = lshr i64 %55, 16
-  %135 = lshr i64 %55, 24
-  %136 = lshr i64 %55, 32
-  %137 = lshr i64 %55, 40
-  %138 = lshr i64 %55, 48
-  %139 = lshr i64 %55, 56
-  %140 = insertelement <8 x i64> poison, i64 %55, i64 0
-  %141 = insertelement <8 x i64> %140, i64 %133, i64 1
-  %142 = insertelement <8 x i64> %141, i64 %134, i64 2
-  %143 = insertelement <8 x i64> %142, i64 %135, i64 3
-  %144 = insertelement <8 x i64> %143, i64 %136, i64 4
-  %145 = insertelement <8 x i64> %144, i64 %137, i64 5
-  %146 = insertelement <8 x i64> %145, i64 %138, i64 6
-  %147 = insertelement <8 x i64> %146, i64 %139, i64 7
-  %148 = trunc <8 x i64> %147 to <8 x i8>
-  %149 = bitcast %"struct.scabbard::LocationMetadata"* %132 to <8 x i8>*
-  store <8 x i8> %148, <8 x i8>* %149, align 8, !tbaa !1801
-  %150 = getelementptr inbounds %"struct.scabbard::trace::DeviceAsyncQueue", %"struct.scabbard::trace::DeviceAsyncQueue"* %57, i64 0, i32 0, i64 %53, i32 1, i64 %61, i32 4, i32 1
-  %151 = lshr i32 %3, 8
-  %152 = lshr i32 %3, 16
-  %153 = lshr i32 %3, 24
-  %154 = lshr i32 %4, 8
-  %155 = lshr i32 %4, 16
-  %156 = lshr i32 %4, 24
-  %157 = insertelement <8 x i32> poison, i32 %3, i64 0
-  %158 = insertelement <8 x i32> %157, i32 %4, i64 4
-  %159 = insertelement <8 x i32> %158, i32 %151, i64 1
-  %160 = insertelement <8 x i32> %159, i32 %152, i64 2
-  %161 = insertelement <8 x i32> %160, i32 %153, i64 3
-  %162 = insertelement <8 x i32> %161, i32 %154, i64 5
-  %163 = insertelement <8 x i32> %162, i32 %155, i64 6
-  %164 = insertelement <8 x i32> %163, i32 %156, i64 7
-  %165 = trunc <8 x i32> %164 to <8 x i8>
-  %166 = bitcast i32* %150 to <8 x i8>*
-  store <8 x i8> %165, <8 x i8>* %166, align 8, !tbaa !1801
-  %167 = getelementptr inbounds %"struct.scabbard::trace::DeviceAsyncQueue", %"struct.scabbard::trace::DeviceAsyncQueue"* %57, i64 0, i32 0, i64 %53, i32 1, i64 %61, i32 5
-  %168 = lshr i64 %5, 8
-  %169 = lshr i64 %5, 16
-  %170 = lshr i64 %5, 24
-  %171 = lshr i64 %5, 32
-  %172 = lshr i64 %5, 40
-  %173 = lshr i64 %5, 48
-  %174 = lshr i64 %5, 56
-  %175 = insertelement <8 x i64> poison, i64 %5, i64 0
-  %176 = insertelement <8 x i64> %175, i64 %168, i64 1
-  %177 = insertelement <8 x i64> %176, i64 %169, i64 2
-  %178 = insertelement <8 x i64> %177, i64 %170, i64 3
-  %179 = insertelement <8 x i64> %178, i64 %171, i64 4
-  %180 = insertelement <8 x i64> %179, i64 %172, i64 5
-  %181 = insertelement <8 x i64> %180, i64 %173, i64 6
-  %182 = insertelement <8 x i64> %181, i64 %174, i64 7
-  %183 = trunc <8 x i64> %182 to <8 x i8>
-  %184 = bitcast i64* %167 to <8 x i8>*
-  store <8 x i8> %183, <8 x i8>* %184, align 8, !tbaa !1801
+; Function Attrs: convergent mustprogress nofree norecurse nounwind willreturn
+define amdgpu_kernel void @scabbard.trace.device.dummyFunc(i16 %0, i8 addrspace(1)* %1, i8 addrspace(1)* nocapture readnone %2, i64 addrspace(1)* nocapture readonly %3, ptr %4) local_unnamed_addr #4 {
+  %6 = alloca i64, align 8, addrspace(5)
+  %7 = addrspacecast i8 addrspace(1)* %1 to i8*
+  %8 = addrspacecast i64 addrspace(1)* %3 to i64*
+  %9 = bitcast i64 addrspace(5)* %6 to i8 addrspace(5)*
+  call void @llvm.lifetime.start.p5i8(i64 8, i8 addrspace(5)* %9) #9
+  %10 = addrspacecast i8 addrspace(5)* %9 to i8*
+  call fastcc void @"scabbard.trace.device.trace_append$mem"(i8* %10, i16 zeroext %0, i8* %7, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_114src_id_reg_tmpE to i64*), i32 19, i32 9) #9
+  call fastcc void @"scabbard.trace.device.trace_append$mem"(i8* %10, i16 zeroext %0, i8* %7, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp2E to i64*), i32 1024, i32 4) #9
+  call fastcc void @"scabbard.trace.device.trace_append$mem"(i8* %10, i16 zeroext %0, i8* %7, i64* %8, i32 10240, i32 40) #9
+  call fastcc void @"scabbard.trace.device.trace_append$alloc"(i8* %10, i16 zeroext %0, i8* %7, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp2E to i64*), i32 88, i32 256, i64 7) #9
+  call fastcc void @"scabbard.trace.device.trace_append$alloc"(i8* %10, i16 zeroext %0, i8* %7, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp3E to i64*), i32 98, i32 6, i64 23) #9
+  call fastcc void @"scabbard.trace.device.trace_append$alloc"(i8* %10, i16 zeroext %0, i8* %7, i64* %8, i32 980, i32 60, i64 230) #9
+  call void @llvm.lifetime.end.p5i8(i64 8, i8 addrspace(5)* %9) #9
   ret void
 }
-
-; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
-declare i32 @llvm.umin.i32(i32, i32) #4
-
-; Function Attrs: nounwind readnone speculatable willreturn
-declare i32 @llvm.amdgcn.workgroup.id.y() #5
-
-; Function Attrs: nounwind readnone speculatable willreturn
-declare i32 @llvm.amdgcn.workgroup.id.z() #5
-
-; Function Attrs: nounwind readnone speculatable willreturn
-declare i32 @llvm.amdgcn.workitem.id.y() #5
-
-; Function Attrs: nounwind readnone speculatable willreturn
-declare i32 @llvm.amdgcn.workitem.id.z() #5
-
-; Function Attrs: nounwind willreturn
-declare i64 @llvm.amdgcn.s.memtime() #6
-
-; Function Attrs: nounwind willreturn
-declare i64 @llvm.amdgcn.s.memrealtime() #6
 
 attributes #0 = { convergent mustprogress norecurse nounwind willreturn "amdgpu-flat-work-group-size"="1,1024" "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="gfx90a" "target-features"="+16-bit-insts,+ci-insts,+dl-insts,+dot1-insts,+dot2-insts,+dot3-insts,+dot4-insts,+dot5-insts,+dot6-insts,+dot7-insts,+dpp,+flat-address-space,+gfx8-insts,+gfx9-insts,+gfx90a-insts,+mai-insts,+s-memrealtime,+s-memtime-inst" "uniform-work-group-size"="true" }
 attributes #1 = { argmemonly mustprogress nofree norecurse nosync nounwind willreturn writeonly "amdgpu-flat-work-group-size"="1,1024" "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="gfx90a" "target-features"="+16-bit-insts,+ci-insts,+dl-insts,+dot1-insts,+dot2-insts,+dot3-insts,+dot4-insts,+dot5-insts,+dot6-insts,+dot7-insts,+dpp,+flat-address-space,+gfx8-insts,+gfx9-insts,+gfx90a-insts,+mai-insts,+s-memrealtime,+s-memtime-inst" "uniform-work-group-size"="true" }
-attributes #2 = { mustprogress nofree nosync nounwind readnone speculatable willreturn }
-attributes #3 = { mustprogress noinline norecurse nounwind willreturn "amdgpu-flat-work-group-size"="1,1024" "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="gfx90a" "target-features"="+16-bit-insts,+add-no-carry-insts,+aperture-regs,+atomic-fadd-no-rtn-insts,+atomic-fadd-rtn-insts,+atomic-pk-fadd-no-rtn-insts,+ci-insts,+dl-insts,+dot1-insts,+dot2-insts,+dot3-insts,+dot4-insts,+dot5-insts,+dot6-insts,+dot7-insts,+dpp,+dpp-64bit,+enable-ds128,+enable-prt-strict-null,+fast-denormal-f32,+fast-fmaf,+flat-address-space,+flat-for-global,+flat-global-insts,+flat-inst-offsets,+flat-scratch-insts,+fma-mix-insts,+fp64,+full-rate-64-ops,+gcn3-encoding,+gfx7-gfx8-gfx9-insts,+gfx8-insts,+gfx9,+gfx9-insts,+gfx90a-insts,+image-insts,+int-clamp-insts,+inv-2pi-inline-imm,+ldsbankcount32,+load-store-opt,+localmemorysize65536,+mad-mac-f32-insts,+mai-insts,+negative-scratch-offset-bug,+packed-fp32-ops,+packed-tid,+pk-fmac-f16-inst,+promote-alloca,+r128-a16,+s-memrealtime,+s-memtime-inst,+scalar-atomics,+scalar-flat-scratch-insts,+scalar-stores,+sdwa,+sdwa-omod,+sdwa-scalar,+sdwa-sdst,+sramecc-support,+trap-handler,+unaligned-access-mode,+unaligned-buffer-access,+unaligned-ds-access,+vgpr-index-mode,+vop3p,-wavefrontsize16,-wavefrontsize32,+wavefrontsize64,+xnack-support" }
-attributes #4 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
-attributes #5 = { nounwind readnone speculatable willreturn }
-attributes #6 = { nounwind willreturn }
-attributes #7 = { nounwind }
+attributes #2 = { convergent mustprogress nounwind willreturn }
+attributes #3 = { mustprogress nofree nosync nounwind readnone speculatable willreturn }
+attributes #4 = { convergent mustprogress nofree norecurse nounwind willreturn "amdgpu-flat-work-group-size"="1,1024" "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="gfx90a" "target-features"="+16-bit-insts,+ci-insts,+dl-insts,+dot1-insts,+dot2-insts,+dot3-insts,+dot4-insts,+dot5-insts,+dot6-insts,+dot7-insts,+dpp,+flat-address-space,+gfx8-insts,+gfx9-insts,+gfx90a-insts,+mai-insts,+s-memrealtime,+s-memtime-inst" "uniform-work-group-size"="true" }
+attributes #5 = { argmemonly nocallback nofree nosync nounwind willreturn }
+attributes #6 = { mustprogress nofree noinline norecurse nounwind willreturn "amdgpu-flat-work-group-size"="1,1024" "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="gfx90a" "target-features"="+16-bit-insts,+add-no-carry-insts,+aperture-regs,+atomic-fadd-no-rtn-insts,+atomic-fadd-rtn-insts,+atomic-pk-fadd-no-rtn-insts,+ci-insts,+dl-insts,+dot1-insts,+dot2-insts,+dot3-insts,+dot4-insts,+dot5-insts,+dot6-insts,+dot7-insts,+dpp,+dpp-64bit,+enable-ds128,+enable-prt-strict-null,+fast-denormal-f32,+fast-fmaf,+flat-address-space,+flat-for-global,+flat-global-insts,+flat-inst-offsets,+flat-scratch-insts,+fma-mix-insts,+fp64,+full-rate-64-ops,+gcn3-encoding,+gfx7-gfx8-gfx9-insts,+gfx8-insts,+gfx9,+gfx9-insts,+gfx90a-insts,+image-insts,+int-clamp-insts,+inv-2pi-inline-imm,+ldsbankcount32,+load-store-opt,+localmemorysize65536,+mad-mac-f32-insts,+mai-insts,+negative-scratch-offset-bug,+packed-fp32-ops,+packed-tid,+pk-fmac-f16-inst,+promote-alloca,+r128-a16,+s-memrealtime,+s-memtime-inst,+scalar-atomics,+scalar-flat-scratch-insts,+scalar-stores,+sdwa,+sdwa-omod,+sdwa-scalar,+sdwa-sdst,+sramecc-support,+trap-handler,+unaligned-access-mode,+unaligned-buffer-access,+unaligned-ds-access,+vgpr-index-mode,+vop3p,-wavefrontsize16,-wavefrontsize32,+wavefrontsize64,+xnack-support" }
+attributes #7 = { nounwind readnone speculatable willreturn }
+attributes #8 = { argmemonly nocallback nofree nounwind willreturn }
+attributes #9 = { nounwind }
 
 !llvm.dbg.cu = !{!0}
 !llvm.dbg.retainedNodes = !{!1712, !1754}
 !llvm.module.flags = !{!1757, !1758, !1759, !1760}
 !opencl.ocl.version = !{!1761, !1761}
-!llvm.ident = !{!1762, !1763}
+!llvm.ident = !{!1762, !1762}
 
 !0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus_14, file: !1, producer: "AMD clang version 15.0.0 (https://github.com/RadeonOpenCompute/llvm-project roc-5.4.3 23045 a29fe425c7b0e5aba97ed2f95f61fd5ecba68aed)", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug, enums: !2, retainedTypes: !26, imports: !42, splitDebugInlining: false, nameTableKind: None)
-!1 = !DIFile(filename: "test/managed_clock_test.cpp", directory: "/g/g11/osterhou/repos/scabbard", checksumkind: CSK_MD5, checksum: "3cdb439f8feef572cb544d3e9cde4206")
+!1 = !DIFile(filename: "test/managed_clock_test.cpp", directory: "/g/g11/osterhou/repos/scabbard", checksumkind: CSK_MD5, checksum: "f3b95071d78788dcbdfb6777dea84a9e")
 !2 = !{!3, !11, !19}
 !3 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "_Lock_policy", scope: !5, file: !4, line: 49, baseType: !6, size: 32, elements: !7, identifier: "_ZTSN9__gnu_cxx12_Lock_policyE")
 !4 = !DIFile(filename: "/opt/rh/gcc-toolset-10/root/usr/lib/gcc/x86_64-redhat-linux/10/../../../../include/c++/10/ext/concurrence.h", directory: "")
@@ -2235,45 +2081,125 @@ attributes #7 = { nounwind }
 !1760 = !{i32 7, !"PIC Level", i32 1}
 !1761 = !{i32 2, i32 0}
 !1762 = !{!"AMD clang version 15.0.0 (https://github.com/RadeonOpenCompute/llvm-project roc-5.4.3 23045 a29fe425c7b0e5aba97ed2f95f61fd5ecba68aed)"}
-!1763 = !{!"AMD clang version 15.0.0 (https://github.com/RadeonOpenCompute/llvm-project roc-5.4.1 22465 d6f0fe8b22e3d8ce0f2cbd657ea14b16043018a5)"}
-!1764 = distinct !DISubprogram(name: "tick_all_kernel", linkageName: "_Z15tick_all_kernelPU7_AtomicmPmPl", scope: !1, file: !1, line: 57, type: !1765, scopeLine: 58, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1771)
-!1765 = !DISubroutineType(types: !1766)
-!1766 = !{null, !1767, !1769, !1770}
-!1767 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !1768, size: 64)
-!1768 = !DIDerivedType(tag: DW_TAG_atomic_type, baseType: !1270)
-!1769 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !1270, size: 64)
-!1770 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !1233, size: 64)
-!1771 = !{!1772, !1773, !1774}
-!1772 = !DILocalVariable(name: "clk", arg: 1, scope: !1764, file: !1, line: 57, type: !1767)
-!1773 = !DILocalVariable(name: "vals", arg: 2, scope: !1764, file: !1, line: 57, type: !1769)
-!1774 = !DILocalVariable(name: "dummy_data", arg: 3, scope: !1764, file: !1, line: 57, type: !1770)
-!1775 = distinct !DISubprogram(name: "dummy_init", linkageName: "_Z10dummy_initPl", scope: !1, file: !1, line: 182, type: !1776, scopeLine: 183, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1778)
-!1776 = !DISubroutineType(types: !1777)
-!1777 = !{null, !1770}
-!1778 = !{!1779, !1780}
-!1779 = !DILocalVariable(name: "dummy_data", arg: 1, scope: !1775, file: !1, line: 182, type: !1770)
-!1780 = !DILocalVariable(name: "i", scope: !1775, file: !1, line: 184, type: !49)
-!1781 = !{i16 1, i16 1025}
-!1782 = !{}
-!1783 = !{!1784, !1788, i64 12}
-!1784 = !{!"hsa_kernel_dispatch_packet_s", !1785, i64 0, !1785, i64 2, !1785, i64 4, !1785, i64 6, !1785, i64 8, !1785, i64 10, !1788, i64 12, !1788, i64 16, !1788, i64 20, !1788, i64 24, !1788, i64 28, !1789, i64 32, !1790, i64 40, !1789, i64 48, !1791, i64 56}
-!1785 = !{!"short", !1786, i64 0}
-!1786 = !{!"omnipotent char", !1787, i64 0}
-!1787 = !{!"Simple C/C++ TBAA"}
-!1788 = !{!"int", !1786, i64 0}
-!1789 = !{!"long", !1786, i64 0}
-!1790 = !{!"any pointer", !1786, i64 0}
-!1791 = !{!"hsa_signal_s", !1789, i64 0}
-!1792 = !{!1784, !1788, i64 16}
-!1793 = !{!1784, !1788, i64 20}
-!1794 = !{i32 0, i32 1024}
-!1795 = !{!1796, !1796, i64 0}
-!1796 = !{!"long", !1797, i64 0}
-!1797 = !{!"omnipotent char", !1798, i64 0}
-!1798 = !{!"Simple C++ TBAA"}
-!1799 = !{!1800, !1800, i64 0}
-!1800 = !{!"any pointer", !1797, i64 0}
-!1801 = !{!1797, !1797, i64 0}
+!1763 = distinct !DISubprogram(name: "tick_all_kernel", linkageName: "_Z15tick_all_kernelPU7_AtomicmPmPli", scope: !1, file: !1, line: 57, type: !1764, scopeLine: 58, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1770)
+!1764 = !DISubroutineType(types: !1765)
+!1765 = !{null, !1766, !1768, !1769, !49}
+!1766 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !1767, size: 64)
+!1767 = !DIDerivedType(tag: DW_TAG_atomic_type, baseType: !1270)
+!1768 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !1270, size: 64)
+!1769 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !1233, size: 64)
+!1770 = !{!1771, !1772, !1773, !1774}
+!1771 = !DILocalVariable(name: "clk", arg: 1, scope: !1763, file: !1, line: 57, type: !1766)
+!1772 = !DILocalVariable(name: "vals", arg: 2, scope: !1763, file: !1, line: 57, type: !1768)
+!1773 = !DILocalVariable(name: "dummy_data", arg: 3, scope: !1763, file: !1, line: 57, type: !1769)
+!1774 = !DILocalVariable(name: "test", arg: 4, scope: !1763, file: !1, line: 57, type: !49)
+!1775 = !DILocation(line: 197, column: 11, scope: !1776, inlinedAt: !1782)
+!1776 = distinct !DISubprogram(name: "dummy_work", linkageName: "_Z10dummy_workPl", scope: !1, file: !1, line: 195, type: !1777, scopeLine: 196, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1779)
+!1777 = !DISubroutineType(types: !1778)
+!1778 = !{null, !1769}
+!1779 = !{!1780, !1781}
+!1780 = !DILocalVariable(name: "dummy_data", arg: 1, scope: !1776, file: !1, line: 195, type: !1769)
+!1781 = !DILocalVariable(name: "i", scope: !1776, file: !1, line: 197, type: !49)
+!1782 = distinct !DILocation(line: 59, column: 3, scope: !1763)
+!1783 = !{i32 0, i32 1024}
+!1784 = !DILocation(line: 197, column: 28, scope: !1776, inlinedAt: !1782)
+!1785 = !{i16 1, i16 1025}
+!1786 = !{}
+!1787 = !DILocation(line: 197, column: 44, scope: !1776, inlinedAt: !1782)
+!1788 = !DILocation(line: 197, column: 42, scope: !1776, inlinedAt: !1782)
+!1789 = !DILocation(line: 197, column: 26, scope: !1776, inlinedAt: !1782)
+!1790 = !DILocation(line: 198, column: 20, scope: !1776, inlinedAt: !1782)
+!1791 = !DILocation(line: 198, column: 17, scope: !1776, inlinedAt: !1782)
+!1792 = !{!1793, !1793, i64 0}
+!1793 = !{!"long", !1794, i64 0}
+!1794 = !{!"omnipotent char", !1795, i64 0}
+!1795 = !{!"Simple C++ TBAA"}
+!1796 = !DILocation(line: 60, column: 34, scope: !1763)
+!1797 = !DILocation(line: 60, column: 19, scope: !1763)
+!1798 = !DILocation(line: 60, column: 3, scope: !1763)
+!1799 = !DILocation(line: 60, column: 26, scope: !1763)
+!1800 = !DILocation(line: 924, column: 9, scope: !1801, inlinedAt: !1810)
+!1801 = distinct !DILexicalBlock(scope: !1802, file: !1651, line: 923, column: 16)
+!1802 = distinct !DILexicalBlock(scope: !1803, file: !1651, line: 923, column: 9)
+!1803 = distinct !DISubprogram(name: "__work_group_barrier", linkageName: "_ZL20__work_group_barrierj14__memory_scope", scope: !1651, file: !1651, line: 921, type: !1804, scopeLine: 922, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1807)
+!1804 = !DISubroutineType(cc: DW_CC_nocall, types: !1805)
+!1805 = !{null, !27, !1806}
+!1806 = !DIDerivedType(tag: DW_TAG_typedef, name: "__memory_scope", file: !12, line: 137, baseType: !11)
+!1807 = !{!1808, !1809}
+!1808 = !DILocalVariable(name: "flags", arg: 1, scope: !1803, file: !1651, line: 921, type: !27)
+!1809 = !DILocalVariable(name: "scope", arg: 2, scope: !1803, file: !1651, line: 921, type: !1806)
+!1810 = distinct !DILocation(line: 936, column: 3, scope: !1811, inlinedAt: !1815)
+!1811 = distinct !DISubprogram(name: "__barrier", linkageName: "_ZL9__barrieri", scope: !1651, file: !1651, line: 934, type: !1812, scopeLine: 935, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1813)
+!1812 = !DISubroutineType(cc: DW_CC_nocall, types: !454)
+!1813 = !{!1814}
+!1814 = !DILocalVariable(name: "n", arg: 1, scope: !1811, file: !1651, line: 934, type: !49)
+!1815 = distinct !DILocation(line: 944, column: 3, scope: !1816, inlinedAt: !1817)
+!1816 = distinct !DISubprogram(name: "__syncthreads", linkageName: "_Z13__syncthreadsv", scope: !1651, file: !1651, line: 942, type: !406, scopeLine: 943, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1786)
+!1817 = distinct !DILocation(line: 61, column: 3, scope: !1763)
+!1818 = !DILocation(line: 925, column: 9, scope: !1801, inlinedAt: !1810)
+!1819 = !DILocation(line: 926, column: 9, scope: !1801, inlinedAt: !1810)
+!1820 = !DILocation(line: 198, column: 17, scope: !1776, inlinedAt: !1821)
+!1821 = distinct !DILocation(line: 62, column: 3, scope: !1763)
+!1822 = !DILocation(line: 63, column: 1, scope: !1763)
+!1823 = distinct !DISubprogram(name: "dummy_kernel", linkageName: "_Z12dummy_kernelv", scope: !1, file: !1, line: 155, type: !406, scopeLine: 156, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1786)
+!1824 = !DILocation(line: 924, column: 9, scope: !1801, inlinedAt: !1825)
+!1825 = distinct !DILocation(line: 936, column: 3, scope: !1811, inlinedAt: !1826)
+!1826 = distinct !DILocation(line: 944, column: 3, scope: !1816, inlinedAt: !1827)
+!1827 = distinct !DILocation(line: 157, column: 3, scope: !1823)
+!1828 = !DILocation(line: 925, column: 9, scope: !1801, inlinedAt: !1825)
+!1829 = !DILocation(line: 926, column: 9, scope: !1801, inlinedAt: !1825)
+!1830 = !DILocation(line: 158, column: 1, scope: !1823)
+!1831 = distinct !DISubprogram(name: "dummy_init", linkageName: "_Z10dummy_initPl", scope: !1, file: !1, line: 188, type: !1777, scopeLine: 189, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1832)
+!1832 = !{!1833, !1834}
+!1833 = !DILocalVariable(name: "dummy_data", arg: 1, scope: !1831, file: !1, line: 188, type: !1769)
+!1834 = !DILocalVariable(name: "i", scope: !1831, file: !1, line: 190, type: !49)
+!1835 = !DILocation(line: 190, column: 11, scope: !1831)
+!1836 = !DILocation(line: 190, column: 28, scope: !1831)
+!1837 = !DILocation(line: 190, column: 44, scope: !1831)
+!1838 = !DILocation(line: 190, column: 42, scope: !1831)
+!1839 = !DILocation(line: 190, column: 26, scope: !1831)
+!1840 = !DILocation(line: 191, column: 3, scope: !1831)
+!1841 = !DILocation(line: 191, column: 17, scope: !1831)
+!1842 = !DILocation(line: 192, column: 1, scope: !1831)
+!1843 = !{i64 0, i64 8, !1792, i64 8, i64 2, !1844, i64 16, i64 8, !1792, i64 16, i64 2, !1846, i64 18, i64 2, !1846, i64 20, i64 4, !1848, i64 24, i64 2, !1846, i64 26, i64 2, !1846, i64 28, i64 2, !1846, i64 30, i64 2, !1846, i64 32, i64 1, !1850, i64 16, i64 8, !1851, i64 40, i64 8, !1851, i64 48, i64 8, !1792, i64 56, i64 4, !1848, i64 60, i64 4, !1848, i64 64, i64 8, !1792}
+!1844 = !{!1845, !1845, i64 0}
+!1845 = !{!"_ZTSN8scabbard9InstrDataE", !1794, i64 0}
+!1846 = !{!1847, !1847, i64 0}
+!1847 = !{!"short", !1794, i64 0}
+!1848 = !{!1849, !1849, i64 0}
+!1849 = !{!"int", !1794, i64 0}
+!1850 = !{!1794, !1794, i64 0}
+!1851 = !{!1852, !1852, i64 0}
+!1852 = !{!"any pointer", !1794, i64 0}
+!1853 = !{i64 0, i64 2, !1844, i64 8, i64 8, !1792, i64 8, i64 2, !1846, i64 10, i64 2, !1846, i64 12, i64 4, !1848, i64 16, i64 2, !1846, i64 18, i64 2, !1846, i64 20, i64 2, !1846, i64 22, i64 2, !1846, i64 24, i64 1, !1850, i64 8, i64 8, !1851, i64 32, i64 8, !1851, i64 40, i64 8, !1792, i64 48, i64 4, !1848, i64 52, i64 4, !1848, i64 56, i64 8, !1792}
+!1854 = !{i64 6, i64 8, !1792, i64 6, i64 2, !1846, i64 8, i64 2, !1846, i64 10, i64 4, !1848, i64 14, i64 2, !1846, i64 16, i64 2, !1846, i64 18, i64 2, !1846, i64 20, i64 2, !1846, i64 22, i64 1, !1850, i64 6, i64 8, !1851, i64 30, i64 8, !1851, i64 38, i64 8, !1792, i64 46, i64 4, !1848, i64 50, i64 4, !1848, i64 54, i64 8, !1792}
+!1855 = !{i64 0, i64 8, !1792, i64 0, i64 2, !1846, i64 2, i64 2, !1846, i64 4, i64 4, !1848, i64 8, i64 2, !1846, i64 10, i64 2, !1846, i64 12, i64 2, !1846, i64 14, i64 2, !1846, i64 16, i64 1, !1850, i64 0, i64 8, !1851, i64 24, i64 8, !1851, i64 32, i64 8, !1792, i64 40, i64 4, !1848, i64 44, i64 4, !1848, i64 48, i64 8, !1792}
+!1856 = !{i64 0, i64 4, !1792, i64 0, i64 4, !1848, i64 4, i64 2, !1846, i64 6, i64 2, !1846, i64 8, i64 2, !1846, i64 10, i64 2, !1846, i64 12, i64 1, !1850, i64 0, i64 4, !1851, i64 20, i64 8, !1851, i64 28, i64 8, !1792, i64 36, i64 4, !1848, i64 40, i64 4, !1848, i64 44, i64 8, !1792}
+!1857 = !{i64 0, i64 1, !1850, i64 8, i64 8, !1851, i64 16, i64 8, !1792, i64 24, i64 4, !1848, i64 28, i64 4, !1848, i64 32, i64 8, !1792}
+!1858 = !{i64 7, i64 8, !1851, i64 15, i64 8, !1792, i64 23, i64 4, !1848, i64 27, i64 4, !1848, i64 31, i64 8, !1792}
+!1859 = !{i64 0, i64 8, !1851, i64 8, i64 8, !1792, i64 16, i64 4, !1848, i64 20, i64 4, !1848, i64 24, i64 8, !1792}
+!1860 = !{i64 0, i64 8, !1792, i64 8, i64 4, !1848, i64 12, i64 4, !1848, i64 16, i64 8, !1792}
+!1861 = !{i64 0, i64 4, !1848, i64 4, i64 4, !1848, i64 8, i64 8, !1792}
+!1862 = !{i64 0, i64 4, !1848, i64 4, i64 8, !1792}
+!1863 = !{i64 0, i64 8, !1792}
+!1864 = distinct !DISubprogram(name: "tick_all_kernel", linkageName: "_Z15tick_all_kernelPU7_AtomicmPmPli", scope: !1, file: !1, line: 57, type: !1764, scopeLine: 58, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1865)
+!1865 = !{!1866, !1867, !1868, !1869}
+!1866 = !DILocalVariable(name: "clk", arg: 1, scope: !1864, file: !1, line: 57, type: !1766)
+!1867 = !DILocalVariable(name: "vals", arg: 2, scope: !1864, file: !1, line: 57, type: !1768)
+!1868 = !DILocalVariable(name: "dummy_data", arg: 3, scope: !1864, file: !1, line: 57, type: !1769)
+!1869 = !DILocalVariable(name: "test", arg: 4, scope: !1864, file: !1, line: 57, type: !49)
+!1870 = distinct !DISubprogram(name: "dummy_kernel", linkageName: "_Z12dummy_kernelv", scope: !1, file: !1, line: 155, type: !406, scopeLine: 156, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1786)
+!1871 = !DILocation(line: 924, column: 9, scope: !1801, inlinedAt: !1872)
+!1872 = distinct !DILocation(line: 936, column: 3, scope: !1811, inlinedAt: !1873)
+!1873 = distinct !DILocation(line: 944, column: 3, scope: !1816, inlinedAt: !1874)
+!1874 = distinct !DILocation(line: 157, column: 3, scope: !1870)
+!1875 = !DILocation(line: 925, column: 9, scope: !1801, inlinedAt: !1872)
+!1876 = !DILocation(line: 926, column: 9, scope: !1801, inlinedAt: !1872)
+!1877 = !DILocation(line: 158, column: 1, scope: !1870)
+!1878 = distinct !DISubprogram(name: "dummy_init", linkageName: "_Z10dummy_initPl", scope: !1, file: !1, line: 188, type: !1777, scopeLine: 189, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1879)
+!1879 = !{!1880, !1881}
+!1880 = !DILocalVariable(name: "dummy_data", arg: 1, scope: !1878, file: !1, line: 188, type: !1769)
+!1881 = !DILocalVariable(name: "i", scope: !1878, file: !1, line: 190, type: !49)
 
 ; __CLANG_OFFLOAD_BUNDLE____END__ hip-amdgcn-amd-amdhsa-gfx90a
 
@@ -2310,7 +2236,7 @@ $__hip_gpubin_handle = comdat any
 
 @_ZStL8__ioinit = internal global %"class.std::ios_base::Init" zeroinitializer, align 1, !dbg !0
 @__dso_handle = external hidden global i8
-@_Z15tick_all_kernelPU7_AtomicmPmPl = dso_local constant void (i64*, i64*, i64*)* @_Z30__device_stub__tick_all_kernelPU7_AtomicmPmPl, align 8
+@_Z15tick_all_kernelPU7_AtomicmPmPli = dso_local constant void (i64*, i64*, i64*, i32)* @_Z30__device_stub__tick_all_kernelPU7_AtomicmPmPli, align 8
 @_ZSt4cout = external dso_local global %"class.std::basic_ostream", align 8
 @.str = private unnamed_addr constant [37 x i8] c"\0A==== STARTING TEST: tick all ====\0A\0A\00", align 1, !dbg !7
 @.str.1 = private unnamed_addr constant [27 x i8] c"Using GPU with device ID: \00", align 1, !dbg !15
@@ -2324,13 +2250,15 @@ $__hip_gpubin_handle = comdat any
 @.str.8 = private unnamed_addr constant [24 x i8] c"\0AFinal ``Clock'' time: \00", align 1, !dbg !47
 @.str.9 = private unnamed_addr constant [36 x i8] c"\0AGPU Threads modified as follows: {\00", align 1, !dbg !52
 @.str.10 = private unnamed_addr constant [35 x i8] c"\0A==== ENDING TEST: tick all ====\0A\0A\00", align 1, !dbg !57
+@_Z12dummy_kernelv = dso_local constant void ()* @_Z27__device_stub__dummy_kernelv, align 8
 @.str.11 = private unnamed_addr constant [15 x i8] c" System minor \00", align 1, !dbg !62
 @.str.12 = private unnamed_addr constant [15 x i8] c" System major \00", align 1, !dbg !67
 @.str.13 = private unnamed_addr constant [18 x i8] c" agent prop name \00", align 1, !dbg !69
 @_ZSt4cerr = external dso_local global %"class.std::basic_ostream", align 8
 @.str.14 = private unnamed_addr constant [13 x i8] c"\0AHIP ERROR: \00", align 1, !dbg !74
-@0 = private unnamed_addr constant [35 x i8] c"_Z15tick_all_kernelPU7_AtomicmPmPl\00", align 1
-@1 = private unnamed_addr constant [17 x i8] c"_Z10dummy_initPl\00", align 1
+@0 = private unnamed_addr constant [36 x i8] c"_Z15tick_all_kernelPU7_AtomicmPmPli\00", align 1
+@1 = private unnamed_addr constant [18 x i8] c"_Z12dummy_kernelv\00", align 1
+@2 = private unnamed_addr constant [17 x i8] c"_Z10dummy_initPl\00", align 1
 @__hip_fatbin = external constant i8, section ".hip_fatbin"
 @__hip_fatbin_wrapper = internal constant { i32, i32, i8*, i8* } { i32 1212764230, i32 1, i8* @__hip_fatbin, i8* null }, section ".hipFatBinSegment", align 8
 @__hip_gpubin_handle = linkonce hidden local_unnamed_addr global i8** null, comdat, align 8
@@ -2349,40 +2277,51 @@ declare dso_local void @_ZNSt8ios_base4InitD1Ev(%"class.std::ios_base::Init"* no
 declare dso_local i32 @__cxa_atexit(void (i8*)*, i8*, i8*) local_unnamed_addr #2
 
 ; Function Attrs: norecurse uwtable
-define dso_local void @_Z30__device_stub__tick_all_kernelPU7_AtomicmPmPl(i64* noundef %0, i64* noundef %1, i64* noundef %2) #3 {
-  %4 = alloca i64*, align 8
+define dso_local void @_Z30__device_stub__tick_all_kernelPU7_AtomicmPmPli(i64* noundef %0, i64* noundef %1, i64* noundef %2, i32 noundef %3) #3 {
   %5 = alloca i64*, align 8
   %6 = alloca i64*, align 8
-  %7 = alloca %struct.dim3, align 8
-  %8 = alloca %struct.dim3, align 8
-  %9 = alloca i64, align 8
-  %10 = alloca i8*, align 8
-  store i64* %0, i64** %4, align 8, !tbaa !2213
-  store i64* %1, i64** %5, align 8, !tbaa !2213
-  store i64* %2, i64** %6, align 8, !tbaa !2213
-  %11 = alloca [3 x i8*], align 16
-  %12 = getelementptr inbounds [3 x i8*], [3 x i8*]* %11, i64 0, i64 0
-  %13 = bitcast [3 x i8*]* %11 to i64***
-  store i64** %4, i64*** %13, align 16
-  %14 = getelementptr inbounds [3 x i8*], [3 x i8*]* %11, i64 0, i64 1
-  %15 = bitcast i8** %14 to i64***
-  store i64** %5, i64*** %15, align 8
-  %16 = getelementptr inbounds [3 x i8*], [3 x i8*]* %11, i64 0, i64 2
+  %7 = alloca i64*, align 8
+  %8 = alloca i32, align 4
+  %9 = alloca %struct.dim3, align 8
+  %10 = alloca %struct.dim3, align 8
+  %11 = alloca i64, align 8
+  %12 = alloca i8*, align 8
+  store i64* %0, i64** %5, align 8, !tbaa !2217
+  store i64* %1, i64** %6, align 8, !tbaa !2217
+  store i64* %2, i64** %7, align 8, !tbaa !2217
+  store i32 %3, i32* %8, align 4, !tbaa !2221
+  %13 = alloca [5 x ptr], align 8
+  %14 = getelementptr inbounds [5 x ptr], [5 x ptr]* %13, i64 0, i64 0
+  %15 = bitcast [5 x ptr]* %13 to i64***
+  store i64** %5, i64*** %15, align 16
+  %16 = getelementptr inbounds [4 x i8*], ptr* %14, i64 0, i64 1
   %17 = bitcast i8** %16 to i64***
-  store i64** %6, i64*** %17, align 16
-  %18 = call i32 @__hipPopCallConfiguration(%struct.dim3* nonnull %7, %struct.dim3* nonnull %8, i64* nonnull %9, i8** nonnull %10)
-  %19 = load i64, i64* %9, align 8
-  %20 = bitcast i8** %10 to %struct.ihipStream_t**
-  %21 = load %struct.ihipStream_t*, %struct.ihipStream_t** %20, align 8
-  %22 = bitcast %struct.dim3* %7 to i64*
-  %23 = load i64, i64* %22, align 8
-  %24 = getelementptr inbounds %struct.dim3, %struct.dim3* %7, i64 0, i32 2
-  %25 = load i32, i32* %24, align 8
-  %26 = bitcast %struct.dim3* %8 to i64*
+  store i64** %6, i64*** %17, align 8
+  %18 = getelementptr inbounds [4 x i8*], ptr* %14, i64 0, i64 2
+  %19 = bitcast i8** %18 to i64***
+  store i64** %7, i64*** %19, align 16
+  %20 = getelementptr inbounds [4 x i8*], ptr* %14, i64 0, i64 3
+  %21 = bitcast i8** %20 to i32**
+  store i32* %8, i32** %21, align 8
+  %22 = call i32 @__hipPopCallConfiguration(%struct.dim3* nonnull %9, %struct.dim3* nonnull %10, i64* nonnull %11, i8** nonnull %12)
+  %23 = load i64, i64* %11, align 8
+  %24 = bitcast i8** %12 to %struct.ihipStream_t**
+  %25 = load %struct.ihipStream_t*, %struct.ihipStream_t** %24, align 8
+  %26 = bitcast %struct.dim3* %9 to i64*
   %27 = load i64, i64* %26, align 8
-  %28 = getelementptr inbounds %struct.dim3, %struct.dim3* %8, i64 0, i32 2
+  %28 = getelementptr inbounds %struct.dim3, %struct.dim3* %9, i64 0, i32 2
   %29 = load i32, i32* %28, align 8
-  %30 = call noundef i32 @hipLaunchKernel(i8* noundef bitcast (void (i64*, i64*, i64*)** @_Z15tick_all_kernelPU7_AtomicmPmPl to i8*), i64 %23, i32 %25, i64 %27, i32 %29, i8** noundef nonnull %12, i64 noundef %19, %struct.ihipStream_t* noundef %21)
+  %30 = bitcast %struct.dim3* %10 to i64*
+  %31 = load i64, i64* %30, align 8
+  %32 = getelementptr inbounds %struct.dim3, %struct.dim3* %10, i64 0, i32 2
+  %33 = load i32, i32* %32, align 8
+  %34 = alloca ptr, align 8
+  %35 = call ptr @scabbard.trace.register_job(%struct.ihipStream_t* %25)
+  store ptr %35, ptr* %34, align 8
+  %36 = getelementptr inbounds [5 x ptr], [5 x ptr]* %13, i64 0, i64 4
+  store ptr* %34, ptr* %36, align 8
+  %37 = call noundef i32 @hipLaunchKernel(i8* noundef bitcast (void (i64*, i64*, i64*, i32)** @_Z15tick_all_kernelPU7_AtomicmPmPli to i8*), i64 %27, i32 %29, i64 %31, i32 %33, ptr* noundef nonnull %36, i64 noundef %23, %struct.ihipStream_t* noundef %25)
+  call void @scabbard.trace.register_job_callback(ptr %35, %struct.ihipStream_t* %25)
   ret void
 }
 
@@ -2390,981 +2329,1003 @@ declare dso_local i32 @__hipPopCallConfiguration(%struct.dim3*, %struct.dim3*, i
 
 declare dso_local i32 @hipLaunchKernel(i8*, i64, i32, i64, i32, i8**, i64, %struct.ihipStream_t*) local_unnamed_addr
 
-; Function Attrs: uwtable
-define dso_local void @_Z13tick_all_testv() local_unnamed_addr #4 personality i32 (...)* @__gxx_personality_v0 !dbg !2217 {
-  %1 = alloca <2 x i64>, align 16
-  %2 = bitcast <2 x i64>* %1 to %struct.timespec*
-  %3 = alloca i64*, align 8
+; Function Attrs: noinline uwtable
+define dso_local void @_Z13tick_all_testi(i32 noundef %0) local_unnamed_addr #4 personality i32 (...)* @__gxx_personality_v0 !dbg !2223 {
+  %2 = alloca <2 x i64>, align 16
+  %3 = bitcast <2 x i64>* %2 to %struct.timespec*
   %4 = alloca i64*, align 8
   %5 = alloca i64*, align 8
-  %6 = alloca %struct.dim3, align 8
-  %7 = alloca %struct.dim3, align 8
-  %8 = alloca i64, align 8
-  %9 = alloca i8*, align 8
-  %10 = alloca [3 x i8*], align 16
-  %11 = alloca i64*, align 8
-  %12 = alloca %struct.dim3, align 8
-  %13 = alloca %struct.dim3, align 8
-  %14 = alloca i64, align 8
-  %15 = alloca i8*, align 8
-  %16 = alloca i8*, align 16
-  %17 = alloca i32, align 4
-  %18 = alloca i64*, align 8
-  %19 = alloca i64*, align 8
-  %20 = alloca i64*, align 8
-  %21 = bitcast i32* %17 to i8*, !dbg !2239
-  call void @llvm.lifetime.start.p0i8(i64 4, i8* nonnull %21) #18, !dbg !2239
-  call void @llvm.dbg.value(metadata i32 0, metadata !2219, metadata !DIExpression()), !dbg !2240
-  store i32 0, i32* %17, align 4, !dbg !2241, !tbaa !2242
-  call void @llvm.dbg.value(metadata i32* %17, metadata !2219, metadata !DIExpression(DW_OP_deref)), !dbg !2240
-  %22 = call i32 @hipGetDevice(i32* noundef nonnull %17), !dbg !2244
-  call void @llvm.dbg.value(metadata i32 %22, metadata !2245, metadata !DIExpression()), !dbg !2251
-  %23 = icmp eq i32 %22, 0, !dbg !2253
-  br i1 %23, label %28, label %24, !dbg !2255
+  %6 = alloca i64*, align 8
+  %7 = alloca i32, align 4
+  %8 = alloca %struct.dim3, align 8
+  %9 = alloca %struct.dim3, align 8
+  %10 = alloca i64, align 8
+  %11 = alloca i8*, align 8
+  %12 = alloca [5 x ptr], align 8
+  %13 = getelementptr inbounds [5 x ptr], [5 x ptr]* %12, i64 0, i64 0
+  %14 = alloca i64*, align 8
+  %15 = alloca %struct.dim3, align 8
+  %16 = alloca %struct.dim3, align 8
+  %17 = alloca i64, align 8
+  %18 = alloca i8*, align 8
+  %19 = alloca [2 x ptr], align 8
+  %20 = getelementptr inbounds [2 x ptr], [2 x ptr]* %19, i64 0, i64 0
+  %21 = alloca i32, align 4
+  %22 = alloca i64*, align 8
+  %23 = alloca i64*, align 8
+  %24 = alloca i64*, align 8
+  call void @llvm.dbg.value(metadata i32 %0, metadata !2225, metadata !DIExpression()), !dbg !2246
+  %25 = bitcast i32* %21 to i8*, !dbg !2247
+  call void @llvm.lifetime.start.p0i8(i64 4, i8* nonnull %25) #18, !dbg !2247
+  call void @llvm.dbg.value(metadata i32 0, metadata !2226, metadata !DIExpression()), !dbg !2246
+  store i32 0, i32* %21, align 4, !dbg !2248, !tbaa !2221
+  call void @llvm.dbg.value(metadata i32* %21, metadata !2226, metadata !DIExpression(DW_OP_deref)), !dbg !2246
+  %26 = call i32 @hipGetDevice(i32* noundef nonnull %21), !dbg !2249
+  call void @llvm.dbg.value(metadata i32 %26, metadata !2250, metadata !DIExpression()), !dbg !2256
+  %27 = icmp eq i32 %26, 0, !dbg !2258
+  br i1 %27, label %32, label %28, !dbg !2260
 
-24:                                               ; preds = %0
-  %25 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !2256
-  %26 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %25, i32 noundef %22), !dbg !2258
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %26, metadata !2259, metadata !DIExpression()), !dbg !2276
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2274, metadata !DIExpression()), !dbg !2276
-  %27 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %26), !dbg !2278
-  call void @exit(i32 noundef 1) #19, !dbg !2279
-  unreachable, !dbg !2279
+28:                                               ; preds = %1
+  %29 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !2261
+  %30 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %29, i32 noundef %26), !dbg !2263
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %30, metadata !2264, metadata !DIExpression()), !dbg !2281
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2279, metadata !DIExpression()), !dbg !2281
+  %31 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %30), !dbg !2283
+  call void @exit(i32 noundef 1) #19, !dbg !2284
+  unreachable, !dbg !2284
 
-28:                                               ; preds = %0
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2280, metadata !DIExpression()), !dbg !2342
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([37 x i8], [37 x i8]* @.str, i64 0, i64 0), metadata !2286, metadata !DIExpression()), !dbg !2342
-  %29 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([37 x i8], [37 x i8]* @.str, i64 0, i64 0), i64 noundef 36), !dbg !2344
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2259, metadata !DIExpression()), !dbg !2346
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2348, metadata !DIExpression()), !dbg !2354
-  %30 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo5flushEv(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout), !dbg !2356
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2280, metadata !DIExpression()), !dbg !2357
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([27 x i8], [27 x i8]* @.str.1, i64 0, i64 0), metadata !2286, metadata !DIExpression()), !dbg !2357
-  %31 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([27 x i8], [27 x i8]* @.str.1, i64 0, i64 0), i64 noundef 26), !dbg !2359
-  %32 = load i32, i32* %17, align 4, !dbg !2360, !tbaa !2242
-  call void @llvm.dbg.value(metadata i32 %32, metadata !2219, metadata !DIExpression()), !dbg !2240
-  %33 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i32 noundef %32), !dbg !2361
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %33, metadata !2259, metadata !DIExpression()), !dbg !2362
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2274, metadata !DIExpression()), !dbg !2362
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %33, metadata !2364, metadata !DIExpression()), !dbg !2367
-  %34 = bitcast %"class.std::basic_ostream"* %33 to i8**, !dbg !2369
-  %35 = load i8*, i8** %34, align 8, !dbg !2369, !tbaa !2370
-  %36 = getelementptr i8, i8* %35, i64 -24, !dbg !2369
-  %37 = bitcast i8* %36 to i64*, !dbg !2369
-  %38 = load i64, i64* %37, align 8, !dbg !2369
-  %39 = bitcast %"class.std::basic_ostream"* %33 to i8*, !dbg !2369
-  %40 = getelementptr inbounds i8, i8* %39, i64 %38, !dbg !2369
-  call void @llvm.dbg.value(metadata i8* %40, metadata !2372, metadata !DIExpression()), !dbg !2386
-  call void @llvm.dbg.value(metadata i8 10, metadata !2384, metadata !DIExpression()), !dbg !2386
-  %41 = getelementptr inbounds i8, i8* %40, i64 240, !dbg !2388
-  %42 = bitcast i8* %41 to %"class.std::ctype"**, !dbg !2388
-  %43 = load %"class.std::ctype"*, %"class.std::ctype"** %42, align 8, !dbg !2388, !tbaa !2389
-  call void @llvm.dbg.value(metadata %"class.std::ctype"* %43, metadata !2398, metadata !DIExpression()), !dbg !2410
-  %44 = icmp eq %"class.std::ctype"* %43, null, !dbg !2412
-  br i1 %44, label %45, label %46, !dbg !2414
+32:                                               ; preds = %1
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2285, metadata !DIExpression()), !dbg !2347
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([37 x i8], [37 x i8]* @.str, i64 0, i64 0), metadata !2291, metadata !DIExpression()), !dbg !2347
+  %33 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([37 x i8], [37 x i8]* @.str, i64 0, i64 0), i64 noundef 36), !dbg !2349
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2264, metadata !DIExpression()), !dbg !2351
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2353, metadata !DIExpression()), !dbg !2359
+  %34 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo5flushEv(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout), !dbg !2361
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2285, metadata !DIExpression()), !dbg !2362
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([27 x i8], [27 x i8]* @.str.1, i64 0, i64 0), metadata !2291, metadata !DIExpression()), !dbg !2362
+  %35 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([27 x i8], [27 x i8]* @.str.1, i64 0, i64 0), i64 noundef 26), !dbg !2364
+  %36 = load i32, i32* %21, align 4, !dbg !2365, !tbaa !2221
+  call void @llvm.dbg.value(metadata i32 %36, metadata !2226, metadata !DIExpression()), !dbg !2246
+  %37 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i32 noundef %36), !dbg !2366
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %37, metadata !2264, metadata !DIExpression()), !dbg !2367
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2279, metadata !DIExpression()), !dbg !2367
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %37, metadata !2369, metadata !DIExpression()), !dbg !2372
+  %38 = bitcast %"class.std::basic_ostream"* %37 to i8**, !dbg !2374
+  %39 = load i8*, i8** %38, align 8, !dbg !2374, !tbaa !2375
+  %40 = getelementptr i8, i8* %39, i64 -24, !dbg !2374
+  %41 = bitcast i8* %40 to i64*, !dbg !2374
+  %42 = load i64, i64* %41, align 8, !dbg !2374
+  %43 = bitcast %"class.std::basic_ostream"* %37 to i8*, !dbg !2374
+  %44 = getelementptr inbounds i8, i8* %43, i64 %42, !dbg !2374
+  call void @llvm.dbg.value(metadata i8* %44, metadata !2377, metadata !DIExpression()), !dbg !2391
+  call void @llvm.dbg.value(metadata i8 10, metadata !2389, metadata !DIExpression()), !dbg !2391
+  %45 = getelementptr inbounds i8, i8* %44, i64 240, !dbg !2393
+  %46 = bitcast i8* %45 to %"class.std::ctype"**, !dbg !2393
+  %47 = load %"class.std::ctype"*, %"class.std::ctype"** %46, align 8, !dbg !2393, !tbaa !2394
+  call void @llvm.dbg.value(metadata %"class.std::ctype"* %47, metadata !2403, metadata !DIExpression()), !dbg !2415
+  %48 = icmp eq %"class.std::ctype"* %47, null, !dbg !2417
+  br i1 %48, label %49, label %50, !dbg !2419
 
-45:                                               ; preds = %28
-  call void @_ZSt16__throw_bad_castv() #20, !dbg !2415
-  unreachable, !dbg !2415
+49:                                               ; preds = %32
+  call void @_ZSt16__throw_bad_castv() #20, !dbg !2420
+  unreachable, !dbg !2420
 
-46:                                               ; preds = %28
-  call void @llvm.dbg.value(metadata %"class.std::ctype"* %43, metadata !2416, metadata !DIExpression()), !dbg !2425
-  call void @llvm.dbg.value(metadata i8 10, metadata !2424, metadata !DIExpression()), !dbg !2425
-  %47 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %43, i64 0, i32 8, !dbg !2427
-  %48 = load i8, i8* %47, align 8, !dbg !2427, !tbaa !2429
-  %49 = icmp eq i8 %48, 0, !dbg !2427
-  br i1 %49, label %53, label %50, !dbg !2432
+50:                                               ; preds = %32
+  call void @llvm.dbg.value(metadata %"class.std::ctype"* %47, metadata !2421, metadata !DIExpression()), !dbg !2430
+  call void @llvm.dbg.value(metadata i8 10, metadata !2429, metadata !DIExpression()), !dbg !2430
+  %51 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %47, i64 0, i32 8, !dbg !2432
+  %52 = load i8, i8* %51, align 8, !dbg !2432, !tbaa !2434
+  %53 = icmp eq i8 %52, 0, !dbg !2432
+  br i1 %53, label %57, label %54, !dbg !2437
 
-50:                                               ; preds = %46
-  %51 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %43, i64 0, i32 9, i64 10, !dbg !2433
-  %52 = load i8, i8* %51, align 1, !dbg !2433, !tbaa !2434
-  br label %59, !dbg !2435
+54:                                               ; preds = %50
+  %55 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %47, i64 0, i32 9, i64 10, !dbg !2438
+  %56 = load i8, i8* %55, align 1, !dbg !2438, !tbaa !2439
+  br label %63, !dbg !2440
 
-53:                                               ; preds = %46
-  call void @_ZNKSt5ctypeIcE13_M_widen_initEv(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %43), !dbg !2436
-  %54 = bitcast %"class.std::ctype"* %43 to i8 (%"class.std::ctype"*, i8)***, !dbg !2437
-  %55 = load i8 (%"class.std::ctype"*, i8)**, i8 (%"class.std::ctype"*, i8)*** %54, align 8, !dbg !2437, !tbaa !2370
-  %56 = getelementptr inbounds i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %55, i64 6, !dbg !2437
-  %57 = load i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %56, align 8, !dbg !2437
-  %58 = call noundef signext i8 %57(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %43, i8 noundef signext 10), !dbg !2437
-  br label %59, !dbg !2438
+57:                                               ; preds = %50
+  call void @_ZNKSt5ctypeIcE13_M_widen_initEv(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %47), !dbg !2441
+  %58 = bitcast %"class.std::ctype"* %47 to i8 (%"class.std::ctype"*, i8)***, !dbg !2442
+  %59 = load i8 (%"class.std::ctype"*, i8)**, i8 (%"class.std::ctype"*, i8)*** %58, align 8, !dbg !2442, !tbaa !2375
+  %60 = getelementptr inbounds i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %59, i64 6, !dbg !2442
+  %61 = load i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %60, align 8, !dbg !2442
+  %62 = call noundef signext i8 %61(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %47, i8 noundef signext 10), !dbg !2442
+  br label %63, !dbg !2443
 
-59:                                               ; preds = %50, %53
-  %60 = phi i8 [ %52, %50 ], [ %58, %53 ], !dbg !2425
-  %61 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo3putEc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %33, i8 noundef signext %60), !dbg !2439
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %61, metadata !2348, metadata !DIExpression()), !dbg !2440
-  %62 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo5flushEv(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %61), !dbg !2442
-  call void @llvm.dbg.value(metadata i32 1024, metadata !2220, metadata !DIExpression()), !dbg !2240
-  call void @llvm.dbg.value(metadata i64 64, metadata !2222, metadata !DIExpression()), !dbg !2240
-  call void @llvm.dbg.value(metadata i64 128, metadata !2223, metadata !DIExpression()), !dbg !2240
-  call void @llvm.dbg.value(metadata i64 16, metadata !2225, metadata !DIExpression()), !dbg !2240
-  %63 = bitcast i64** %18 to i8*, !dbg !2443
-  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %63) #18, !dbg !2443
-  call void @llvm.dbg.value(metadata i64** %18, metadata !2226, metadata !DIExpression(DW_OP_deref)), !dbg !2240
-  call void @llvm.dbg.value(metadata i64** %18, metadata !2444, metadata !DIExpression()), !dbg !2456
-  call void @llvm.dbg.value(metadata i64 1, metadata !2452, metadata !DIExpression()), !dbg !2456
-  call void @llvm.dbg.value(metadata i32 1, metadata !2453, metadata !DIExpression()), !dbg !2456
-  %64 = bitcast i64** %18 to i8**, !dbg !2458
-  %65 = call i32 @hipMallocManaged(i8** noundef nonnull %64, i64 noundef 1, i32 noundef 1), !dbg !2459
-  call void @llvm.dbg.value(metadata i32 %65, metadata !2245, metadata !DIExpression()), !dbg !2460
-  %66 = icmp eq i32 %65, 0, !dbg !2462
-  br i1 %66, label %71, label %67, !dbg !2463
+63:                                               ; preds = %54, %57
+  %64 = phi i8 [ %56, %54 ], [ %62, %57 ], !dbg !2430
+  %65 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo3putEc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %37, i8 noundef signext %64), !dbg !2444
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %65, metadata !2353, metadata !DIExpression()), !dbg !2445
+  %66 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo5flushEv(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %65), !dbg !2447
+  call void @llvm.dbg.value(metadata i32 1024, metadata !2227, metadata !DIExpression()), !dbg !2246
+  call void @llvm.dbg.value(metadata i64 64, metadata !2229, metadata !DIExpression()), !dbg !2246
+  call void @llvm.dbg.value(metadata i64 128, metadata !2230, metadata !DIExpression()), !dbg !2246
+  call void @llvm.dbg.value(metadata i64 16, metadata !2232, metadata !DIExpression()), !dbg !2246
+  %67 = bitcast i64** %22 to i8*, !dbg !2448
+  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %67) #18, !dbg !2448
+  call void @llvm.dbg.value(metadata i64** %22, metadata !2233, metadata !DIExpression(DW_OP_deref)), !dbg !2246
+  call void @llvm.dbg.value(metadata i64** %22, metadata !2449, metadata !DIExpression()), !dbg !2461
+  call void @llvm.dbg.value(metadata i64 1, metadata !2457, metadata !DIExpression()), !dbg !2461
+  call void @llvm.dbg.value(metadata i32 1, metadata !2458, metadata !DIExpression()), !dbg !2461
+  %68 = bitcast i64** %22 to i8**, !dbg !2463
+  %69 = call i32 @hipMallocManaged(i8** noundef nonnull %68, i64 noundef 1, i32 noundef 1), !dbg !2464
+  call void @llvm.dbg.value(metadata i32 %69, metadata !2250, metadata !DIExpression()), !dbg !2465
+  %70 = icmp eq i32 %69, 0, !dbg !2467
+  br i1 %70, label %75, label %71, !dbg !2468
 
-67:                                               ; preds = %59
-  %68 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !2464
-  %69 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %68, i32 noundef %65), !dbg !2465
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %69, metadata !2259, metadata !DIExpression()), !dbg !2466
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2274, metadata !DIExpression()), !dbg !2466
-  %70 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %69), !dbg !2468
-  call void @exit(i32 noundef 1) #19, !dbg !2469
-  unreachable, !dbg !2469
+71:                                               ; preds = %63
+  %72 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !2469
+  %73 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %72, i32 noundef %69), !dbg !2470
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %73, metadata !2264, metadata !DIExpression()), !dbg !2471
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2279, metadata !DIExpression()), !dbg !2471
+  %74 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %73), !dbg !2473
+  call void @exit(i32 noundef 1) #19, !dbg !2474
+  unreachable, !dbg !2474
 
-71:                                               ; preds = %59
-  %72 = load i64*, i64** %18, align 8, !dbg !2470, !tbaa !2213
-  call void @llvm.dbg.value(metadata i64* %72, metadata !2226, metadata !DIExpression()), !dbg !2240
-  store atomic i64 0, i64* %72 seq_cst, align 8, !dbg !2471, !tbaa !2434
-  %73 = call noalias noundef nonnull dereferenceable(8192) i8* @_Znam(i64 noundef 8192) #21, !dbg !2472, !heapallocsite !1681
-  %74 = bitcast i8* %73 to i64*, !dbg !2472
-  call void @llvm.dbg.value(metadata i64* %74, metadata !2229, metadata !DIExpression()), !dbg !2240
-  call void @llvm.memset.p0i8.i64(i8* noundef nonnull align 8 dereferenceable(8192) %73, i8 0, i64 8192, i1 false), !dbg !2473
-  %75 = bitcast i64** %19 to i8*, !dbg !2474
-  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %75) #18, !dbg !2474
-  call void @llvm.dbg.value(metadata i64** %19, metadata !2231, metadata !DIExpression(DW_OP_deref)), !dbg !2240
-  call void @llvm.dbg.value(metadata i64** %19, metadata !2475, metadata !DIExpression()), !dbg !2485
-  call void @llvm.dbg.value(metadata i64 8192, metadata !2482, metadata !DIExpression()), !dbg !2485
-  %76 = bitcast i64** %19 to i8**, !dbg !2487
-  %77 = call i32 @hipMalloc(i8** noundef nonnull %76, i64 noundef 8192), !dbg !2488
-  call void @"scabbard.trace.host.trace_append$alloc"(i16 4112, i8** nonnull %76, i64* nonnull @"scabbard.metadata.host.srcId$0x0000", i32 6945, i32 12, i64 8192)
-  call void @llvm.dbg.value(metadata i32 %77, metadata !2245, metadata !DIExpression()), !dbg !2489
-  %78 = icmp eq i32 %77, 0, !dbg !2491
-  br i1 %78, label %83, label %79, !dbg !2492
+75:                                               ; preds = %63
+  %76 = load i64*, i64** %22, align 8, !dbg !2475, !tbaa !2217
+  call void @llvm.dbg.value(metadata i64* %76, metadata !2233, metadata !DIExpression()), !dbg !2246
+  store atomic i64 0, i64* %76 seq_cst, align 8, !dbg !2476, !tbaa !2439
+  %77 = call noalias noundef nonnull dereferenceable(8192) i8* @_Znam(i64 noundef 8192) #21, !dbg !2477, !heapallocsite !1681
+  %78 = bitcast i8* %77 to i64*, !dbg !2477
+  call void @llvm.dbg.value(metadata i64* %78, metadata !2236, metadata !DIExpression()), !dbg !2246
+  call void @llvm.memset.p0i8.i64(i8* noundef nonnull align 8 dereferenceable(8192) %77, i8 0, i64 8192, i1 false), !dbg !2478
+  %79 = bitcast i64** %23 to i8*, !dbg !2479
+  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %79) #18, !dbg !2479
+  call void @llvm.dbg.value(metadata i64** %23, metadata !2238, metadata !DIExpression(DW_OP_deref)), !dbg !2246
+  call void @llvm.dbg.value(metadata i64** %23, metadata !2480, metadata !DIExpression()), !dbg !2490
+  call void @llvm.dbg.value(metadata i64 8192, metadata !2487, metadata !DIExpression()), !dbg !2490
+  %80 = bitcast i64** %23 to i8**, !dbg !2492
+  %81 = call i32 @hipMalloc(i8** noundef nonnull %80, i64 noundef 8192), !dbg !2493
+  call void @"scabbard.trace.host.trace_append$alloc"(i16 4112, i8** nonnull %80, i64* nonnull @"scabbard.metadata.host.srcId$0x0000", i32 6945, i32 12, i64 8192)
+  call void @llvm.dbg.value(metadata i32 %81, metadata !2250, metadata !DIExpression()), !dbg !2494
+  %82 = icmp eq i32 %81, 0, !dbg !2496
+  br i1 %82, label %87, label %83, !dbg !2497
 
-79:                                               ; preds = %71
-  %80 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !2493
-  %81 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %80, i32 noundef %77), !dbg !2494
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %81, metadata !2259, metadata !DIExpression()), !dbg !2495
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2274, metadata !DIExpression()), !dbg !2495
-  %82 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %81), !dbg !2497
-  call void @exit(i32 noundef 1) #19, !dbg !2498
-  unreachable, !dbg !2498
+83:                                               ; preds = %75
+  %84 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !2498
+  %85 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %84, i32 noundef %81), !dbg !2499
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %85, metadata !2264, metadata !DIExpression()), !dbg !2500
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2279, metadata !DIExpression()), !dbg !2500
+  %86 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %85), !dbg !2502
+  call void @exit(i32 noundef 1) #19, !dbg !2503
+  unreachable, !dbg !2503
 
-83:                                               ; preds = %71
-  %84 = load i8*, i8** %76, align 8, !dbg !2499, !tbaa !2213
-  call void @llvm.dbg.value(metadata i64* undef, metadata !2231, metadata !DIExpression()), !dbg !2240
+87:                                               ; preds = %75
+  %88 = load i8*, i8** %80, align 8, !dbg !2504, !tbaa !2217
+  call void @llvm.dbg.value(metadata i64* undef, metadata !2238, metadata !DIExpression()), !dbg !2246
   call void @"scabbard.trace.host.trace_append$mem"(i16 -32768, ptr null, i64* nonnull @"scabbard.metadata.host.srcId$0x0001", i32 89, i32 17)
-  %85 = call i32 @hipMemcpy(i8* noundef %84, i8* noundef nonnull %73, i64 noundef 8192, i32 noundef 1), !dbg !2500
-  call void @llvm.dbg.value(metadata i32 %85, metadata !2245, metadata !DIExpression()), !dbg !2501
-  %86 = icmp eq i32 %85, 0, !dbg !2503
-  br i1 %86, label %91, label %87, !dbg !2504
+  %89 = call i32 @hipMemcpy(i8* noundef %88, i8* noundef nonnull %77, i64 noundef 8192, i32 noundef 1), !dbg !2505
+  call void @llvm.dbg.value(metadata i32 %89, metadata !2250, metadata !DIExpression()), !dbg !2506
+  %90 = icmp eq i32 %89, 0, !dbg !2508
+  br i1 %90, label %95, label %91, !dbg !2509
 
-87:                                               ; preds = %83
-  %88 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !2505
-  %89 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %88, i32 noundef %85), !dbg !2506
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %89, metadata !2259, metadata !DIExpression()), !dbg !2507
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2274, metadata !DIExpression()), !dbg !2507
-  %90 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %89), !dbg !2509
-  call void @exit(i32 noundef 1) #19, !dbg !2510
-  unreachable, !dbg !2510
+91:                                               ; preds = %87
+  %92 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !2510
+  %93 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %92, i32 noundef %89), !dbg !2511
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %93, metadata !2264, metadata !DIExpression()), !dbg !2512
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2279, metadata !DIExpression()), !dbg !2512
+  %94 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %93), !dbg !2514
+  call void @exit(i32 noundef 1) #19, !dbg !2515
+  unreachable, !dbg !2515
 
-91:                                               ; preds = %83
-  %92 = bitcast i64** %20 to i8*, !dbg !2511
-  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %92) #18, !dbg !2511
-  call void @llvm.dbg.value(metadata i64** %20, metadata !2232, metadata !DIExpression(DW_OP_deref)), !dbg !2240
-  call void @llvm.dbg.value(metadata i64** %20, metadata !2512, metadata !DIExpression()), !dbg !2522
-  call void @llvm.dbg.value(metadata i64 8192, metadata !2519, metadata !DIExpression()), !dbg !2522
-  %93 = bitcast i64** %20 to i8**, !dbg !2524
-  %94 = call i32 @hipMalloc(i8** noundef nonnull %93, i64 noundef 8192), !dbg !2525
-  call void @"scabbard.trace.host.trace_append$alloc"(i16 4112, i8** nonnull %93, i64* nonnull @"scabbard.metadata.host.srcId$0x0000", i32 6945, i32 12, i64 8192)
-  call void @llvm.dbg.value(metadata i32 %94, metadata !2245, metadata !DIExpression()), !dbg !2526
-  %95 = icmp eq i32 %94, 0, !dbg !2528
-  br i1 %95, label %100, label %96, !dbg !2529
+95:                                               ; preds = %87
+  %96 = bitcast i64** %24 to i8*, !dbg !2516
+  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %96) #18, !dbg !2516
+  call void @llvm.dbg.value(metadata i64** %24, metadata !2239, metadata !DIExpression(DW_OP_deref)), !dbg !2246
+  call void @llvm.dbg.value(metadata i64** %24, metadata !2517, metadata !DIExpression()), !dbg !2527
+  call void @llvm.dbg.value(metadata i64 8192, metadata !2524, metadata !DIExpression()), !dbg !2527
+  %97 = bitcast i64** %24 to i8**, !dbg !2529
+  %98 = call i32 @hipMalloc(i8** noundef nonnull %97, i64 noundef 8192), !dbg !2530
+  call void @"scabbard.trace.host.trace_append$alloc"(i16 4112, i8** nonnull %97, i64* nonnull @"scabbard.metadata.host.srcId$0x0000", i32 6945, i32 12, i64 8192)
+  call void @llvm.dbg.value(metadata i32 %98, metadata !2250, metadata !DIExpression()), !dbg !2531
+  %99 = icmp eq i32 %98, 0, !dbg !2533
+  br i1 %99, label %104, label %100, !dbg !2534
 
-96:                                               ; preds = %91
-  %97 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !2530
-  %98 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %97, i32 noundef %94), !dbg !2531
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %98, metadata !2259, metadata !DIExpression()), !dbg !2532
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2274, metadata !DIExpression()), !dbg !2532
-  %99 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %98), !dbg !2534
-  call void @exit(i32 noundef 1) #19, !dbg !2535
-  unreachable, !dbg !2535
+100:                                              ; preds = %95
+  %101 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !2535
+  %102 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %101, i32 noundef %98), !dbg !2536
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %102, metadata !2264, metadata !DIExpression()), !dbg !2537
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2279, metadata !DIExpression()), !dbg !2537
+  %103 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %102), !dbg !2539
+  call void @exit(i32 noundef 1) #19, !dbg !2540
+  unreachable, !dbg !2540
 
-100:                                              ; preds = %91
-  %101 = call i32 @__hipPushCallConfiguration(i64 4294967297, i32 1, i64 4294968320, i32 1, i64 noundef 0, %struct.ihipStream_t* noundef null), !dbg !2536
-  %102 = icmp eq i32 %101, 0, !dbg !2536
-  br i1 %102, label %103, label %125, !dbg !2536
+104:                                              ; preds = %95
+  %105 = call i32 @__hipPushCallConfiguration(i64 4294967297, i32 1, i64 4294968320, i32 1, i64 noundef 0, %struct.ihipStream_t* noundef null), !dbg !2541
+  %106 = icmp eq i32 %105, 0, !dbg !2541
+  br i1 %106, label %107, label %132, !dbg !2541
 
-103:                                              ; preds = %100
-  %104 = load i64*, i64** %20, align 8, !dbg !2536, !tbaa !2213
-  call void @llvm.dbg.value(metadata i64* %104, metadata !2232, metadata !DIExpression()), !dbg !2240
-  %105 = bitcast i64** %11 to i8*, !dbg !2536
-  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %105), !dbg !2536
-  %106 = bitcast %struct.dim3* %12 to i8*, !dbg !2536
-  call void @llvm.lifetime.start.p0i8(i64 12, i8* nonnull %106), !dbg !2536
-  %107 = bitcast %struct.dim3* %13 to i8*, !dbg !2536
-  call void @llvm.lifetime.start.p0i8(i64 12, i8* nonnull %107), !dbg !2536
-  %108 = bitcast i64* %14 to i8*, !dbg !2536
-  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %108), !dbg !2536
-  %109 = bitcast i8** %15 to i8*, !dbg !2536
-  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %109), !dbg !2536
-  %110 = bitcast i8** %16 to i8*, !dbg !2536
-  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %110), !dbg !2536
-  store i64* %104, i64** %11, align 8, !dbg !2536, !tbaa !2213
-  %111 = bitcast i8** %16 to i64***, !dbg !2536
-  store i64** %11, i64*** %111, align 16, !dbg !2536
-  %112 = call i32 @__hipPopCallConfiguration(%struct.dim3* nonnull %12, %struct.dim3* nonnull %13, i64* nonnull %14, i8** nonnull %15), !dbg !2536
-  %113 = load i64, i64* %14, align 8, !dbg !2536
-  %114 = bitcast i8** %15 to %struct.ihipStream_t**, !dbg !2536
-  %115 = load %struct.ihipStream_t*, %struct.ihipStream_t** %114, align 8, !dbg !2536
-  %116 = bitcast %struct.dim3* %12 to i64*, !dbg !2536
-  %117 = load i64, i64* %116, align 8, !dbg !2536
-  %118 = getelementptr inbounds %struct.dim3, %struct.dim3* %12, i64 0, i32 2, !dbg !2536
-  %119 = load i32, i32* %118, align 8, !dbg !2536
-  %120 = bitcast %struct.dim3* %13 to i64*, !dbg !2536
-  %121 = load i64, i64* %120, align 8, !dbg !2536
-  %122 = getelementptr inbounds %struct.dim3, %struct.dim3* %13, i64 0, i32 2, !dbg !2536
-  %123 = load i32, i32* %122, align 8, !dbg !2536
-  %124 = call noundef i32 @hipLaunchKernel(i8* noundef bitcast (void (i64*)** @_Z10dummy_initPl to i8*), i64 %117, i32 %119, i64 %121, i32 %123, i8** noundef nonnull %16, i64 noundef %113, %struct.ihipStream_t* noundef %115), !dbg !2536
-  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %105), !dbg !2536
-  call void @llvm.lifetime.end.p0i8(i64 12, i8* nonnull %106), !dbg !2536
-  call void @llvm.lifetime.end.p0i8(i64 12, i8* nonnull %107), !dbg !2536
-  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %108), !dbg !2536
-  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %109), !dbg !2536
-  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %110), !dbg !2536
-  br label %125, !dbg !2536
+107:                                              ; preds = %104
+  %108 = load i64*, i64** %24, align 8, !dbg !2541, !tbaa !2217
+  call void @llvm.dbg.value(metadata i64* %108, metadata !2239, metadata !DIExpression()), !dbg !2246
+  %109 = bitcast i64** %14 to i8*, !dbg !2541
+  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %109), !dbg !2541
+  %110 = bitcast %struct.dim3* %15 to i8*, !dbg !2541
+  call void @llvm.lifetime.start.p0i8(i64 12, i8* nonnull %110), !dbg !2541
+  %111 = bitcast %struct.dim3* %16 to i8*, !dbg !2541
+  call void @llvm.lifetime.start.p0i8(i64 12, i8* nonnull %111), !dbg !2541
+  %112 = bitcast i64* %17 to i8*, !dbg !2541
+  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %112), !dbg !2541
+  %113 = bitcast i8** %18 to i8*, !dbg !2541
+  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %113), !dbg !2541
+  %114 = bitcast [2 x ptr]* %19 to i8*, !dbg !2541
+  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %114), !dbg !2541
+  store i64* %108, i64** %14, align 8, !dbg !2541, !tbaa !2217
+  %115 = bitcast [2 x ptr]* %19 to i64***, !dbg !2541
+  store i64** %14, i64*** %115, align 16, !dbg !2541
+  %116 = call i32 @__hipPopCallConfiguration(%struct.dim3* nonnull %15, %struct.dim3* nonnull %16, i64* nonnull %17, i8** nonnull %18), !dbg !2541
+  %117 = load i64, i64* %17, align 8, !dbg !2541
+  %118 = bitcast i8** %18 to %struct.ihipStream_t**, !dbg !2541
+  %119 = load %struct.ihipStream_t*, %struct.ihipStream_t** %118, align 8, !dbg !2541
+  %120 = bitcast %struct.dim3* %15 to i64*, !dbg !2541
+  %121 = load i64, i64* %120, align 8, !dbg !2541
+  %122 = getelementptr inbounds %struct.dim3, %struct.dim3* %15, i64 0, i32 2, !dbg !2541
+  %123 = load i32, i32* %122, align 8, !dbg !2541
+  %124 = bitcast %struct.dim3* %16 to i64*, !dbg !2541
+  %125 = load i64, i64* %124, align 8, !dbg !2541
+  %126 = getelementptr inbounds %struct.dim3, %struct.dim3* %16, i64 0, i32 2, !dbg !2541
+  %127 = load i32, i32* %126, align 8, !dbg !2541
+  %128 = alloca ptr, align 8
+  %129 = call ptr @scabbard.trace.register_job(%struct.ihipStream_t* %119)
+  store ptr %129, ptr* %128, align 8
+  %130 = getelementptr inbounds [2 x ptr], [2 x ptr]* %19, i64 0, i64 1
+  store ptr* %128, ptr* %130, align 8
+  %131 = call noundef i32 @hipLaunchKernel(i8* noundef bitcast (void (i64*)** @_Z10dummy_initPl to i8*), i64 %121, i32 %123, i64 %125, i32 %127, ptr* noundef nonnull %20, i64 noundef %117, %struct.ihipStream_t* noundef %119), !dbg !2541
+  call void @scabbard.trace.register_job_callback(ptr %129, %struct.ihipStream_t* %119)
+  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %109), !dbg !2541
+  call void @llvm.lifetime.end.p0i8(i64 12, i8* nonnull %110), !dbg !2541
+  call void @llvm.lifetime.end.p0i8(i64 12, i8* nonnull %111), !dbg !2541
+  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %112), !dbg !2541
+  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %113), !dbg !2541
+  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %114), !dbg !2541
+  br label %132, !dbg !2541
 
-125:                                              ; preds = %103, %100
-  %126 = call noalias noundef nonnull dereferenceable(8192) i8* @_Znam(i64 noundef 8192) #21, !dbg !2538, !heapallocsite !1648
-  %127 = bitcast i8* %126 to i64*, !dbg !2538
-  call void @llvm.dbg.value(metadata i64* %127, metadata !2234, metadata !DIExpression()), !dbg !2240
-  call void @llvm.memset.p0i8.i64(i8* noundef nonnull align 8 dereferenceable(8192) %126, i8 0, i64 8192, i1 false), !dbg !2539
-  %128 = load i8*, i8** %93, align 8, !dbg !2540, !tbaa !2213
-  call void @llvm.dbg.value(metadata i64* undef, metadata !2232, metadata !DIExpression()), !dbg !2240
+132:                                              ; preds = %107, %104
+  %133 = call noalias noundef nonnull dereferenceable(8192) i8* @_Znam(i64 noundef 8192) #21, !dbg !2543, !heapallocsite !1648
+  %134 = bitcast i8* %133 to i64*, !dbg !2543
+  call void @llvm.dbg.value(metadata i64* %134, metadata !2241, metadata !DIExpression()), !dbg !2246
+  call void @llvm.memset.p0i8.i64(i8* noundef nonnull align 8 dereferenceable(8192) %133, i8 0, i64 8192, i1 false), !dbg !2544
+  %135 = load i8*, i8** %97, align 8, !dbg !2545, !tbaa !2217
+  call void @llvm.dbg.value(metadata i64* undef, metadata !2239, metadata !DIExpression()), !dbg !2246
   call void @"scabbard.trace.host.trace_append$mem"(i16 -32768, ptr null, i64* nonnull @"scabbard.metadata.host.srcId$0x0001", i32 100, i32 17)
-  call void @"scabbard.trace.host.trace_append$alloc"(i16 4138, i8* nonnull %126, i64* nonnull @"scabbard.metadata.host.srcId$0x0001", i32 100, i32 17, i64 8192)
-  %129 = call i32 @hipMemcpy(i8* noundef nonnull %126, i8* noundef %128, i64 noundef 8192, i32 noundef 2), !dbg !2541
-  call void @llvm.dbg.value(metadata i32 %129, metadata !2245, metadata !DIExpression()), !dbg !2542
-  %130 = icmp eq i32 %129, 0, !dbg !2544
-  br i1 %130, label %135, label %131, !dbg !2545
+  call void @"scabbard.trace.host.trace_append$alloc"(i16 4138, i8* nonnull %133, i64* nonnull @"scabbard.metadata.host.srcId$0x0001", i32 100, i32 17, i64 8192)
+  %136 = call i32 @hipMemcpy(i8* noundef nonnull %133, i8* noundef %135, i64 noundef 8192, i32 noundef 2), !dbg !2546
+  call void @llvm.dbg.value(metadata i32 %136, metadata !2250, metadata !DIExpression()), !dbg !2547
+  %137 = icmp eq i32 %136, 0, !dbg !2549
+  br i1 %137, label %142, label %138, !dbg !2550
 
-131:                                              ; preds = %125
-  %132 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !2546
-  %133 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %132, i32 noundef %129), !dbg !2547
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %133, metadata !2259, metadata !DIExpression()), !dbg !2548
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2274, metadata !DIExpression()), !dbg !2548
-  %134 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %133), !dbg !2550
-  call void @exit(i32 noundef 1) #19, !dbg !2551
-  unreachable, !dbg !2551
+138:                                              ; preds = %132
+  %139 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !2551
+  %140 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %139, i32 noundef %136), !dbg !2552
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %140, metadata !2264, metadata !DIExpression()), !dbg !2553
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2279, metadata !DIExpression()), !dbg !2553
+  %141 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %140), !dbg !2555
+  call void @exit(i32 noundef 1) #19, !dbg !2556
+  unreachable, !dbg !2556
 
-135:                                              ; preds = %125
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2280, metadata !DIExpression()), !dbg !2552
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([19 x i8], [19 x i8]* @.str.2, i64 0, i64 0), metadata !2286, metadata !DIExpression()), !dbg !2552
-  %136 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([19 x i8], [19 x i8]* @.str.2, i64 0, i64 0), i64 noundef 18), !dbg !2554
-  call void @llvm.dbg.value(metadata i64 0, metadata !2235, metadata !DIExpression()), !dbg !2555
-  br label %180, !dbg !2556
+142:                                              ; preds = %132
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2285, metadata !DIExpression()), !dbg !2557
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([19 x i8], [19 x i8]* @.str.2, i64 0, i64 0), metadata !2291, metadata !DIExpression()), !dbg !2557
+  %143 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([19 x i8], [19 x i8]* @.str.2, i64 0, i64 0), i64 noundef 18), !dbg !2559
+  call void @llvm.dbg.value(metadata i64 0, metadata !2242, metadata !DIExpression()), !dbg !2560
+  br label %187, !dbg !2561
 
-137:                                              ; preds = %214
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2280, metadata !DIExpression()), !dbg !2557
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([6 x i8], [6 x i8]* @.str.3, i64 0, i64 0), metadata !2286, metadata !DIExpression()), !dbg !2557
-  %138 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([6 x i8], [6 x i8]* @.str.3, i64 0, i64 0), i64 noundef 5), !dbg !2560
-  call void @llvm.dbg.value(metadata i8 32, metadata !2561, metadata !DIExpression()), !dbg !2571
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2570, metadata !DIExpression()), !dbg !2571
-  %139 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !2573, !tbaa !2370
-  %140 = getelementptr i8, i8* %139, i64 -24, !dbg !2573
-  %141 = bitcast i8* %140 to i64*, !dbg !2573
-  %142 = load i64, i64* %141, align 8, !dbg !2573
-  %143 = getelementptr inbounds i8, i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %142, !dbg !2573
-  call void @llvm.dbg.value(metadata i8* %143, metadata !2574, metadata !DIExpression()), !dbg !2584
-  call void @llvm.dbg.value(metadata i8 32, metadata !2581, metadata !DIExpression()), !dbg !2584
-  call void @llvm.dbg.value(metadata i8* %143, metadata !2586, metadata !DIExpression()), !dbg !2592
-  %144 = getelementptr inbounds i8, i8* %143, i64 225, !dbg !2594
-  %145 = load i8, i8* %144, align 1, !dbg !2594, !tbaa !2596, !range !2597
-  %146 = icmp eq i8 %145, 0, !dbg !2594
-  br i1 %146, label %147, label %166, !dbg !2598
+144:                                              ; preds = %221
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2285, metadata !DIExpression()), !dbg !2562
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([6 x i8], [6 x i8]* @.str.3, i64 0, i64 0), metadata !2291, metadata !DIExpression()), !dbg !2562
+  %145 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([6 x i8], [6 x i8]* @.str.3, i64 0, i64 0), i64 noundef 5), !dbg !2565
+  call void @llvm.dbg.value(metadata i8 32, metadata !2566, metadata !DIExpression()), !dbg !2576
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2575, metadata !DIExpression()), !dbg !2576
+  %146 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !2578, !tbaa !2375
+  %147 = getelementptr i8, i8* %146, i64 -24, !dbg !2578
+  %148 = bitcast i8* %147 to i64*, !dbg !2578
+  %149 = load i64, i64* %148, align 8, !dbg !2578
+  %150 = getelementptr inbounds i8, i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %149, !dbg !2578
+  call void @llvm.dbg.value(metadata i8* %150, metadata !2579, metadata !DIExpression()), !dbg !2589
+  call void @llvm.dbg.value(metadata i8 32, metadata !2586, metadata !DIExpression()), !dbg !2589
+  call void @llvm.dbg.value(metadata i8* %150, metadata !2591, metadata !DIExpression()), !dbg !2597
+  %151 = getelementptr inbounds i8, i8* %150, i64 225, !dbg !2599
+  %152 = load i8, i8* %151, align 1, !dbg !2599, !tbaa !2601, !range !2602
+  %153 = icmp eq i8 %152, 0, !dbg !2599
+  br i1 %153, label %154, label %173, !dbg !2603
 
-147:                                              ; preds = %137
-  call void @llvm.dbg.value(metadata i8* %143, metadata !2574, metadata !DIExpression()), !dbg !2584
-  call void @llvm.dbg.value(metadata i8* %143, metadata !2586, metadata !DIExpression()), !dbg !2592
-  call void @llvm.dbg.value(metadata i8* %143, metadata !2372, metadata !DIExpression()), !dbg !2599
-  call void @llvm.dbg.value(metadata i8 32, metadata !2384, metadata !DIExpression()), !dbg !2599
-  %148 = getelementptr inbounds i8, i8* %143, i64 240, !dbg !2602
-  %149 = bitcast i8* %148 to %"class.std::ctype"**, !dbg !2602
-  %150 = load %"class.std::ctype"*, %"class.std::ctype"** %149, align 8, !dbg !2602, !tbaa !2389
-  call void @llvm.dbg.value(metadata %"class.std::ctype"* %150, metadata !2398, metadata !DIExpression()), !dbg !2603
-  %151 = icmp eq %"class.std::ctype"* %150, null, !dbg !2605
-  br i1 %151, label %152, label %153, !dbg !2606
+154:                                              ; preds = %144
+  call void @llvm.dbg.value(metadata i8* %150, metadata !2579, metadata !DIExpression()), !dbg !2589
+  call void @llvm.dbg.value(metadata i8* %150, metadata !2591, metadata !DIExpression()), !dbg !2597
+  call void @llvm.dbg.value(metadata i8* %150, metadata !2377, metadata !DIExpression()), !dbg !2604
+  call void @llvm.dbg.value(metadata i8 32, metadata !2389, metadata !DIExpression()), !dbg !2604
+  %155 = getelementptr inbounds i8, i8* %150, i64 240, !dbg !2607
+  %156 = bitcast i8* %155 to %"class.std::ctype"**, !dbg !2607
+  %157 = load %"class.std::ctype"*, %"class.std::ctype"** %156, align 8, !dbg !2607, !tbaa !2394
+  call void @llvm.dbg.value(metadata %"class.std::ctype"* %157, metadata !2403, metadata !DIExpression()), !dbg !2608
+  %158 = icmp eq %"class.std::ctype"* %157, null, !dbg !2610
+  br i1 %158, label %159, label %160, !dbg !2611
 
-152:                                              ; preds = %147
-  call void @_ZSt16__throw_bad_castv() #20, !dbg !2607
-  unreachable, !dbg !2607
+159:                                              ; preds = %154
+  call void @_ZSt16__throw_bad_castv() #20, !dbg !2612
+  unreachable, !dbg !2612
 
-153:                                              ; preds = %147
-  call void @llvm.dbg.value(metadata %"class.std::ctype"* %150, metadata !2416, metadata !DIExpression()), !dbg !2608
-  call void @llvm.dbg.value(metadata i8 32, metadata !2424, metadata !DIExpression()), !dbg !2608
-  %154 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %150, i64 0, i32 8, !dbg !2610
-  %155 = load i8, i8* %154, align 8, !dbg !2610, !tbaa !2429
-  %156 = icmp eq i8 %155, 0, !dbg !2610
-  br i1 %156, label %157, label %164, !dbg !2611
+160:                                              ; preds = %154
+  call void @llvm.dbg.value(metadata %"class.std::ctype"* %157, metadata !2421, metadata !DIExpression()), !dbg !2613
+  call void @llvm.dbg.value(metadata i8 32, metadata !2429, metadata !DIExpression()), !dbg !2613
+  %161 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %157, i64 0, i32 8, !dbg !2615
+  %162 = load i8, i8* %161, align 8, !dbg !2615, !tbaa !2434
+  %163 = icmp eq i8 %162, 0, !dbg !2615
+  br i1 %163, label %164, label %171, !dbg !2616
 
-157:                                              ; preds = %153
-  call void @_ZNKSt5ctypeIcE13_M_widen_initEv(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %150), !dbg !2612
-  %158 = bitcast %"class.std::ctype"* %150 to i8 (%"class.std::ctype"*, i8)***, !dbg !2613
-  %159 = load i8 (%"class.std::ctype"*, i8)**, i8 (%"class.std::ctype"*, i8)*** %158, align 8, !dbg !2613, !tbaa !2370
-  %160 = getelementptr inbounds i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %159, i64 6, !dbg !2613
-  %161 = load i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %160, align 8, !dbg !2613
-  %162 = call noundef signext i8 %161(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %150, i8 noundef signext 32), !dbg !2613
-  %163 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !2614, !tbaa !2370
-  br label %164, !dbg !2625
+164:                                              ; preds = %160
+  call void @_ZNKSt5ctypeIcE13_M_widen_initEv(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %157), !dbg !2617
+  %165 = bitcast %"class.std::ctype"* %157 to i8 (%"class.std::ctype"*, i8)***, !dbg !2618
+  %166 = load i8 (%"class.std::ctype"*, i8)**, i8 (%"class.std::ctype"*, i8)*** %165, align 8, !dbg !2618, !tbaa !2375
+  %167 = getelementptr inbounds i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %166, i64 6, !dbg !2618
+  %168 = load i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %167, align 8, !dbg !2618
+  %169 = call noundef signext i8 %168(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %157, i8 noundef signext 32), !dbg !2618
+  %170 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !2619, !tbaa !2375
+  br label %171, !dbg !2630
 
-164:                                              ; preds = %157, %153
-  %165 = phi i8* [ %163, %157 ], [ %139, %153 ], !dbg !2614
-  store i8 1, i8* %144, align 1, !dbg !2626, !tbaa !2596
-  br label %166, !dbg !2627
+171:                                              ; preds = %164, %160
+  %172 = phi i8* [ %170, %164 ], [ %146, %160 ], !dbg !2619
+  store i8 1, i8* %151, align 1, !dbg !2631, !tbaa !2601
+  br label %173, !dbg !2632
 
-166:                                              ; preds = %137, %164
-  %167 = phi i8* [ %139, %137 ], [ %165, %164 ], !dbg !2614
-  call void @llvm.dbg.value(metadata i8 undef, metadata !2582, metadata !DIExpression()), !dbg !2584
-  %168 = getelementptr inbounds i8, i8* %143, i64 224, !dbg !2628
-  store i8 32, i8* %168, align 8, !dbg !2629, !tbaa !2630
-  call void @llvm.dbg.value(metadata i32 8, metadata !2623, metadata !DIExpression()), !dbg !2631
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2622, metadata !DIExpression()), !dbg !2631
-  %169 = getelementptr i8, i8* %167, i64 -24, !dbg !2614
-  %170 = bitcast i8* %169 to i64*, !dbg !2614
-  %171 = load i64, i64* %170, align 8, !dbg !2614
-  %172 = getelementptr inbounds i8, i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %171, !dbg !2614
-  call void @llvm.dbg.value(metadata i8* %172, metadata !2632, metadata !DIExpression()), !dbg !2642
-  call void @llvm.dbg.value(metadata i64 8, metadata !2639, metadata !DIExpression()), !dbg !2642
-  %173 = getelementptr inbounds i8, i8* %172, i64 16, !dbg !2644
-  %174 = bitcast i8* %173 to i64*, !dbg !2644
-  call void @llvm.dbg.value(metadata i64 undef, metadata !2640, metadata !DIExpression()), !dbg !2642
-  store i64 8, i64* %174, align 8, !dbg !2645, !tbaa !2646
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2280, metadata !DIExpression()), !dbg !2647
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.5, i64 0, i64 0), metadata !2286, metadata !DIExpression()), !dbg !2647
-  %175 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([4 x i8], [4 x i8]* @.str.5, i64 0, i64 0), i64 noundef 3), !dbg !2649
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2280, metadata !DIExpression()), !dbg !2650
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([6 x i8], [6 x i8]* @.str.6, i64 0, i64 0), metadata !2286, metadata !DIExpression()), !dbg !2650
-  %176 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([6 x i8], [6 x i8]* @.str.6, i64 0, i64 0), i64 noundef 5), !dbg !2652
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2259, metadata !DIExpression()), !dbg !2653
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2348, metadata !DIExpression()), !dbg !2655
-  %177 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo5flushEv(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout), !dbg !2657
-  %178 = call i32 @__hipPushCallConfiguration(i64 4294967297, i32 1, i64 4294968320, i32 1, i64 noundef 0, %struct.ihipStream_t* noundef null), !dbg !2658
-  %179 = icmp eq i32 %178, 0, !dbg !2658
-  br i1 %179, label %228, label %259, !dbg !2659
+173:                                              ; preds = %144, %171
+  %174 = phi i8* [ %146, %144 ], [ %172, %171 ], !dbg !2619
+  call void @llvm.dbg.value(metadata i8 undef, metadata !2587, metadata !DIExpression()), !dbg !2589
+  %175 = getelementptr inbounds i8, i8* %150, i64 224, !dbg !2633
+  store i8 32, i8* %175, align 8, !dbg !2634, !tbaa !2635
+  call void @llvm.dbg.value(metadata i32 8, metadata !2628, metadata !DIExpression()), !dbg !2636
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2627, metadata !DIExpression()), !dbg !2636
+  %176 = getelementptr i8, i8* %174, i64 -24, !dbg !2619
+  %177 = bitcast i8* %176 to i64*, !dbg !2619
+  %178 = load i64, i64* %177, align 8, !dbg !2619
+  %179 = getelementptr inbounds i8, i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %178, !dbg !2619
+  call void @llvm.dbg.value(metadata i8* %179, metadata !2637, metadata !DIExpression()), !dbg !2647
+  call void @llvm.dbg.value(metadata i64 8, metadata !2644, metadata !DIExpression()), !dbg !2647
+  %180 = getelementptr inbounds i8, i8* %179, i64 16, !dbg !2649
+  %181 = bitcast i8* %180 to i64*, !dbg !2649
+  call void @llvm.dbg.value(metadata i64 undef, metadata !2645, metadata !DIExpression()), !dbg !2647
+  store i64 8, i64* %181, align 8, !dbg !2650, !tbaa !2651
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2285, metadata !DIExpression()), !dbg !2652
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.5, i64 0, i64 0), metadata !2291, metadata !DIExpression()), !dbg !2652
+  %182 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([4 x i8], [4 x i8]* @.str.5, i64 0, i64 0), i64 noundef 3), !dbg !2654
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2285, metadata !DIExpression()), !dbg !2655
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([6 x i8], [6 x i8]* @.str.6, i64 0, i64 0), metadata !2291, metadata !DIExpression()), !dbg !2655
+  %183 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([6 x i8], [6 x i8]* @.str.6, i64 0, i64 0), i64 noundef 5), !dbg !2657
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2264, metadata !DIExpression()), !dbg !2658
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2353, metadata !DIExpression()), !dbg !2660
+  %184 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo5flushEv(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout), !dbg !2662
+  %185 = call i32 @__hipPushCallConfiguration(i64 4294967297, i32 1, i64 4294968320, i32 1, i64 noundef 0, %struct.ihipStream_t* noundef null), !dbg !2663
+  %186 = icmp eq i32 %185, 0, !dbg !2663
+  br i1 %186, label %235, label %271, !dbg !2664
 
-180:                                              ; preds = %135, %214
-  %181 = phi i64 [ 0, %135 ], [ %226, %214 ]
-  call void @llvm.dbg.value(metadata i64 %181, metadata !2235, metadata !DIExpression()), !dbg !2555
-  %182 = and i64 %181, 15, !dbg !2660
-  %183 = icmp eq i64 %182, 0, !dbg !2664
-  br i1 %183, label %184, label %186, !dbg !2665
+187:                                              ; preds = %142, %221
+  %188 = phi i64 [ 0, %142 ], [ %233, %221 ]
+  call void @llvm.dbg.value(metadata i64 %188, metadata !2242, metadata !DIExpression()), !dbg !2560
+  %189 = and i64 %188, 15, !dbg !2665
+  %190 = icmp eq i64 %189, 0, !dbg !2669
+  br i1 %190, label %191, label %193, !dbg !2670
 
-184:                                              ; preds = %180
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2280, metadata !DIExpression()), !dbg !2666
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([6 x i8], [6 x i8]* @.str.3, i64 0, i64 0), metadata !2286, metadata !DIExpression()), !dbg !2666
-  %185 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([6 x i8], [6 x i8]* @.str.3, i64 0, i64 0), i64 noundef 5), !dbg !2668
-  br label %186, !dbg !2669
+191:                                              ; preds = %187
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2285, metadata !DIExpression()), !dbg !2671
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([6 x i8], [6 x i8]* @.str.3, i64 0, i64 0), metadata !2291, metadata !DIExpression()), !dbg !2671
+  %192 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([6 x i8], [6 x i8]* @.str.3, i64 0, i64 0), i64 noundef 5), !dbg !2673
+  br label %193, !dbg !2674
 
-186:                                              ; preds = %184, %180
-  call void @llvm.dbg.value(metadata i8 32, metadata !2561, metadata !DIExpression()), !dbg !2670
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2570, metadata !DIExpression()), !dbg !2670
-  %187 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !2672, !tbaa !2370
-  %188 = getelementptr i8, i8* %187, i64 -24, !dbg !2672
-  %189 = bitcast i8* %188 to i64*, !dbg !2672
-  %190 = load i64, i64* %189, align 8, !dbg !2672
-  %191 = getelementptr inbounds i8, i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %190, !dbg !2672
-  call void @llvm.dbg.value(metadata i8* %191, metadata !2574, metadata !DIExpression()), !dbg !2673
-  call void @llvm.dbg.value(metadata i8 32, metadata !2581, metadata !DIExpression()), !dbg !2673
-  call void @llvm.dbg.value(metadata i8* %191, metadata !2586, metadata !DIExpression()), !dbg !2675
-  %192 = getelementptr inbounds i8, i8* %191, i64 225, !dbg !2677
-  %193 = load i8, i8* %192, align 1, !dbg !2677, !tbaa !2596, !range !2597
-  %194 = icmp eq i8 %193, 0, !dbg !2677
-  br i1 %194, label %195, label %214, !dbg !2678
+193:                                              ; preds = %191, %187
+  call void @llvm.dbg.value(metadata i8 32, metadata !2566, metadata !DIExpression()), !dbg !2675
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2575, metadata !DIExpression()), !dbg !2675
+  %194 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !2677, !tbaa !2375
+  %195 = getelementptr i8, i8* %194, i64 -24, !dbg !2677
+  %196 = bitcast i8* %195 to i64*, !dbg !2677
+  %197 = load i64, i64* %196, align 8, !dbg !2677
+  %198 = getelementptr inbounds i8, i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %197, !dbg !2677
+  call void @llvm.dbg.value(metadata i8* %198, metadata !2579, metadata !DIExpression()), !dbg !2678
+  call void @llvm.dbg.value(metadata i8 32, metadata !2586, metadata !DIExpression()), !dbg !2678
+  call void @llvm.dbg.value(metadata i8* %198, metadata !2591, metadata !DIExpression()), !dbg !2680
+  %199 = getelementptr inbounds i8, i8* %198, i64 225, !dbg !2682
+  %200 = load i8, i8* %199, align 1, !dbg !2682, !tbaa !2601, !range !2602
+  %201 = icmp eq i8 %200, 0, !dbg !2682
+  br i1 %201, label %202, label %221, !dbg !2683
 
-195:                                              ; preds = %186
-  call void @llvm.dbg.value(metadata i8* %191, metadata !2574, metadata !DIExpression()), !dbg !2673
-  call void @llvm.dbg.value(metadata i8* %191, metadata !2586, metadata !DIExpression()), !dbg !2675
-  call void @llvm.dbg.value(metadata i8* %191, metadata !2372, metadata !DIExpression()), !dbg !2679
-  call void @llvm.dbg.value(metadata i8 32, metadata !2384, metadata !DIExpression()), !dbg !2679
-  %196 = getelementptr inbounds i8, i8* %191, i64 240, !dbg !2681
-  %197 = bitcast i8* %196 to %"class.std::ctype"**, !dbg !2681
-  %198 = load %"class.std::ctype"*, %"class.std::ctype"** %197, align 8, !dbg !2681, !tbaa !2389
-  call void @llvm.dbg.value(metadata %"class.std::ctype"* %198, metadata !2398, metadata !DIExpression()), !dbg !2682
-  %199 = icmp eq %"class.std::ctype"* %198, null, !dbg !2684
-  br i1 %199, label %200, label %201, !dbg !2685
+202:                                              ; preds = %193
+  call void @llvm.dbg.value(metadata i8* %198, metadata !2579, metadata !DIExpression()), !dbg !2678
+  call void @llvm.dbg.value(metadata i8* %198, metadata !2591, metadata !DIExpression()), !dbg !2680
+  call void @llvm.dbg.value(metadata i8* %198, metadata !2377, metadata !DIExpression()), !dbg !2684
+  call void @llvm.dbg.value(metadata i8 32, metadata !2389, metadata !DIExpression()), !dbg !2684
+  %203 = getelementptr inbounds i8, i8* %198, i64 240, !dbg !2686
+  %204 = bitcast i8* %203 to %"class.std::ctype"**, !dbg !2686
+  %205 = load %"class.std::ctype"*, %"class.std::ctype"** %204, align 8, !dbg !2686, !tbaa !2394
+  call void @llvm.dbg.value(metadata %"class.std::ctype"* %205, metadata !2403, metadata !DIExpression()), !dbg !2687
+  %206 = icmp eq %"class.std::ctype"* %205, null, !dbg !2689
+  br i1 %206, label %207, label %208, !dbg !2690
 
-200:                                              ; preds = %195
-  call void @_ZSt16__throw_bad_castv() #20, !dbg !2686
-  unreachable, !dbg !2686
+207:                                              ; preds = %202
+  call void @_ZSt16__throw_bad_castv() #20, !dbg !2691
+  unreachable, !dbg !2691
 
-201:                                              ; preds = %195
-  call void @llvm.dbg.value(metadata %"class.std::ctype"* %198, metadata !2416, metadata !DIExpression()), !dbg !2687
-  call void @llvm.dbg.value(metadata i8 32, metadata !2424, metadata !DIExpression()), !dbg !2687
-  %202 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %198, i64 0, i32 8, !dbg !2689
-  %203 = load i8, i8* %202, align 8, !dbg !2689, !tbaa !2429
-  %204 = icmp eq i8 %203, 0, !dbg !2689
-  br i1 %204, label %205, label %212, !dbg !2690
+208:                                              ; preds = %202
+  call void @llvm.dbg.value(metadata %"class.std::ctype"* %205, metadata !2421, metadata !DIExpression()), !dbg !2692
+  call void @llvm.dbg.value(metadata i8 32, metadata !2429, metadata !DIExpression()), !dbg !2692
+  %209 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %205, i64 0, i32 8, !dbg !2694
+  %210 = load i8, i8* %209, align 8, !dbg !2694, !tbaa !2434
+  %211 = icmp eq i8 %210, 0, !dbg !2694
+  br i1 %211, label %212, label %219, !dbg !2695
 
-205:                                              ; preds = %201
-  call void @_ZNKSt5ctypeIcE13_M_widen_initEv(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %198), !dbg !2691
-  %206 = bitcast %"class.std::ctype"* %198 to i8 (%"class.std::ctype"*, i8)***, !dbg !2692
-  %207 = load i8 (%"class.std::ctype"*, i8)**, i8 (%"class.std::ctype"*, i8)*** %206, align 8, !dbg !2692, !tbaa !2370
-  %208 = getelementptr inbounds i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %207, i64 6, !dbg !2692
-  %209 = load i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %208, align 8, !dbg !2692
-  %210 = call noundef signext i8 %209(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %198, i8 noundef signext 32), !dbg !2692
-  %211 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !2693, !tbaa !2370
-  br label %212, !dbg !2695
+212:                                              ; preds = %208
+  call void @_ZNKSt5ctypeIcE13_M_widen_initEv(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %205), !dbg !2696
+  %213 = bitcast %"class.std::ctype"* %205 to i8 (%"class.std::ctype"*, i8)***, !dbg !2697
+  %214 = load i8 (%"class.std::ctype"*, i8)**, i8 (%"class.std::ctype"*, i8)*** %213, align 8, !dbg !2697, !tbaa !2375
+  %215 = getelementptr inbounds i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %214, i64 6, !dbg !2697
+  %216 = load i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %215, align 8, !dbg !2697
+  %217 = call noundef signext i8 %216(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %205, i8 noundef signext 32), !dbg !2697
+  %218 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !2698, !tbaa !2375
+  br label %219, !dbg !2700
 
-212:                                              ; preds = %205, %201
-  %213 = phi i8* [ %211, %205 ], [ %187, %201 ], !dbg !2693
-  store i8 1, i8* %192, align 1, !dbg !2696, !tbaa !2596
-  br label %214, !dbg !2697
+219:                                              ; preds = %212, %208
+  %220 = phi i8* [ %218, %212 ], [ %194, %208 ], !dbg !2698
+  store i8 1, i8* %199, align 1, !dbg !2701, !tbaa !2601
+  br label %221, !dbg !2702
 
-214:                                              ; preds = %186, %212
-  %215 = phi i8* [ %187, %186 ], [ %213, %212 ], !dbg !2693
-  call void @llvm.dbg.value(metadata i8 undef, metadata !2582, metadata !DIExpression()), !dbg !2673
-  %216 = getelementptr inbounds i8, i8* %191, i64 224, !dbg !2698
-  store i8 32, i8* %216, align 8, !dbg !2699, !tbaa !2630
-  call void @llvm.dbg.value(metadata i32 8, metadata !2623, metadata !DIExpression()), !dbg !2700
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2622, metadata !DIExpression()), !dbg !2700
-  %217 = getelementptr i8, i8* %215, i64 -24, !dbg !2693
-  %218 = bitcast i8* %217 to i64*, !dbg !2693
-  %219 = load i64, i64* %218, align 8, !dbg !2693
-  call void @llvm.dbg.value(metadata !DIArgList(i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %219), metadata !2632, metadata !DIExpression(DW_OP_LLVM_arg, 0, DW_OP_LLVM_arg, 1, DW_OP_constu, 1, DW_OP_mul, DW_OP_plus, DW_OP_stack_value)), !dbg !2701
-  call void @llvm.dbg.value(metadata i64 8, metadata !2639, metadata !DIExpression()), !dbg !2701
-  %220 = getelementptr i8, i8* bitcast (i64* getelementptr inbounds (%"class.std::basic_ostream", %"class.std::basic_ostream"* @_ZSt4cout, i64 0, i32 1, i32 0, i32 1) to i8*), i64 %219, !dbg !2703
-  %221 = bitcast i8* %220 to i64*, !dbg !2703
-  call void @llvm.dbg.value(metadata i64 undef, metadata !2640, metadata !DIExpression()), !dbg !2701
-  store i64 8, i64* %221, align 8, !dbg !2704, !tbaa !2646
-  %222 = getelementptr inbounds i64, i64* %127, i64 %181, !dbg !2705
-  %223 = load i64, i64* %222, align 8, !dbg !2705, !tbaa !2706
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2707, metadata !DIExpression()), !dbg !2714
-  call void @llvm.dbg.value(metadata i64 %223, metadata !2713, metadata !DIExpression()), !dbg !2714
-  %224 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo9_M_insertIlEERSoT_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i64 noundef %223), !dbg !2716
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %224, metadata !2280, metadata !DIExpression()), !dbg !2717
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([2 x i8], [2 x i8]* @.str.4, i64 0, i64 0), metadata !2286, metadata !DIExpression()), !dbg !2717
-  %225 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %224, i8* noundef nonnull getelementptr inbounds ([2 x i8], [2 x i8]* @.str.4, i64 0, i64 0), i64 noundef 1), !dbg !2719
-  %226 = add nuw nsw i64 %181, 1, !dbg !2720
-  call void @llvm.dbg.value(metadata i64 %226, metadata !2235, metadata !DIExpression()), !dbg !2555
-  %227 = icmp eq i64 %226, 128, !dbg !2721
-  br i1 %227, label %137, label %180, !dbg !2556, !llvm.loop !2722
+221:                                              ; preds = %193, %219
+  %222 = phi i8* [ %194, %193 ], [ %220, %219 ], !dbg !2698
+  call void @llvm.dbg.value(metadata i8 undef, metadata !2587, metadata !DIExpression()), !dbg !2678
+  %223 = getelementptr inbounds i8, i8* %198, i64 224, !dbg !2703
+  store i8 32, i8* %223, align 8, !dbg !2704, !tbaa !2635
+  call void @llvm.dbg.value(metadata i32 8, metadata !2628, metadata !DIExpression()), !dbg !2705
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2627, metadata !DIExpression()), !dbg !2705
+  %224 = getelementptr i8, i8* %222, i64 -24, !dbg !2698
+  %225 = bitcast i8* %224 to i64*, !dbg !2698
+  %226 = load i64, i64* %225, align 8, !dbg !2698
+  call void @llvm.dbg.value(metadata !DIArgList(i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %226), metadata !2637, metadata !DIExpression(DW_OP_LLVM_arg, 0, DW_OP_LLVM_arg, 1, DW_OP_constu, 1, DW_OP_mul, DW_OP_plus, DW_OP_stack_value)), !dbg !2706
+  call void @llvm.dbg.value(metadata i64 8, metadata !2644, metadata !DIExpression()), !dbg !2706
+  %227 = getelementptr i8, i8* bitcast (i64* getelementptr inbounds (%"class.std::basic_ostream", %"class.std::basic_ostream"* @_ZSt4cout, i64 0, i32 1, i32 0, i32 1) to i8*), i64 %226, !dbg !2708
+  %228 = bitcast i8* %227 to i64*, !dbg !2708
+  call void @llvm.dbg.value(metadata i64 undef, metadata !2645, metadata !DIExpression()), !dbg !2706
+  store i64 8, i64* %228, align 8, !dbg !2709, !tbaa !2651
+  %229 = getelementptr inbounds i64, i64* %134, i64 %188, !dbg !2710
+  %230 = load i64, i64* %229, align 8, !dbg !2710, !tbaa !2711
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2712, metadata !DIExpression()), !dbg !2719
+  call void @llvm.dbg.value(metadata i64 %230, metadata !2718, metadata !DIExpression()), !dbg !2719
+  %231 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo9_M_insertIlEERSoT_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i64 noundef %230), !dbg !2721
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %231, metadata !2285, metadata !DIExpression()), !dbg !2722
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([2 x i8], [2 x i8]* @.str.4, i64 0, i64 0), metadata !2291, metadata !DIExpression()), !dbg !2722
+  %232 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %231, i8* noundef nonnull getelementptr inbounds ([2 x i8], [2 x i8]* @.str.4, i64 0, i64 0), i64 noundef 1), !dbg !2724
+  %233 = add nuw nsw i64 %188, 1, !dbg !2725
+  call void @llvm.dbg.value(metadata i64 %233, metadata !2242, metadata !DIExpression()), !dbg !2560
+  %234 = icmp eq i64 %233, 128, !dbg !2726
+  br i1 %234, label %144, label %187, !dbg !2561, !llvm.loop !2727
 
-228:                                              ; preds = %166
-  %229 = load i64*, i64** %18, align 8, !dbg !2725, !tbaa !2213
-  call void @llvm.dbg.value(metadata i64* %229, metadata !2226, metadata !DIExpression()), !dbg !2240
-  %230 = load i64*, i64** %19, align 8, !dbg !2726, !tbaa !2213
-  call void @llvm.dbg.value(metadata i64* %230, metadata !2231, metadata !DIExpression()), !dbg !2240
-  %231 = load i64*, i64** %20, align 8, !dbg !2727, !tbaa !2213
-  call void @llvm.dbg.value(metadata i64* %231, metadata !2232, metadata !DIExpression()), !dbg !2240
-  %232 = bitcast i64** %3 to i8*, !dbg !2659
-  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %232), !dbg !2659
-  %233 = bitcast i64** %4 to i8*, !dbg !2659
-  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %233), !dbg !2659
-  %234 = bitcast i64** %5 to i8*, !dbg !2659
-  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %234), !dbg !2659
-  %235 = bitcast %struct.dim3* %6 to i8*, !dbg !2659
-  call void @llvm.lifetime.start.p0i8(i64 12, i8* nonnull %235), !dbg !2659
-  %236 = bitcast %struct.dim3* %7 to i8*, !dbg !2659
-  call void @llvm.lifetime.start.p0i8(i64 12, i8* nonnull %236), !dbg !2659
-  %237 = bitcast i64* %8 to i8*, !dbg !2659
-  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %237), !dbg !2659
-  %238 = bitcast i8** %9 to i8*, !dbg !2659
-  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %238), !dbg !2659
-  %239 = bitcast [3 x i8*]* %10 to i8*, !dbg !2659
-  call void @llvm.lifetime.start.p0i8(i64 24, i8* nonnull %239), !dbg !2659
-  store i64* %229, i64** %3, align 8, !dbg !2659, !tbaa !2213
-  store i64* %230, i64** %4, align 8, !dbg !2659, !tbaa !2213
-  store i64* %231, i64** %5, align 8, !dbg !2659, !tbaa !2213
-  %240 = getelementptr inbounds [3 x i8*], [3 x i8*]* %10, i64 0, i64 0, !dbg !2659
-  %241 = bitcast [3 x i8*]* %10 to i64***, !dbg !2659
-  store i64** %3, i64*** %241, align 16, !dbg !2659
-  %242 = getelementptr inbounds [3 x i8*], [3 x i8*]* %10, i64 0, i64 1, !dbg !2659
-  %243 = bitcast i8** %242 to i64***, !dbg !2659
-  store i64** %4, i64*** %243, align 8, !dbg !2659
-  %244 = getelementptr inbounds [3 x i8*], [3 x i8*]* %10, i64 0, i64 2, !dbg !2659
-  %245 = bitcast i8** %244 to i64***, !dbg !2659
-  store i64** %5, i64*** %245, align 16, !dbg !2659
-  %246 = call i32 @__hipPopCallConfiguration(%struct.dim3* nonnull %6, %struct.dim3* nonnull %7, i64* nonnull %8, i8** nonnull %9), !dbg !2659
-  %247 = load i64, i64* %8, align 8, !dbg !2659
-  %248 = bitcast i8** %9 to %struct.ihipStream_t**, !dbg !2659
-  %249 = load %struct.ihipStream_t*, %struct.ihipStream_t** %248, align 8, !dbg !2659
-  %250 = bitcast %struct.dim3* %6 to i64*, !dbg !2659
-  %251 = load i64, i64* %250, align 8, !dbg !2659
-  %252 = getelementptr inbounds %struct.dim3, %struct.dim3* %6, i64 0, i32 2, !dbg !2659
-  %253 = load i32, i32* %252, align 8, !dbg !2659
-  %254 = bitcast %struct.dim3* %7 to i64*, !dbg !2659
-  %255 = load i64, i64* %254, align 8, !dbg !2659
-  %256 = getelementptr inbounds %struct.dim3, %struct.dim3* %7, i64 0, i32 2, !dbg !2659
-  %257 = load i32, i32* %256, align 8, !dbg !2659
-  %258 = call noundef i32 @hipLaunchKernel(i8* noundef bitcast (void (i64*, i64*, i64*)** @_Z15tick_all_kernelPU7_AtomicmPmPl to i8*), i64 %251, i32 %253, i64 %255, i32 %257, i8** noundef nonnull %240, i64 noundef %247, %struct.ihipStream_t* noundef %249), !dbg !2659
-  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %232), !dbg !2659
-  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %233), !dbg !2659
-  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %234), !dbg !2659
-  call void @llvm.lifetime.end.p0i8(i64 12, i8* nonnull %235), !dbg !2659
-  call void @llvm.lifetime.end.p0i8(i64 12, i8* nonnull %236), !dbg !2659
-  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %237), !dbg !2659
-  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %238), !dbg !2659
-  call void @llvm.lifetime.end.p0i8(i64 24, i8* nonnull %239), !dbg !2659
-  br label %259, !dbg !2659
+235:                                              ; preds = %173
+  %236 = load i64*, i64** %22, align 8, !dbg !2730, !tbaa !2217
+  call void @llvm.dbg.value(metadata i64* %236, metadata !2233, metadata !DIExpression()), !dbg !2246
+  %237 = load i64*, i64** %23, align 8, !dbg !2731, !tbaa !2217
+  call void @llvm.dbg.value(metadata i64* %237, metadata !2238, metadata !DIExpression()), !dbg !2246
+  %238 = load i64*, i64** %24, align 8, !dbg !2732, !tbaa !2217
+  call void @llvm.dbg.value(metadata i64* %238, metadata !2239, metadata !DIExpression()), !dbg !2246
+  %239 = bitcast i64** %4 to i8*, !dbg !2664
+  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %239), !dbg !2664
+  %240 = bitcast i64** %5 to i8*, !dbg !2664
+  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %240), !dbg !2664
+  %241 = bitcast i64** %6 to i8*, !dbg !2664
+  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %241), !dbg !2664
+  %242 = bitcast i32* %7 to i8*, !dbg !2664
+  call void @llvm.lifetime.start.p0i8(i64 4, i8* nonnull %242), !dbg !2664
+  %243 = bitcast %struct.dim3* %8 to i8*, !dbg !2664
+  call void @llvm.lifetime.start.p0i8(i64 12, i8* nonnull %243), !dbg !2664
+  %244 = bitcast %struct.dim3* %9 to i8*, !dbg !2664
+  call void @llvm.lifetime.start.p0i8(i64 12, i8* nonnull %244), !dbg !2664
+  %245 = bitcast i64* %10 to i8*, !dbg !2664
+  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %245), !dbg !2664
+  %246 = bitcast i8** %11 to i8*, !dbg !2664
+  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %246), !dbg !2664
+  %247 = bitcast [5 x ptr]* %12 to i8*, !dbg !2664
+  call void @llvm.lifetime.start.p0i8(i64 32, i8* nonnull %247), !dbg !2664
+  store i64* %236, i64** %4, align 8, !dbg !2664, !tbaa !2217
+  store i64* %237, i64** %5, align 8, !dbg !2664, !tbaa !2217
+  store i64* %238, i64** %6, align 8, !dbg !2664, !tbaa !2217
+  store i32 %0, i32* %7, align 4, !dbg !2664, !tbaa !2221
+  %248 = bitcast [5 x ptr]* %12 to i64***, !dbg !2664
+  store i64** %4, i64*** %248, align 16, !dbg !2664
+  %249 = getelementptr inbounds [4 x i8*], ptr* %13, i64 0, i64 1, !dbg !2664
+  %250 = bitcast i8** %249 to i64***, !dbg !2664
+  store i64** %5, i64*** %250, align 8, !dbg !2664
+  %251 = getelementptr inbounds [4 x i8*], ptr* %13, i64 0, i64 2, !dbg !2664
+  %252 = bitcast i8** %251 to i64***, !dbg !2664
+  store i64** %6, i64*** %252, align 16, !dbg !2664
+  %253 = getelementptr inbounds [4 x i8*], ptr* %13, i64 0, i64 3, !dbg !2664
+  %254 = bitcast i8** %253 to i32**, !dbg !2664
+  store i32* %7, i32** %254, align 8, !dbg !2664
+  %255 = call i32 @__hipPopCallConfiguration(%struct.dim3* nonnull %8, %struct.dim3* nonnull %9, i64* nonnull %10, i8** nonnull %11), !dbg !2664
+  %256 = load i64, i64* %10, align 8, !dbg !2664
+  %257 = bitcast i8** %11 to %struct.ihipStream_t**, !dbg !2664
+  %258 = load %struct.ihipStream_t*, %struct.ihipStream_t** %257, align 8, !dbg !2664
+  %259 = bitcast %struct.dim3* %8 to i64*, !dbg !2664
+  %260 = load i64, i64* %259, align 8, !dbg !2664
+  %261 = getelementptr inbounds %struct.dim3, %struct.dim3* %8, i64 0, i32 2, !dbg !2664
+  %262 = load i32, i32* %261, align 8, !dbg !2664
+  %263 = bitcast %struct.dim3* %9 to i64*, !dbg !2664
+  %264 = load i64, i64* %263, align 8, !dbg !2664
+  %265 = getelementptr inbounds %struct.dim3, %struct.dim3* %9, i64 0, i32 2, !dbg !2664
+  %266 = load i32, i32* %265, align 8, !dbg !2664
+  %267 = alloca ptr, align 8
+  %268 = call ptr @scabbard.trace.register_job(%struct.ihipStream_t* %258)
+  store ptr %268, ptr* %267, align 8
+  %269 = getelementptr inbounds [5 x ptr], [5 x ptr]* %12, i64 0, i64 4
+  store ptr* %267, ptr* %269, align 8
+  %270 = call noundef i32 @hipLaunchKernel(i8* noundef bitcast (void (i64*, i64*, i64*, i32)** @_Z15tick_all_kernelPU7_AtomicmPmPli to i8*), i64 %260, i32 %262, i64 %264, i32 %266, ptr* noundef nonnull %269, i64 noundef %256, %struct.ihipStream_t* noundef %258), !dbg !2664
+  call void @scabbard.trace.register_job_callback(ptr %268, %struct.ihipStream_t* %258)
+  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %239), !dbg !2664
+  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %240), !dbg !2664
+  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %241), !dbg !2664
+  call void @llvm.lifetime.end.p0i8(i64 4, i8* nonnull %242), !dbg !2664
+  call void @llvm.lifetime.end.p0i8(i64 12, i8* nonnull %243), !dbg !2664
+  call void @llvm.lifetime.end.p0i8(i64 12, i8* nonnull %244), !dbg !2664
+  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %245), !dbg !2664
+  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %246), !dbg !2664
+  call void @llvm.lifetime.end.p0i8(i64 32, i8* nonnull %247), !dbg !2664
+  br label %271, !dbg !2664
 
-259:                                              ; preds = %228, %166
-  %260 = bitcast <2 x i64>* %1 to i8*
-  br label %261, !dbg !2728
+271:                                              ; preds = %235, %173
+  %272 = bitcast <2 x i64>* %2 to i8*
+  br label %273, !dbg !2733
 
-261:                                              ; preds = %275, %259
-  %262 = phi i64 [ %276, %275 ], [ 64, %259 ]
-  br label %263, !dbg !2729
+273:                                              ; preds = %287, %271
+  %274 = phi i64 [ %288, %287 ], [ 64, %271 ]
+  br label %275, !dbg !2734
 
-263:                                              ; preds = %261, %271
-  call void @llvm.dbg.value(metadata i64 %262, metadata !2222, metadata !DIExpression()), !dbg !2240
-  call void @llvm.dbg.value(metadata %"struct.std::chrono::duration"* undef, metadata !2736, metadata !DIExpression()), !dbg !2755
-  call void @llvm.dbg.value(metadata i64 0, metadata !2737, metadata !DIExpression()), !dbg !2755
-  call void @llvm.dbg.value(metadata i64 1000000, metadata !2744, metadata !DIExpression()), !dbg !2755
-  call void @llvm.lifetime.start.p0i8(i64 16, i8* nonnull %260) #18, !dbg !2756
-  call void @llvm.dbg.declare(metadata %struct.timespec* %2, metadata !2750, metadata !DIExpression()), !dbg !2757
-  store <2 x i64> <i64 0, i64 1000000>, <2 x i64>* %1, align 16, !dbg !2758, !tbaa !2706
-  br label %264, !dbg !2729
+275:                                              ; preds = %273, %283
+  call void @llvm.dbg.value(metadata i64 %274, metadata !2229, metadata !DIExpression()), !dbg !2246
+  call void @llvm.dbg.value(metadata %"struct.std::chrono::duration"* undef, metadata !2741, metadata !DIExpression()), !dbg !2760
+  call void @llvm.dbg.value(metadata i64 0, metadata !2742, metadata !DIExpression()), !dbg !2760
+  call void @llvm.dbg.value(metadata i64 1000000, metadata !2749, metadata !DIExpression()), !dbg !2760
+  call void @llvm.lifetime.start.p0i8(i64 16, i8* nonnull %272) #18, !dbg !2761
+  call void @llvm.dbg.declare(metadata %struct.timespec* %3, metadata !2755, metadata !DIExpression()), !dbg !2762
+  store <2 x i64> <i64 0, i64 1000000>, <2 x i64>* %2, align 16, !dbg !2763, !tbaa !2711
+  br label %276, !dbg !2734
 
-264:                                              ; preds = %267, %263
-  %265 = call i32 @nanosleep(%struct.timespec* noundef nonnull %2, %struct.timespec* noundef nonnull %2), !dbg !2759
-  %266 = icmp eq i32 %265, -1, !dbg !2760
-  br i1 %266, label %267, label %271, !dbg !2761
+276:                                              ; preds = %279, %275
+  %277 = call i32 @nanosleep(%struct.timespec* noundef nonnull %3, %struct.timespec* noundef nonnull %3), !dbg !2764
+  %278 = icmp eq i32 %277, -1, !dbg !2765
+  br i1 %278, label %279, label %283, !dbg !2766
 
-267:                                              ; preds = %264
-  %268 = tail call i32* @__errno_location() #22, !dbg !2762
-  %269 = load i32, i32* %268, align 4, !dbg !2762, !tbaa !2242
-  %270 = icmp eq i32 %269, 4, !dbg !2763
-  br i1 %270, label %264, label %271, !dbg !2729, !llvm.loop !2764
+279:                                              ; preds = %276
+  %280 = tail call i32* @__errno_location() #22, !dbg !2767
+  %281 = load i32, i32* %280, align 4, !dbg !2767, !tbaa !2221
+  %282 = icmp eq i32 %281, 4, !dbg !2768
+  br i1 %282, label %276, label %283, !dbg !2734, !llvm.loop !2769
 
-271:                                              ; preds = %264, %267
-  call void @llvm.lifetime.end.p0i8(i64 16, i8* nonnull %260) #18, !dbg !2766
-  %272 = load i64*, i64** %18, align 8, !dbg !2767, !tbaa !2213
-  call void @llvm.dbg.value(metadata i64* %272, metadata !2226, metadata !DIExpression()), !dbg !2240
-  %273 = load atomic i64, i64* %272 seq_cst, align 8, !dbg !2768, !tbaa !2434
-  %274 = icmp eq i64 %273, 0, !dbg !2769
-  br i1 %274, label %263, label %275, !dbg !2770
+283:                                              ; preds = %276, %279
+  call void @llvm.lifetime.end.p0i8(i64 16, i8* nonnull %272) #18, !dbg !2771
+  %284 = load i64*, i64** %22, align 8, !dbg !2772, !tbaa !2217
+  call void @llvm.dbg.value(metadata i64* %284, metadata !2233, metadata !DIExpression()), !dbg !2246
+  %285 = load atomic i64, i64* %284 seq_cst, align 8, !dbg !2773, !tbaa !2439
+  %286 = icmp eq i64 %285, 0, !dbg !2774
+  br i1 %286, label %275, label %287, !dbg !2775
 
-275:                                              ; preds = %271
-  %276 = add nsw i64 %262, -1, !dbg !2771
-  call void @llvm.dbg.value(metadata i64 %276, metadata !2222, metadata !DIExpression()), !dbg !2240
-  %277 = icmp ugt i64 %262, 1, !dbg !2772
-  br i1 %277, label %261, label %278, !dbg !2773, !llvm.loop !2774
+287:                                              ; preds = %283
+  %288 = add nsw i64 %274, -1, !dbg !2776
+  call void @llvm.dbg.value(metadata i64 %288, metadata !2229, metadata !DIExpression()), !dbg !2246
+  %289 = icmp ugt i64 %274, 1, !dbg !2777
+  br i1 %289, label %273, label %290, !dbg !2778, !llvm.loop !2779
 
-278:                                              ; preds = %275
-  %279 = load i64*, i64** %18, align 8, !dbg !2776, !tbaa !2213
-  call void @llvm.dbg.value(metadata i64* %279, metadata !2226, metadata !DIExpression()), !dbg !2240
-  %280 = load atomic i64, i64* %279 seq_cst, align 8, !dbg !2778, !tbaa !2434
-  %281 = icmp eq i64 %280, 0, !dbg !2779
-  br i1 %281, label %311, label %282, !dbg !2780
+290:                                              ; preds = %287
+  %291 = load i64*, i64** %22, align 8, !dbg !2781, !tbaa !2217
+  call void @llvm.dbg.value(metadata i64* %291, metadata !2233, metadata !DIExpression()), !dbg !2246
+  %292 = load atomic i64, i64* %291 seq_cst, align 8, !dbg !2783, !tbaa !2439
+  %293 = icmp eq i64 %292, 0, !dbg !2784
+  br i1 %293, label %323, label %294, !dbg !2785
 
-282:                                              ; preds = %278
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2280, metadata !DIExpression()), !dbg !2781
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([60 x i8], [60 x i8]* @.str.7, i64 0, i64 0), metadata !2286, metadata !DIExpression()), !dbg !2781
-  %283 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([60 x i8], [60 x i8]* @.str.7, i64 0, i64 0), i64 noundef 59), !dbg !2783
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2259, metadata !DIExpression()), !dbg !2784
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2274, metadata !DIExpression()), !dbg !2784
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2364, metadata !DIExpression()), !dbg !2786
-  %284 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !2788, !tbaa !2370
-  %285 = getelementptr i8, i8* %284, i64 -24, !dbg !2788
-  %286 = bitcast i8* %285 to i64*, !dbg !2788
-  %287 = load i64, i64* %286, align 8, !dbg !2788
-  %288 = getelementptr inbounds i8, i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %287, !dbg !2788
-  call void @llvm.dbg.value(metadata i8* %288, metadata !2372, metadata !DIExpression()), !dbg !2789
-  call void @llvm.dbg.value(metadata i8 10, metadata !2384, metadata !DIExpression()), !dbg !2789
-  %289 = getelementptr inbounds i8, i8* %288, i64 240, !dbg !2791
-  %290 = bitcast i8* %289 to %"class.std::ctype"**, !dbg !2791
-  %291 = load %"class.std::ctype"*, %"class.std::ctype"** %290, align 8, !dbg !2791, !tbaa !2389
-  call void @llvm.dbg.value(metadata %"class.std::ctype"* %291, metadata !2398, metadata !DIExpression()), !dbg !2792
-  %292 = icmp eq %"class.std::ctype"* %291, null, !dbg !2794
-  br i1 %292, label %293, label %294, !dbg !2795
+294:                                              ; preds = %290
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2285, metadata !DIExpression()), !dbg !2786
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([60 x i8], [60 x i8]* @.str.7, i64 0, i64 0), metadata !2291, metadata !DIExpression()), !dbg !2786
+  %295 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([60 x i8], [60 x i8]* @.str.7, i64 0, i64 0), i64 noundef 59), !dbg !2788
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2264, metadata !DIExpression()), !dbg !2789
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2279, metadata !DIExpression()), !dbg !2789
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2369, metadata !DIExpression()), !dbg !2791
+  %296 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !2793, !tbaa !2375
+  %297 = getelementptr i8, i8* %296, i64 -24, !dbg !2793
+  %298 = bitcast i8* %297 to i64*, !dbg !2793
+  %299 = load i64, i64* %298, align 8, !dbg !2793
+  %300 = getelementptr inbounds i8, i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %299, !dbg !2793
+  call void @llvm.dbg.value(metadata i8* %300, metadata !2377, metadata !DIExpression()), !dbg !2794
+  call void @llvm.dbg.value(metadata i8 10, metadata !2389, metadata !DIExpression()), !dbg !2794
+  %301 = getelementptr inbounds i8, i8* %300, i64 240, !dbg !2796
+  %302 = bitcast i8* %301 to %"class.std::ctype"**, !dbg !2796
+  %303 = load %"class.std::ctype"*, %"class.std::ctype"** %302, align 8, !dbg !2796, !tbaa !2394
+  call void @llvm.dbg.value(metadata %"class.std::ctype"* %303, metadata !2403, metadata !DIExpression()), !dbg !2797
+  %304 = icmp eq %"class.std::ctype"* %303, null, !dbg !2799
+  br i1 %304, label %305, label %306, !dbg !2800
 
-293:                                              ; preds = %282
-  call void @_ZSt16__throw_bad_castv() #20, !dbg !2796
-  unreachable, !dbg !2796
+305:                                              ; preds = %294
+  call void @_ZSt16__throw_bad_castv() #20, !dbg !2801
+  unreachable, !dbg !2801
 
-294:                                              ; preds = %282
-  call void @llvm.dbg.value(metadata %"class.std::ctype"* %291, metadata !2416, metadata !DIExpression()), !dbg !2797
-  call void @llvm.dbg.value(metadata i8 10, metadata !2424, metadata !DIExpression()), !dbg !2797
-  %295 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %291, i64 0, i32 8, !dbg !2799
-  %296 = load i8, i8* %295, align 8, !dbg !2799, !tbaa !2429
-  %297 = icmp eq i8 %296, 0, !dbg !2799
-  br i1 %297, label %301, label %298, !dbg !2800
+306:                                              ; preds = %294
+  call void @llvm.dbg.value(metadata %"class.std::ctype"* %303, metadata !2421, metadata !DIExpression()), !dbg !2802
+  call void @llvm.dbg.value(metadata i8 10, metadata !2429, metadata !DIExpression()), !dbg !2802
+  %307 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %303, i64 0, i32 8, !dbg !2804
+  %308 = load i8, i8* %307, align 8, !dbg !2804, !tbaa !2434
+  %309 = icmp eq i8 %308, 0, !dbg !2804
+  br i1 %309, label %313, label %310, !dbg !2805
 
-298:                                              ; preds = %294
-  %299 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %291, i64 0, i32 9, i64 10, !dbg !2801
-  %300 = load i8, i8* %299, align 1, !dbg !2801, !tbaa !2434
-  br label %307, !dbg !2802
+310:                                              ; preds = %306
+  %311 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %303, i64 0, i32 9, i64 10, !dbg !2806
+  %312 = load i8, i8* %311, align 1, !dbg !2806, !tbaa !2439
+  br label %319, !dbg !2807
 
-301:                                              ; preds = %294
-  call void @_ZNKSt5ctypeIcE13_M_widen_initEv(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %291), !dbg !2803
-  %302 = bitcast %"class.std::ctype"* %291 to i8 (%"class.std::ctype"*, i8)***, !dbg !2804
-  %303 = load i8 (%"class.std::ctype"*, i8)**, i8 (%"class.std::ctype"*, i8)*** %302, align 8, !dbg !2804, !tbaa !2370
-  %304 = getelementptr inbounds i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %303, i64 6, !dbg !2804
-  %305 = load i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %304, align 8, !dbg !2804
-  %306 = call noundef signext i8 %305(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %291, i8 noundef signext 10), !dbg !2804
-  br label %307, !dbg !2805
+313:                                              ; preds = %306
+  call void @_ZNKSt5ctypeIcE13_M_widen_initEv(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %303), !dbg !2808
+  %314 = bitcast %"class.std::ctype"* %303 to i8 (%"class.std::ctype"*, i8)***, !dbg !2809
+  %315 = load i8 (%"class.std::ctype"*, i8)**, i8 (%"class.std::ctype"*, i8)*** %314, align 8, !dbg !2809, !tbaa !2375
+  %316 = getelementptr inbounds i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %315, i64 6, !dbg !2809
+  %317 = load i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %316, align 8, !dbg !2809
+  %318 = call noundef signext i8 %317(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %303, i8 noundef signext 10), !dbg !2809
+  br label %319, !dbg !2810
 
-307:                                              ; preds = %298, %301
-  %308 = phi i8 [ %300, %298 ], [ %306, %301 ], !dbg !2797
-  %309 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo3putEc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8 noundef signext %308), !dbg !2806
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %309, metadata !2348, metadata !DIExpression()), !dbg !2807
-  %310 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo5flushEv(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %309), !dbg !2809
-  br label %311, !dbg !2810
+319:                                              ; preds = %310, %313
+  %320 = phi i8 [ %312, %310 ], [ %318, %313 ], !dbg !2802
+  %321 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo3putEc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8 noundef signext %320), !dbg !2811
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %321, metadata !2353, metadata !DIExpression()), !dbg !2812
+  %322 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo5flushEv(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %321), !dbg !2814
+  br label %323, !dbg !2815
 
-311:                                              ; preds = %307, %278
-  %312 = load i8*, i8** %76, align 8, !dbg !2811, !tbaa !2213
-  call void @llvm.dbg.value(metadata i64* undef, metadata !2231, metadata !DIExpression()), !dbg !2240
+323:                                              ; preds = %319, %290
+  %324 = load i8*, i8** %80, align 8, !dbg !2816, !tbaa !2217
+  call void @llvm.dbg.value(metadata i64* undef, metadata !2238, metadata !DIExpression()), !dbg !2246
   call void @"scabbard.trace.host.trace_append$mem"(i16 -32768, ptr null, i64* nonnull @"scabbard.metadata.host.srcId$0x0001", i32 130, i32 17)
-  call void @"scabbard.trace.host.trace_append$alloc"(i16 4138, i8* nonnull %73, i64* nonnull @"scabbard.metadata.host.srcId$0x0001", i32 130, i32 17, i64 8192)
-  %313 = call i32 @hipMemcpy(i8* noundef nonnull %73, i8* noundef %312, i64 noundef 8192, i32 noundef 2), !dbg !2812
-  call void @llvm.dbg.value(metadata i32 %313, metadata !2245, metadata !DIExpression()), !dbg !2813
-  %314 = icmp eq i32 %313, 0, !dbg !2815
-  br i1 %314, label %319, label %315, !dbg !2816
+  call void @"scabbard.trace.host.trace_append$alloc"(i16 4138, i8* nonnull %77, i64* nonnull @"scabbard.metadata.host.srcId$0x0001", i32 130, i32 17, i64 8192)
+  %325 = call i32 @hipMemcpy(i8* noundef nonnull %77, i8* noundef %324, i64 noundef 8192, i32 noundef 2), !dbg !2817
+  call void @llvm.dbg.value(metadata i32 %325, metadata !2250, metadata !DIExpression()), !dbg !2818
+  %326 = icmp eq i32 %325, 0, !dbg !2820
+  br i1 %326, label %331, label %327, !dbg !2821
 
-315:                                              ; preds = %311
-  %316 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !2817
-  %317 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %316, i32 noundef %313), !dbg !2818
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %317, metadata !2259, metadata !DIExpression()), !dbg !2819
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2274, metadata !DIExpression()), !dbg !2819
-  %318 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %317), !dbg !2821
-  call void @exit(i32 noundef 1) #19, !dbg !2822
-  unreachable, !dbg !2822
+327:                                              ; preds = %323
+  %328 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !2822
+  %329 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %328, i32 noundef %325), !dbg !2823
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %329, metadata !2264, metadata !DIExpression()), !dbg !2824
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2279, metadata !DIExpression()), !dbg !2824
+  %330 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %329), !dbg !2826
+  call void @exit(i32 noundef 1) #19, !dbg !2827
+  unreachable, !dbg !2827
 
-319:                                              ; preds = %311
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2280, metadata !DIExpression()), !dbg !2823
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([24 x i8], [24 x i8]* @.str.8, i64 0, i64 0), metadata !2286, metadata !DIExpression()), !dbg !2823
-  %320 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([24 x i8], [24 x i8]* @.str.8, i64 0, i64 0), i64 noundef 23), !dbg !2825
-  %321 = load i64*, i64** %18, align 8, !dbg !2826, !tbaa !2213
-  call void @llvm.dbg.value(metadata i64* %321, metadata !2226, metadata !DIExpression()), !dbg !2240
-  %322 = load atomic i64, i64* %321 seq_cst, align 8, !dbg !2827, !tbaa !2434
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2828, metadata !DIExpression()), !dbg !2835
-  call void @llvm.dbg.value(metadata i64 %322, metadata !2834, metadata !DIExpression()), !dbg !2835
-  %323 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo9_M_insertImEERSoT_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i64 noundef %322), !dbg !2837
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %323, metadata !2280, metadata !DIExpression()), !dbg !2838
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([36 x i8], [36 x i8]* @.str.9, i64 0, i64 0), metadata !2286, metadata !DIExpression()), !dbg !2838
-  %324 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %323, i8* noundef nonnull getelementptr inbounds ([36 x i8], [36 x i8]* @.str.9, i64 0, i64 0), i64 noundef 35), !dbg !2840
-  call void @llvm.dbg.value(metadata i64 0, metadata !2237, metadata !DIExpression()), !dbg !2841
-  br label %418, !dbg !2842
+331:                                              ; preds = %323
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2285, metadata !DIExpression()), !dbg !2828
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([24 x i8], [24 x i8]* @.str.8, i64 0, i64 0), metadata !2291, metadata !DIExpression()), !dbg !2828
+  %332 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([24 x i8], [24 x i8]* @.str.8, i64 0, i64 0), i64 noundef 23), !dbg !2830
+  %333 = load i64*, i64** %22, align 8, !dbg !2831, !tbaa !2217
+  call void @llvm.dbg.value(metadata i64* %333, metadata !2233, metadata !DIExpression()), !dbg !2246
+  %334 = load atomic i64, i64* %333 seq_cst, align 8, !dbg !2832, !tbaa !2439
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2833, metadata !DIExpression()), !dbg !2840
+  call void @llvm.dbg.value(metadata i64 %334, metadata !2839, metadata !DIExpression()), !dbg !2840
+  %335 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo9_M_insertImEERSoT_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i64 noundef %334), !dbg !2842
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %335, metadata !2285, metadata !DIExpression()), !dbg !2843
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([36 x i8], [36 x i8]* @.str.9, i64 0, i64 0), metadata !2291, metadata !DIExpression()), !dbg !2843
+  %336 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %335, i8* noundef nonnull getelementptr inbounds ([36 x i8], [36 x i8]* @.str.9, i64 0, i64 0), i64 noundef 35), !dbg !2845
+  call void @llvm.dbg.value(metadata i64 0, metadata !2244, metadata !DIExpression()), !dbg !2846
+  br label %430, !dbg !2847
 
-325:                                              ; preds = %452
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2280, metadata !DIExpression()), !dbg !2843
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([6 x i8], [6 x i8]* @.str.3, i64 0, i64 0), metadata !2286, metadata !DIExpression()), !dbg !2843
-  %326 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([6 x i8], [6 x i8]* @.str.3, i64 0, i64 0), i64 noundef 5), !dbg !2846
-  call void @llvm.dbg.value(metadata i8 32, metadata !2561, metadata !DIExpression()), !dbg !2847
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2570, metadata !DIExpression()), !dbg !2847
-  %327 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !2849, !tbaa !2370
-  %328 = getelementptr i8, i8* %327, i64 -24, !dbg !2849
-  %329 = bitcast i8* %328 to i64*, !dbg !2849
-  %330 = load i64, i64* %329, align 8, !dbg !2849
-  %331 = getelementptr inbounds i8, i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %330, !dbg !2849
-  call void @llvm.dbg.value(metadata i8* %331, metadata !2574, metadata !DIExpression()), !dbg !2850
-  call void @llvm.dbg.value(metadata i8 32, metadata !2581, metadata !DIExpression()), !dbg !2850
-  call void @llvm.dbg.value(metadata i8* %331, metadata !2586, metadata !DIExpression()), !dbg !2852
-  %332 = getelementptr inbounds i8, i8* %331, i64 225, !dbg !2854
-  %333 = load i8, i8* %332, align 1, !dbg !2854, !tbaa !2596, !range !2597
-  %334 = icmp eq i8 %333, 0, !dbg !2854
-  br i1 %334, label %335, label %354, !dbg !2855
+337:                                              ; preds = %464
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2285, metadata !DIExpression()), !dbg !2848
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([6 x i8], [6 x i8]* @.str.3, i64 0, i64 0), metadata !2291, metadata !DIExpression()), !dbg !2848
+  %338 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([6 x i8], [6 x i8]* @.str.3, i64 0, i64 0), i64 noundef 5), !dbg !2851
+  call void @llvm.dbg.value(metadata i8 32, metadata !2566, metadata !DIExpression()), !dbg !2852
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2575, metadata !DIExpression()), !dbg !2852
+  %339 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !2854, !tbaa !2375
+  %340 = getelementptr i8, i8* %339, i64 -24, !dbg !2854
+  %341 = bitcast i8* %340 to i64*, !dbg !2854
+  %342 = load i64, i64* %341, align 8, !dbg !2854
+  %343 = getelementptr inbounds i8, i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %342, !dbg !2854
+  call void @llvm.dbg.value(metadata i8* %343, metadata !2579, metadata !DIExpression()), !dbg !2855
+  call void @llvm.dbg.value(metadata i8 32, metadata !2586, metadata !DIExpression()), !dbg !2855
+  call void @llvm.dbg.value(metadata i8* %343, metadata !2591, metadata !DIExpression()), !dbg !2857
+  %344 = getelementptr inbounds i8, i8* %343, i64 225, !dbg !2859
+  %345 = load i8, i8* %344, align 1, !dbg !2859, !tbaa !2601, !range !2602
+  %346 = icmp eq i8 %345, 0, !dbg !2859
+  br i1 %346, label %347, label %366, !dbg !2860
 
-335:                                              ; preds = %325
-  call void @llvm.dbg.value(metadata i8* %331, metadata !2574, metadata !DIExpression()), !dbg !2850
-  call void @llvm.dbg.value(metadata i8* %331, metadata !2586, metadata !DIExpression()), !dbg !2852
-  call void @llvm.dbg.value(metadata i8* %331, metadata !2372, metadata !DIExpression()), !dbg !2856
-  call void @llvm.dbg.value(metadata i8 32, metadata !2384, metadata !DIExpression()), !dbg !2856
-  %336 = getelementptr inbounds i8, i8* %331, i64 240, !dbg !2858
-  %337 = bitcast i8* %336 to %"class.std::ctype"**, !dbg !2858
-  %338 = load %"class.std::ctype"*, %"class.std::ctype"** %337, align 8, !dbg !2858, !tbaa !2389
-  call void @llvm.dbg.value(metadata %"class.std::ctype"* %338, metadata !2398, metadata !DIExpression()), !dbg !2859
-  %339 = icmp eq %"class.std::ctype"* %338, null, !dbg !2861
-  br i1 %339, label %340, label %341, !dbg !2862
+347:                                              ; preds = %337
+  call void @llvm.dbg.value(metadata i8* %343, metadata !2579, metadata !DIExpression()), !dbg !2855
+  call void @llvm.dbg.value(metadata i8* %343, metadata !2591, metadata !DIExpression()), !dbg !2857
+  call void @llvm.dbg.value(metadata i8* %343, metadata !2377, metadata !DIExpression()), !dbg !2861
+  call void @llvm.dbg.value(metadata i8 32, metadata !2389, metadata !DIExpression()), !dbg !2861
+  %348 = getelementptr inbounds i8, i8* %343, i64 240, !dbg !2863
+  %349 = bitcast i8* %348 to %"class.std::ctype"**, !dbg !2863
+  %350 = load %"class.std::ctype"*, %"class.std::ctype"** %349, align 8, !dbg !2863, !tbaa !2394
+  call void @llvm.dbg.value(metadata %"class.std::ctype"* %350, metadata !2403, metadata !DIExpression()), !dbg !2864
+  %351 = icmp eq %"class.std::ctype"* %350, null, !dbg !2866
+  br i1 %351, label %352, label %353, !dbg !2867
 
-340:                                              ; preds = %335
-  call void @_ZSt16__throw_bad_castv() #20, !dbg !2863
-  unreachable, !dbg !2863
+352:                                              ; preds = %347
+  call void @_ZSt16__throw_bad_castv() #20, !dbg !2868
+  unreachable, !dbg !2868
 
-341:                                              ; preds = %335
-  call void @llvm.dbg.value(metadata %"class.std::ctype"* %338, metadata !2416, metadata !DIExpression()), !dbg !2864
-  call void @llvm.dbg.value(metadata i8 32, metadata !2424, metadata !DIExpression()), !dbg !2864
-  %342 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %338, i64 0, i32 8, !dbg !2866
-  %343 = load i8, i8* %342, align 8, !dbg !2866, !tbaa !2429
-  %344 = icmp eq i8 %343, 0, !dbg !2866
-  br i1 %344, label %345, label %352, !dbg !2867
+353:                                              ; preds = %347
+  call void @llvm.dbg.value(metadata %"class.std::ctype"* %350, metadata !2421, metadata !DIExpression()), !dbg !2869
+  call void @llvm.dbg.value(metadata i8 32, metadata !2429, metadata !DIExpression()), !dbg !2869
+  %354 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %350, i64 0, i32 8, !dbg !2871
+  %355 = load i8, i8* %354, align 8, !dbg !2871, !tbaa !2434
+  %356 = icmp eq i8 %355, 0, !dbg !2871
+  br i1 %356, label %357, label %364, !dbg !2872
 
-345:                                              ; preds = %341
-  call void @_ZNKSt5ctypeIcE13_M_widen_initEv(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %338), !dbg !2868
-  %346 = bitcast %"class.std::ctype"* %338 to i8 (%"class.std::ctype"*, i8)***, !dbg !2869
-  %347 = load i8 (%"class.std::ctype"*, i8)**, i8 (%"class.std::ctype"*, i8)*** %346, align 8, !dbg !2869, !tbaa !2370
-  %348 = getelementptr inbounds i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %347, i64 6, !dbg !2869
-  %349 = load i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %348, align 8, !dbg !2869
-  %350 = call noundef signext i8 %349(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %338, i8 noundef signext 32), !dbg !2869
-  %351 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !2870, !tbaa !2370
-  br label %352, !dbg !2872
+357:                                              ; preds = %353
+  call void @_ZNKSt5ctypeIcE13_M_widen_initEv(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %350), !dbg !2873
+  %358 = bitcast %"class.std::ctype"* %350 to i8 (%"class.std::ctype"*, i8)***, !dbg !2874
+  %359 = load i8 (%"class.std::ctype"*, i8)**, i8 (%"class.std::ctype"*, i8)*** %358, align 8, !dbg !2874, !tbaa !2375
+  %360 = getelementptr inbounds i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %359, i64 6, !dbg !2874
+  %361 = load i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %360, align 8, !dbg !2874
+  %362 = call noundef signext i8 %361(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %350, i8 noundef signext 32), !dbg !2874
+  %363 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !2875, !tbaa !2375
+  br label %364, !dbg !2877
 
-352:                                              ; preds = %345, %341
-  %353 = phi i8* [ %351, %345 ], [ %327, %341 ], !dbg !2870
-  store i8 1, i8* %332, align 1, !dbg !2873, !tbaa !2596
-  br label %354, !dbg !2874
+364:                                              ; preds = %357, %353
+  %365 = phi i8* [ %363, %357 ], [ %339, %353 ], !dbg !2875
+  store i8 1, i8* %344, align 1, !dbg !2878, !tbaa !2601
+  br label %366, !dbg !2879
 
-354:                                              ; preds = %325, %352
-  %355 = phi i8* [ %327, %325 ], [ %353, %352 ], !dbg !2870
-  call void @llvm.dbg.value(metadata i8 undef, metadata !2582, metadata !DIExpression()), !dbg !2850
-  %356 = getelementptr inbounds i8, i8* %331, i64 224, !dbg !2875
-  store i8 32, i8* %356, align 8, !dbg !2876, !tbaa !2630
-  call void @llvm.dbg.value(metadata i32 8, metadata !2623, metadata !DIExpression()), !dbg !2877
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2622, metadata !DIExpression()), !dbg !2877
-  %357 = getelementptr i8, i8* %355, i64 -24, !dbg !2870
-  %358 = bitcast i8* %357 to i64*, !dbg !2870
-  %359 = load i64, i64* %358, align 8, !dbg !2870
-  %360 = getelementptr inbounds i8, i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %359, !dbg !2870
-  call void @llvm.dbg.value(metadata i8* %360, metadata !2632, metadata !DIExpression()), !dbg !2878
-  call void @llvm.dbg.value(metadata i64 8, metadata !2639, metadata !DIExpression()), !dbg !2878
-  %361 = getelementptr inbounds i8, i8* %360, i64 16, !dbg !2880
-  %362 = bitcast i8* %361 to i64*, !dbg !2880
-  call void @llvm.dbg.value(metadata i64 undef, metadata !2640, metadata !DIExpression()), !dbg !2878
-  store i64 8, i64* %362, align 8, !dbg !2881, !tbaa !2646
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2280, metadata !DIExpression()), !dbg !2882
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.5, i64 0, i64 0), metadata !2286, metadata !DIExpression()), !dbg !2882
-  %363 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([4 x i8], [4 x i8]* @.str.5, i64 0, i64 0), i64 noundef 3), !dbg !2884
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2280, metadata !DIExpression()), !dbg !2885
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([6 x i8], [6 x i8]* @.str.6, i64 0, i64 0), metadata !2286, metadata !DIExpression()), !dbg !2885
-  %364 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([6 x i8], [6 x i8]* @.str.6, i64 0, i64 0), i64 noundef 5), !dbg !2887
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2259, metadata !DIExpression()), !dbg !2888
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2274, metadata !DIExpression()), !dbg !2888
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2364, metadata !DIExpression()), !dbg !2890
-  %365 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !2892, !tbaa !2370
-  %366 = getelementptr i8, i8* %365, i64 -24, !dbg !2892
-  %367 = bitcast i8* %366 to i64*, !dbg !2892
-  %368 = load i64, i64* %367, align 8, !dbg !2892
-  %369 = getelementptr inbounds i8, i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %368, !dbg !2892
-  call void @llvm.dbg.value(metadata i8* %369, metadata !2372, metadata !DIExpression()), !dbg !2893
-  call void @llvm.dbg.value(metadata i8 10, metadata !2384, metadata !DIExpression()), !dbg !2893
-  %370 = getelementptr inbounds i8, i8* %369, i64 240, !dbg !2895
-  %371 = bitcast i8* %370 to %"class.std::ctype"**, !dbg !2895
-  %372 = load %"class.std::ctype"*, %"class.std::ctype"** %371, align 8, !dbg !2895, !tbaa !2389
-  call void @llvm.dbg.value(metadata %"class.std::ctype"* %372, metadata !2398, metadata !DIExpression()), !dbg !2896
-  %373 = icmp eq %"class.std::ctype"* %372, null, !dbg !2898
-  br i1 %373, label %374, label %375, !dbg !2899
+366:                                              ; preds = %337, %364
+  %367 = phi i8* [ %339, %337 ], [ %365, %364 ], !dbg !2875
+  call void @llvm.dbg.value(metadata i8 undef, metadata !2587, metadata !DIExpression()), !dbg !2855
+  %368 = getelementptr inbounds i8, i8* %343, i64 224, !dbg !2880
+  store i8 32, i8* %368, align 8, !dbg !2881, !tbaa !2635
+  call void @llvm.dbg.value(metadata i32 8, metadata !2628, metadata !DIExpression()), !dbg !2882
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2627, metadata !DIExpression()), !dbg !2882
+  %369 = getelementptr i8, i8* %367, i64 -24, !dbg !2875
+  %370 = bitcast i8* %369 to i64*, !dbg !2875
+  %371 = load i64, i64* %370, align 8, !dbg !2875
+  %372 = getelementptr inbounds i8, i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %371, !dbg !2875
+  call void @llvm.dbg.value(metadata i8* %372, metadata !2637, metadata !DIExpression()), !dbg !2883
+  call void @llvm.dbg.value(metadata i64 8, metadata !2644, metadata !DIExpression()), !dbg !2883
+  %373 = getelementptr inbounds i8, i8* %372, i64 16, !dbg !2885
+  %374 = bitcast i8* %373 to i64*, !dbg !2885
+  call void @llvm.dbg.value(metadata i64 undef, metadata !2645, metadata !DIExpression()), !dbg !2883
+  store i64 8, i64* %374, align 8, !dbg !2886, !tbaa !2651
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2285, metadata !DIExpression()), !dbg !2887
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.5, i64 0, i64 0), metadata !2291, metadata !DIExpression()), !dbg !2887
+  %375 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([4 x i8], [4 x i8]* @.str.5, i64 0, i64 0), i64 noundef 3), !dbg !2889
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2285, metadata !DIExpression()), !dbg !2890
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([6 x i8], [6 x i8]* @.str.6, i64 0, i64 0), metadata !2291, metadata !DIExpression()), !dbg !2890
+  %376 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([6 x i8], [6 x i8]* @.str.6, i64 0, i64 0), i64 noundef 5), !dbg !2892
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2264, metadata !DIExpression()), !dbg !2893
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2279, metadata !DIExpression()), !dbg !2893
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2369, metadata !DIExpression()), !dbg !2895
+  %377 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !2897, !tbaa !2375
+  %378 = getelementptr i8, i8* %377, i64 -24, !dbg !2897
+  %379 = bitcast i8* %378 to i64*, !dbg !2897
+  %380 = load i64, i64* %379, align 8, !dbg !2897
+  %381 = getelementptr inbounds i8, i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %380, !dbg !2897
+  call void @llvm.dbg.value(metadata i8* %381, metadata !2377, metadata !DIExpression()), !dbg !2898
+  call void @llvm.dbg.value(metadata i8 10, metadata !2389, metadata !DIExpression()), !dbg !2898
+  %382 = getelementptr inbounds i8, i8* %381, i64 240, !dbg !2900
+  %383 = bitcast i8* %382 to %"class.std::ctype"**, !dbg !2900
+  %384 = load %"class.std::ctype"*, %"class.std::ctype"** %383, align 8, !dbg !2900, !tbaa !2394
+  call void @llvm.dbg.value(metadata %"class.std::ctype"* %384, metadata !2403, metadata !DIExpression()), !dbg !2901
+  %385 = icmp eq %"class.std::ctype"* %384, null, !dbg !2903
+  br i1 %385, label %386, label %387, !dbg !2904
 
-374:                                              ; preds = %354
-  call void @_ZSt16__throw_bad_castv() #20, !dbg !2900
-  unreachable, !dbg !2900
+386:                                              ; preds = %366
+  call void @_ZSt16__throw_bad_castv() #20, !dbg !2905
+  unreachable, !dbg !2905
 
-375:                                              ; preds = %354
-  call void @llvm.dbg.value(metadata %"class.std::ctype"* %372, metadata !2416, metadata !DIExpression()), !dbg !2901
-  call void @llvm.dbg.value(metadata i8 10, metadata !2424, metadata !DIExpression()), !dbg !2901
-  %376 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %372, i64 0, i32 8, !dbg !2903
-  %377 = load i8, i8* %376, align 8, !dbg !2903, !tbaa !2429
-  %378 = icmp eq i8 %377, 0, !dbg !2903
-  br i1 %378, label %382, label %379, !dbg !2904
+387:                                              ; preds = %366
+  call void @llvm.dbg.value(metadata %"class.std::ctype"* %384, metadata !2421, metadata !DIExpression()), !dbg !2906
+  call void @llvm.dbg.value(metadata i8 10, metadata !2429, metadata !DIExpression()), !dbg !2906
+  %388 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %384, i64 0, i32 8, !dbg !2908
+  %389 = load i8, i8* %388, align 8, !dbg !2908, !tbaa !2434
+  %390 = icmp eq i8 %389, 0, !dbg !2908
+  br i1 %390, label %394, label %391, !dbg !2909
 
-379:                                              ; preds = %375
-  %380 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %372, i64 0, i32 9, i64 10, !dbg !2905
-  %381 = load i8, i8* %380, align 1, !dbg !2905, !tbaa !2434
-  br label %388, !dbg !2906
+391:                                              ; preds = %387
+  %392 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %384, i64 0, i32 9, i64 10, !dbg !2910
+  %393 = load i8, i8* %392, align 1, !dbg !2910, !tbaa !2439
+  br label %400, !dbg !2911
 
-382:                                              ; preds = %375
-  call void @_ZNKSt5ctypeIcE13_M_widen_initEv(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %372), !dbg !2907
-  %383 = bitcast %"class.std::ctype"* %372 to i8 (%"class.std::ctype"*, i8)***, !dbg !2908
-  %384 = load i8 (%"class.std::ctype"*, i8)**, i8 (%"class.std::ctype"*, i8)*** %383, align 8, !dbg !2908, !tbaa !2370
-  %385 = getelementptr inbounds i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %384, i64 6, !dbg !2908
-  %386 = load i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %385, align 8, !dbg !2908
-  %387 = call noundef signext i8 %386(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %372, i8 noundef signext 10), !dbg !2908
-  br label %388, !dbg !2909
+394:                                              ; preds = %387
+  call void @_ZNKSt5ctypeIcE13_M_widen_initEv(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %384), !dbg !2912
+  %395 = bitcast %"class.std::ctype"* %384 to i8 (%"class.std::ctype"*, i8)***, !dbg !2913
+  %396 = load i8 (%"class.std::ctype"*, i8)**, i8 (%"class.std::ctype"*, i8)*** %395, align 8, !dbg !2913, !tbaa !2375
+  %397 = getelementptr inbounds i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %396, i64 6, !dbg !2913
+  %398 = load i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %397, align 8, !dbg !2913
+  %399 = call noundef signext i8 %398(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %384, i8 noundef signext 10), !dbg !2913
+  br label %400, !dbg !2914
 
-388:                                              ; preds = %379, %382
-  %389 = phi i8 [ %381, %379 ], [ %387, %382 ], !dbg !2901
-  %390 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo3putEc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8 noundef signext %389), !dbg !2910
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %390, metadata !2348, metadata !DIExpression()), !dbg !2911
-  %391 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo5flushEv(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %390), !dbg !2913
-  %392 = load i8*, i8** %76, align 8, !dbg !2914, !tbaa !2213
-  call void @llvm.dbg.value(metadata i64* undef, metadata !2231, metadata !DIExpression()), !dbg !2240
+400:                                              ; preds = %391, %394
+  %401 = phi i8 [ %393, %391 ], [ %399, %394 ], !dbg !2906
+  %402 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo3putEc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8 noundef signext %401), !dbg !2915
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %402, metadata !2353, metadata !DIExpression()), !dbg !2916
+  %403 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo5flushEv(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %402), !dbg !2918
+  %404 = load i8*, i8** %80, align 8, !dbg !2919, !tbaa !2217
+  call void @llvm.dbg.value(metadata i64* undef, metadata !2238, metadata !DIExpression()), !dbg !2246
   call void @"scabbard.trace.host.trace_append$alloc"(i16 4160, ptr null, i64* nonnull @"scabbard.metadata.host.srcId$0x0001", i32 148, i32 17, i64 0)
-  %393 = call i32 @hipFree(i8* noundef %392), !dbg !2915
-  call void @llvm.dbg.value(metadata i32 %393, metadata !2245, metadata !DIExpression()), !dbg !2916
-  %394 = icmp eq i32 %393, 0, !dbg !2918
-  br i1 %394, label %399, label %395, !dbg !2919
+  %405 = call i32 @hipFree(i8* noundef %404), !dbg !2920
+  call void @llvm.dbg.value(metadata i32 %405, metadata !2250, metadata !DIExpression()), !dbg !2921
+  %406 = icmp eq i32 %405, 0, !dbg !2923
+  br i1 %406, label %411, label %407, !dbg !2924
 
-395:                                              ; preds = %388
-  %396 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !2920
-  %397 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %396, i32 noundef %393), !dbg !2921
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %397, metadata !2259, metadata !DIExpression()), !dbg !2922
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2274, metadata !DIExpression()), !dbg !2922
-  %398 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %397), !dbg !2924
-  call void @exit(i32 noundef 1) #19, !dbg !2925
-  unreachable, !dbg !2925
+407:                                              ; preds = %400
+  %408 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !2925
+  %409 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %408, i32 noundef %405), !dbg !2926
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %409, metadata !2264, metadata !DIExpression()), !dbg !2927
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2279, metadata !DIExpression()), !dbg !2927
+  %410 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %409), !dbg !2929
+  call void @exit(i32 noundef 1) #19, !dbg !2930
+  unreachable, !dbg !2930
 
-399:                                              ; preds = %388
-  %400 = load i8*, i8** %64, align 8, !dbg !2926, !tbaa !2213
-  call void @llvm.dbg.value(metadata i64* undef, metadata !2226, metadata !DIExpression()), !dbg !2240
+411:                                              ; preds = %400
+  %412 = load i8*, i8** %68, align 8, !dbg !2931, !tbaa !2217
+  call void @llvm.dbg.value(metadata i64* undef, metadata !2233, metadata !DIExpression()), !dbg !2246
   call void @"scabbard.trace.host.trace_append$alloc"(i16 4160, ptr null, i64* nonnull @"scabbard.metadata.host.srcId$0x0001", i32 149, i32 17, i64 0)
-  %401 = call i32 @hipFree(i8* noundef %400), !dbg !2927
-  call void @llvm.dbg.value(metadata i32 %401, metadata !2245, metadata !DIExpression()), !dbg !2928
-  %402 = icmp eq i32 %401, 0, !dbg !2930
-  br i1 %402, label %407, label %403, !dbg !2931
+  %413 = call i32 @hipFree(i8* noundef %412), !dbg !2932
+  call void @llvm.dbg.value(metadata i32 %413, metadata !2250, metadata !DIExpression()), !dbg !2933
+  %414 = icmp eq i32 %413, 0, !dbg !2935
+  br i1 %414, label %419, label %415, !dbg !2936
 
-403:                                              ; preds = %399
-  %404 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !2932
-  %405 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %404, i32 noundef %401), !dbg !2933
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %405, metadata !2259, metadata !DIExpression()), !dbg !2934
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2274, metadata !DIExpression()), !dbg !2934
-  %406 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %405), !dbg !2936
-  call void @exit(i32 noundef 1) #19, !dbg !2937
-  unreachable, !dbg !2937
+415:                                              ; preds = %411
+  %416 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !2937
+  %417 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %416, i32 noundef %413), !dbg !2938
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %417, metadata !2264, metadata !DIExpression()), !dbg !2939
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2279, metadata !DIExpression()), !dbg !2939
+  %418 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %417), !dbg !2941
+  call void @exit(i32 noundef 1) #19, !dbg !2942
+  unreachable, !dbg !2942
 
-407:                                              ; preds = %399
-  %408 = load i8*, i8** %93, align 8, !dbg !2938, !tbaa !2213
-  call void @llvm.dbg.value(metadata i64* undef, metadata !2232, metadata !DIExpression()), !dbg !2240
+419:                                              ; preds = %411
+  %420 = load i8*, i8** %97, align 8, !dbg !2943, !tbaa !2217
+  call void @llvm.dbg.value(metadata i64* undef, metadata !2239, metadata !DIExpression()), !dbg !2246
   call void @"scabbard.trace.host.trace_append$alloc"(i16 4160, ptr null, i64* nonnull @"scabbard.metadata.host.srcId$0x0001", i32 150, i32 17, i64 0)
-  %409 = call i32 @hipFree(i8* noundef %408), !dbg !2939
-  call void @llvm.dbg.value(metadata i32 %409, metadata !2245, metadata !DIExpression()), !dbg !2940
-  %410 = icmp eq i32 %409, 0, !dbg !2942
-  br i1 %410, label %415, label %411, !dbg !2943
+  %421 = call i32 @hipFree(i8* noundef %420), !dbg !2944
+  call void @llvm.dbg.value(metadata i32 %421, metadata !2250, metadata !DIExpression()), !dbg !2945
+  %422 = icmp eq i32 %421, 0, !dbg !2947
+  br i1 %422, label %427, label %423, !dbg !2948
 
-411:                                              ; preds = %407
-  %412 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !2944
-  %413 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %412, i32 noundef %409), !dbg !2945
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %413, metadata !2259, metadata !DIExpression()), !dbg !2946
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2274, metadata !DIExpression()), !dbg !2946
-  %414 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %413), !dbg !2948
-  call void @exit(i32 noundef 1) #19, !dbg !2949
-  unreachable, !dbg !2949
+423:                                              ; preds = %419
+  %424 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !2949
+  %425 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %424, i32 noundef %421), !dbg !2950
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %425, metadata !2264, metadata !DIExpression()), !dbg !2951
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2279, metadata !DIExpression()), !dbg !2951
+  %426 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %425), !dbg !2953
+  call void @exit(i32 noundef 1) #19, !dbg !2954
+  unreachable, !dbg !2954
 
-415:                                              ; preds = %407
-  call void @_ZdaPv(i8* noundef nonnull %73) #23, !dbg !2950
-  call void @_ZdaPv(i8* noundef nonnull %126) #23, !dbg !2951
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2280, metadata !DIExpression()), !dbg !2952
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([35 x i8], [35 x i8]* @.str.10, i64 0, i64 0), metadata !2286, metadata !DIExpression()), !dbg !2952
-  %416 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([35 x i8], [35 x i8]* @.str.10, i64 0, i64 0), i64 noundef 34), !dbg !2954
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2259, metadata !DIExpression()), !dbg !2955
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2348, metadata !DIExpression()), !dbg !2957
-  %417 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo5flushEv(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout), !dbg !2959
-  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %92) #18, !dbg !2960
-  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %75) #18, !dbg !2960
-  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %63) #18, !dbg !2960
-  call void @llvm.lifetime.end.p0i8(i64 4, i8* nonnull %21) #18, !dbg !2960
-  ret void, !dbg !2960
+427:                                              ; preds = %419
+  call void @_ZdaPv(i8* noundef nonnull %77) #23, !dbg !2955
+  call void @_ZdaPv(i8* noundef nonnull %133) #23, !dbg !2956
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2285, metadata !DIExpression()), !dbg !2957
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([35 x i8], [35 x i8]* @.str.10, i64 0, i64 0), metadata !2291, metadata !DIExpression()), !dbg !2957
+  %428 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([35 x i8], [35 x i8]* @.str.10, i64 0, i64 0), i64 noundef 34), !dbg !2959
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2264, metadata !DIExpression()), !dbg !2960
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2353, metadata !DIExpression()), !dbg !2962
+  %429 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo5flushEv(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout), !dbg !2964
+  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %96) #18, !dbg !2965
+  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %79) #18, !dbg !2965
+  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %67) #18, !dbg !2965
+  call void @llvm.lifetime.end.p0i8(i64 4, i8* nonnull %25) #18, !dbg !2965
+  ret void, !dbg !2965
 
-418:                                              ; preds = %319, %452
-  %419 = phi i64 [ 0, %319 ], [ %464, %452 ]
-  call void @llvm.dbg.value(metadata i64 %419, metadata !2237, metadata !DIExpression()), !dbg !2841
-  %420 = and i64 %419, 15, !dbg !2961
-  %421 = icmp eq i64 %420, 0, !dbg !2965
-  br i1 %421, label %422, label %424, !dbg !2966
+430:                                              ; preds = %331, %464
+  %431 = phi i64 [ 0, %331 ], [ %476, %464 ]
+  call void @llvm.dbg.value(metadata i64 %431, metadata !2244, metadata !DIExpression()), !dbg !2846
+  %432 = and i64 %431, 15, !dbg !2966
+  %433 = icmp eq i64 %432, 0, !dbg !2970
+  br i1 %433, label %434, label %436, !dbg !2971
 
-422:                                              ; preds = %418
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2280, metadata !DIExpression()), !dbg !2967
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([6 x i8], [6 x i8]* @.str.3, i64 0, i64 0), metadata !2286, metadata !DIExpression()), !dbg !2967
-  %423 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([6 x i8], [6 x i8]* @.str.3, i64 0, i64 0), i64 noundef 5), !dbg !2969
-  br label %424, !dbg !2970
+434:                                              ; preds = %430
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2285, metadata !DIExpression()), !dbg !2972
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([6 x i8], [6 x i8]* @.str.3, i64 0, i64 0), metadata !2291, metadata !DIExpression()), !dbg !2972
+  %435 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([6 x i8], [6 x i8]* @.str.3, i64 0, i64 0), i64 noundef 5), !dbg !2974
+  br label %436, !dbg !2975
 
-424:                                              ; preds = %422, %418
-  call void @llvm.dbg.value(metadata i8 32, metadata !2561, metadata !DIExpression()), !dbg !2971
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2570, metadata !DIExpression()), !dbg !2971
-  %425 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !2973, !tbaa !2370
-  %426 = getelementptr i8, i8* %425, i64 -24, !dbg !2973
-  %427 = bitcast i8* %426 to i64*, !dbg !2973
-  %428 = load i64, i64* %427, align 8, !dbg !2973
-  %429 = getelementptr inbounds i8, i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %428, !dbg !2973
-  call void @llvm.dbg.value(metadata i8* %429, metadata !2574, metadata !DIExpression()), !dbg !2974
-  call void @llvm.dbg.value(metadata i8 32, metadata !2581, metadata !DIExpression()), !dbg !2974
-  call void @llvm.dbg.value(metadata i8* %429, metadata !2586, metadata !DIExpression()), !dbg !2976
-  %430 = getelementptr inbounds i8, i8* %429, i64 225, !dbg !2978
-  %431 = load i8, i8* %430, align 1, !dbg !2978, !tbaa !2596, !range !2597
-  %432 = icmp eq i8 %431, 0, !dbg !2978
-  br i1 %432, label %433, label %452, !dbg !2979
+436:                                              ; preds = %434, %430
+  call void @llvm.dbg.value(metadata i8 32, metadata !2566, metadata !DIExpression()), !dbg !2976
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2575, metadata !DIExpression()), !dbg !2976
+  %437 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !2978, !tbaa !2375
+  %438 = getelementptr i8, i8* %437, i64 -24, !dbg !2978
+  %439 = bitcast i8* %438 to i64*, !dbg !2978
+  %440 = load i64, i64* %439, align 8, !dbg !2978
+  %441 = getelementptr inbounds i8, i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %440, !dbg !2978
+  call void @llvm.dbg.value(metadata i8* %441, metadata !2579, metadata !DIExpression()), !dbg !2979
+  call void @llvm.dbg.value(metadata i8 32, metadata !2586, metadata !DIExpression()), !dbg !2979
+  call void @llvm.dbg.value(metadata i8* %441, metadata !2591, metadata !DIExpression()), !dbg !2981
+  %442 = getelementptr inbounds i8, i8* %441, i64 225, !dbg !2983
+  %443 = load i8, i8* %442, align 1, !dbg !2983, !tbaa !2601, !range !2602
+  %444 = icmp eq i8 %443, 0, !dbg !2983
+  br i1 %444, label %445, label %464, !dbg !2984
 
-433:                                              ; preds = %424
-  call void @llvm.dbg.value(metadata i8* %429, metadata !2574, metadata !DIExpression()), !dbg !2974
-  call void @llvm.dbg.value(metadata i8* %429, metadata !2586, metadata !DIExpression()), !dbg !2976
-  call void @llvm.dbg.value(metadata i8* %429, metadata !2372, metadata !DIExpression()), !dbg !2980
-  call void @llvm.dbg.value(metadata i8 32, metadata !2384, metadata !DIExpression()), !dbg !2980
-  %434 = getelementptr inbounds i8, i8* %429, i64 240, !dbg !2982
-  %435 = bitcast i8* %434 to %"class.std::ctype"**, !dbg !2982
-  %436 = load %"class.std::ctype"*, %"class.std::ctype"** %435, align 8, !dbg !2982, !tbaa !2389
-  call void @llvm.dbg.value(metadata %"class.std::ctype"* %436, metadata !2398, metadata !DIExpression()), !dbg !2983
-  %437 = icmp eq %"class.std::ctype"* %436, null, !dbg !2985
-  br i1 %437, label %438, label %439, !dbg !2986
+445:                                              ; preds = %436
+  call void @llvm.dbg.value(metadata i8* %441, metadata !2579, metadata !DIExpression()), !dbg !2979
+  call void @llvm.dbg.value(metadata i8* %441, metadata !2591, metadata !DIExpression()), !dbg !2981
+  call void @llvm.dbg.value(metadata i8* %441, metadata !2377, metadata !DIExpression()), !dbg !2985
+  call void @llvm.dbg.value(metadata i8 32, metadata !2389, metadata !DIExpression()), !dbg !2985
+  %446 = getelementptr inbounds i8, i8* %441, i64 240, !dbg !2987
+  %447 = bitcast i8* %446 to %"class.std::ctype"**, !dbg !2987
+  %448 = load %"class.std::ctype"*, %"class.std::ctype"** %447, align 8, !dbg !2987, !tbaa !2394
+  call void @llvm.dbg.value(metadata %"class.std::ctype"* %448, metadata !2403, metadata !DIExpression()), !dbg !2988
+  %449 = icmp eq %"class.std::ctype"* %448, null, !dbg !2990
+  br i1 %449, label %450, label %451, !dbg !2991
 
-438:                                              ; preds = %433
-  call void @_ZSt16__throw_bad_castv() #20, !dbg !2987
-  unreachable, !dbg !2987
+450:                                              ; preds = %445
+  call void @_ZSt16__throw_bad_castv() #20, !dbg !2992
+  unreachable, !dbg !2992
 
-439:                                              ; preds = %433
-  call void @llvm.dbg.value(metadata %"class.std::ctype"* %436, metadata !2416, metadata !DIExpression()), !dbg !2988
-  call void @llvm.dbg.value(metadata i8 32, metadata !2424, metadata !DIExpression()), !dbg !2988
-  %440 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %436, i64 0, i32 8, !dbg !2990
-  %441 = load i8, i8* %440, align 8, !dbg !2990, !tbaa !2429
-  %442 = icmp eq i8 %441, 0, !dbg !2990
-  br i1 %442, label %443, label %450, !dbg !2991
+451:                                              ; preds = %445
+  call void @llvm.dbg.value(metadata %"class.std::ctype"* %448, metadata !2421, metadata !DIExpression()), !dbg !2993
+  call void @llvm.dbg.value(metadata i8 32, metadata !2429, metadata !DIExpression()), !dbg !2993
+  %452 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %448, i64 0, i32 8, !dbg !2995
+  %453 = load i8, i8* %452, align 8, !dbg !2995, !tbaa !2434
+  %454 = icmp eq i8 %453, 0, !dbg !2995
+  br i1 %454, label %455, label %462, !dbg !2996
 
-443:                                              ; preds = %439
-  call void @_ZNKSt5ctypeIcE13_M_widen_initEv(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %436), !dbg !2992
-  %444 = bitcast %"class.std::ctype"* %436 to i8 (%"class.std::ctype"*, i8)***, !dbg !2993
-  %445 = load i8 (%"class.std::ctype"*, i8)**, i8 (%"class.std::ctype"*, i8)*** %444, align 8, !dbg !2993, !tbaa !2370
-  %446 = getelementptr inbounds i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %445, i64 6, !dbg !2993
-  %447 = load i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %446, align 8, !dbg !2993
-  %448 = call noundef signext i8 %447(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %436, i8 noundef signext 32), !dbg !2993
-  %449 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !2994, !tbaa !2370
-  br label %450, !dbg !2996
+455:                                              ; preds = %451
+  call void @_ZNKSt5ctypeIcE13_M_widen_initEv(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %448), !dbg !2997
+  %456 = bitcast %"class.std::ctype"* %448 to i8 (%"class.std::ctype"*, i8)***, !dbg !2998
+  %457 = load i8 (%"class.std::ctype"*, i8)**, i8 (%"class.std::ctype"*, i8)*** %456, align 8, !dbg !2998, !tbaa !2375
+  %458 = getelementptr inbounds i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %457, i64 6, !dbg !2998
+  %459 = load i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %458, align 8, !dbg !2998
+  %460 = call noundef signext i8 %459(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %448, i8 noundef signext 32), !dbg !2998
+  %461 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !2999, !tbaa !2375
+  br label %462, !dbg !3001
 
-450:                                              ; preds = %443, %439
-  %451 = phi i8* [ %449, %443 ], [ %425, %439 ], !dbg !2994
-  store i8 1, i8* %430, align 1, !dbg !2997, !tbaa !2596
-  br label %452, !dbg !2998
+462:                                              ; preds = %455, %451
+  %463 = phi i8* [ %461, %455 ], [ %437, %451 ], !dbg !2999
+  store i8 1, i8* %442, align 1, !dbg !3002, !tbaa !2601
+  br label %464, !dbg !3003
 
-452:                                              ; preds = %424, %450
-  %453 = phi i8* [ %425, %424 ], [ %451, %450 ], !dbg !2994
-  call void @llvm.dbg.value(metadata i8 undef, metadata !2582, metadata !DIExpression()), !dbg !2974
-  %454 = getelementptr inbounds i8, i8* %429, i64 224, !dbg !2999
-  store i8 32, i8* %454, align 8, !dbg !3000, !tbaa !2630
-  call void @llvm.dbg.value(metadata i32 8, metadata !2623, metadata !DIExpression()), !dbg !3001
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2622, metadata !DIExpression()), !dbg !3001
-  %455 = getelementptr i8, i8* %453, i64 -24, !dbg !2994
-  %456 = bitcast i8* %455 to i64*, !dbg !2994
-  %457 = load i64, i64* %456, align 8, !dbg !2994
-  call void @llvm.dbg.value(metadata !DIArgList(i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %457), metadata !2632, metadata !DIExpression(DW_OP_LLVM_arg, 0, DW_OP_LLVM_arg, 1, DW_OP_constu, 1, DW_OP_mul, DW_OP_plus, DW_OP_stack_value)), !dbg !3002
-  call void @llvm.dbg.value(metadata i64 8, metadata !2639, metadata !DIExpression()), !dbg !3002
-  %458 = getelementptr i8, i8* bitcast (i64* getelementptr inbounds (%"class.std::basic_ostream", %"class.std::basic_ostream"* @_ZSt4cout, i64 0, i32 1, i32 0, i32 1) to i8*), i64 %457, !dbg !3004
-  %459 = bitcast i8* %458 to i64*, !dbg !3004
-  call void @llvm.dbg.value(metadata i64 undef, metadata !2640, metadata !DIExpression()), !dbg !3002
-  store i64 8, i64* %459, align 8, !dbg !3005, !tbaa !2646
-  %460 = getelementptr inbounds i64, i64* %74, i64 %419, !dbg !3006
-  %461 = load i64, i64* %460, align 8, !dbg !3006, !tbaa !2706
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2828, metadata !DIExpression()), !dbg !3007
-  call void @llvm.dbg.value(metadata i64 %461, metadata !2834, metadata !DIExpression()), !dbg !3007
-  %462 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo9_M_insertImEERSoT_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i64 noundef %461), !dbg !3009
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %462, metadata !2280, metadata !DIExpression()), !dbg !3010
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([2 x i8], [2 x i8]* @.str.4, i64 0, i64 0), metadata !2286, metadata !DIExpression()), !dbg !3010
-  %463 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %462, i8* noundef nonnull getelementptr inbounds ([2 x i8], [2 x i8]* @.str.4, i64 0, i64 0), i64 noundef 1), !dbg !3012
-  %464 = add nuw nsw i64 %419, 1, !dbg !3013
-  call void @llvm.dbg.value(metadata i64 %464, metadata !2237, metadata !DIExpression()), !dbg !2841
-  %465 = icmp eq i64 %464, 128, !dbg !3014
-  br i1 %465, label %325, label %418, !dbg !2842, !llvm.loop !3015
+464:                                              ; preds = %436, %462
+  %465 = phi i8* [ %437, %436 ], [ %463, %462 ], !dbg !2999
+  call void @llvm.dbg.value(metadata i8 undef, metadata !2587, metadata !DIExpression()), !dbg !2979
+  %466 = getelementptr inbounds i8, i8* %441, i64 224, !dbg !3004
+  store i8 32, i8* %466, align 8, !dbg !3005, !tbaa !2635
+  call void @llvm.dbg.value(metadata i32 8, metadata !2628, metadata !DIExpression()), !dbg !3006
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2627, metadata !DIExpression()), !dbg !3006
+  %467 = getelementptr i8, i8* %465, i64 -24, !dbg !2999
+  %468 = bitcast i8* %467 to i64*, !dbg !2999
+  %469 = load i64, i64* %468, align 8, !dbg !2999
+  call void @llvm.dbg.value(metadata !DIArgList(i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %469), metadata !2637, metadata !DIExpression(DW_OP_LLVM_arg, 0, DW_OP_LLVM_arg, 1, DW_OP_constu, 1, DW_OP_mul, DW_OP_plus, DW_OP_stack_value)), !dbg !3007
+  call void @llvm.dbg.value(metadata i64 8, metadata !2644, metadata !DIExpression()), !dbg !3007
+  %470 = getelementptr i8, i8* bitcast (i64* getelementptr inbounds (%"class.std::basic_ostream", %"class.std::basic_ostream"* @_ZSt4cout, i64 0, i32 1, i32 0, i32 1) to i8*), i64 %469, !dbg !3009
+  %471 = bitcast i8* %470 to i64*, !dbg !3009
+  call void @llvm.dbg.value(metadata i64 undef, metadata !2645, metadata !DIExpression()), !dbg !3007
+  store i64 8, i64* %471, align 8, !dbg !3010, !tbaa !2651
+  %472 = getelementptr inbounds i64, i64* %78, i64 %431, !dbg !3011
+  %473 = load i64, i64* %472, align 8, !dbg !3011, !tbaa !2711
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2833, metadata !DIExpression()), !dbg !3012
+  call void @llvm.dbg.value(metadata i64 %473, metadata !2839, metadata !DIExpression()), !dbg !3012
+  %474 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo9_M_insertImEERSoT_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i64 noundef %473), !dbg !3014
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %474, metadata !2285, metadata !DIExpression()), !dbg !3015
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([2 x i8], [2 x i8]* @.str.4, i64 0, i64 0), metadata !2291, metadata !DIExpression()), !dbg !3015
+  %475 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %474, i8* noundef nonnull getelementptr inbounds ([2 x i8], [2 x i8]* @.str.4, i64 0, i64 0), i64 noundef 1), !dbg !3017
+  %476 = add nuw nsw i64 %431, 1, !dbg !3018
+  call void @llvm.dbg.value(metadata i64 %476, metadata !2244, metadata !DIExpression()), !dbg !2846
+  %477 = icmp eq i64 %476, 128, !dbg !3019
+  br i1 %477, label %337, label %430, !dbg !2847, !llvm.loop !3020
 }
-
-; Function Attrs: argmemonly mustprogress nocallback nofree nosync nounwind willreturn
-declare void @llvm.lifetime.start.p0i8(i64 immarg, i8* nocapture) #5
 
 ; Function Attrs: mustprogress nocallback nofree nosync nounwind readnone speculatable willreturn
-declare void @llvm.dbg.declare(metadata, metadata, metadata) #6
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #5
+
+; Function Attrs: argmemonly mustprogress nocallback nofree nosync nounwind willreturn
+declare void @llvm.lifetime.start.p0i8(i64 immarg, i8* nocapture) #6
 
 ; Function Attrs: mustprogress uwtable
-define dso_local void @_Z13__HIP_CHECK__10hipError_t(i32 noundef %0) local_unnamed_addr #7 !dbg !2246 {
-  call void @llvm.dbg.value(metadata i32 %0, metadata !2245, metadata !DIExpression()), !dbg !3017
-  %2 = icmp eq i32 %0, 0, !dbg !3018
-  br i1 %2, label %7, label %3, !dbg !3019
+define dso_local void @_Z13__HIP_CHECK__10hipError_t(i32 noundef %0) local_unnamed_addr #7 !dbg !2251 {
+  call void @llvm.dbg.value(metadata i32 %0, metadata !2250, metadata !DIExpression()), !dbg !3022
+  %2 = icmp eq i32 %0, 0, !dbg !3023
+  br i1 %2, label %7, label %3, !dbg !3024
 
 3:                                                ; preds = %1
-  %4 = tail call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !3020
-  %5 = tail call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %4, i32 noundef %0), !dbg !3021
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %5, metadata !2259, metadata !DIExpression()), !dbg !3022
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2274, metadata !DIExpression()), !dbg !3022
-  %6 = tail call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %5), !dbg !3024
-  tail call void @exit(i32 noundef 1) #19, !dbg !3025
-  unreachable, !dbg !3025
+  %4 = tail call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !3025
+  %5 = tail call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %4, i32 noundef %0), !dbg !3026
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %5, metadata !2264, metadata !DIExpression()), !dbg !3027
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2279, metadata !DIExpression()), !dbg !3027
+  %6 = tail call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %5), !dbg !3029
+  tail call void @exit(i32 noundef 1) #19, !dbg !3030
+  unreachable, !dbg !3030
 
 7:                                                ; preds = %1
-  ret void, !dbg !3026
+  ret void, !dbg !3031
 }
 
-declare !dbg !3027 dso_local i32 @hipGetDevice(i32* noundef) local_unnamed_addr #0
+declare !dbg !3032 dso_local i32 @hipGetDevice(i32* noundef) local_unnamed_addr #0
 
 ; Function Attrs: inlinehint mustprogress uwtable
 declare dso_local noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8), i8* noundef) local_unnamed_addr #8
@@ -3380,7 +3341,7 @@ declare dso_local noundef nonnull i8* @_Znam(i64 noundef) local_unnamed_addr #9
 ; Function Attrs: argmemonly mustprogress nocallback nofree nounwind willreturn writeonly
 declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #10
 
-declare !dbg !3030 dso_local i32 @hipMemcpy(i8* noundef, i8* noundef, i64 noundef, i32 noundef) local_unnamed_addr #0
+declare !dbg !3035 dso_local i32 @hipMemcpy(i8* noundef, i8* noundef, i64 noundef, i32 noundef) local_unnamed_addr #0
 
 declare dso_local i32 @__hipPushCallConfiguration(i64, i32, i64, i32, i64 noundef, %struct.ihipStream_t* noundef) local_unnamed_addr #0
 
@@ -3391,270 +3352,357 @@ define dso_local void @_Z25__device_stub__dummy_initPl(i64* noundef %0) #3 {
   %4 = alloca %struct.dim3, align 8
   %5 = alloca i64, align 8
   %6 = alloca i8*, align 8
-  store i64* %0, i64** %2, align 8, !tbaa !2213
-  %7 = alloca i8*, align 16
-  %8 = bitcast i8** %7 to i64***
-  store i64** %2, i64*** %8, align 16
-  %9 = call i32 @__hipPopCallConfiguration(%struct.dim3* nonnull %3, %struct.dim3* nonnull %4, i64* nonnull %5, i8** nonnull %6)
-  %10 = load i64, i64* %5, align 8
-  %11 = bitcast i8** %6 to %struct.ihipStream_t**
-  %12 = load %struct.ihipStream_t*, %struct.ihipStream_t** %11, align 8
-  %13 = bitcast %struct.dim3* %3 to i64*
-  %14 = load i64, i64* %13, align 8
-  %15 = getelementptr inbounds %struct.dim3, %struct.dim3* %3, i64 0, i32 2
-  %16 = load i32, i32* %15, align 8
-  %17 = bitcast %struct.dim3* %4 to i64*
-  %18 = load i64, i64* %17, align 8
-  %19 = getelementptr inbounds %struct.dim3, %struct.dim3* %4, i64 0, i32 2
-  %20 = load i32, i32* %19, align 8
-  %21 = call noundef i32 @hipLaunchKernel(i8* noundef bitcast (void (i64*)** @_Z10dummy_initPl to i8*), i64 %14, i32 %16, i64 %18, i32 %20, i8** noundef nonnull %7, i64 noundef %10, %struct.ihipStream_t* noundef %12)
+  store i64* %0, i64** %2, align 8, !tbaa !2217
+  %7 = alloca [2 x ptr], align 8
+  %8 = getelementptr inbounds [2 x ptr], [2 x ptr]* %7, i64 0, i64 0
+  %9 = bitcast [2 x ptr]* %7 to i64***
+  store i64** %2, i64*** %9, align 16
+  %10 = call i32 @__hipPopCallConfiguration(%struct.dim3* nonnull %3, %struct.dim3* nonnull %4, i64* nonnull %5, i8** nonnull %6)
+  %11 = load i64, i64* %5, align 8
+  %12 = bitcast i8** %6 to %struct.ihipStream_t**
+  %13 = load %struct.ihipStream_t*, %struct.ihipStream_t** %12, align 8
+  %14 = bitcast %struct.dim3* %3 to i64*
+  %15 = load i64, i64* %14, align 8
+  %16 = getelementptr inbounds %struct.dim3, %struct.dim3* %3, i64 0, i32 2
+  %17 = load i32, i32* %16, align 8
+  %18 = bitcast %struct.dim3* %4 to i64*
+  %19 = load i64, i64* %18, align 8
+  %20 = getelementptr inbounds %struct.dim3, %struct.dim3* %4, i64 0, i32 2
+  %21 = load i32, i32* %20, align 8
+  %22 = alloca ptr, align 8
+  %23 = call ptr @scabbard.trace.register_job(%struct.ihipStream_t* %13)
+  store ptr %23, ptr* %22, align 8
+  %24 = getelementptr inbounds [2 x ptr], [2 x ptr]* %7, i64 0, i64 1
+  store ptr* %22, ptr* %24, align 8
+  %25 = call noundef i32 @hipLaunchKernel(i8* noundef bitcast (void (i64*)** @_Z10dummy_initPl to i8*), i64 %15, i32 %17, i64 %19, i32 %21, ptr* noundef nonnull %8, i64 noundef %11, %struct.ihipStream_t* noundef %13)
+  call void @scabbard.trace.register_job_callback(ptr %23, %struct.ihipStream_t* %13)
   ret void
 }
 
 ; Function Attrs: argmemonly mustprogress nocallback nofree nosync nounwind willreturn
-declare void @llvm.lifetime.end.p0i8(i64 immarg, i8* nocapture) #5
+declare void @llvm.lifetime.end.p0i8(i64 immarg, i8* nocapture) #6
 
-declare !dbg !3034 dso_local i32 @hipFree(i8* noundef) local_unnamed_addr #0
+declare !dbg !3039 dso_local i32 @hipFree(i8* noundef) local_unnamed_addr #0
 
 ; Function Attrs: nobuiltin nounwind
 declare dso_local void @_ZdaPv(i8* noundef) local_unnamed_addr #11
 
-; Function Attrs: mustprogress norecurse uwtable
-define dso_local noundef i32 @main() local_unnamed_addr #12 !dbg !2119 {
-  tail call void @scabbard.trace.scabbard_init()
-  %1 = alloca %struct.hipDeviceProp_t, align 8
-  %2 = getelementptr inbounds %struct.hipDeviceProp_t, %struct.hipDeviceProp_t* %1, i64 0, i32 0, i64 0, !dbg !3037
-  call void @llvm.lifetime.start.p0i8(i64 792, i8* nonnull %2) #18, !dbg !3037
-  call void @llvm.dbg.declare(metadata %struct.hipDeviceProp_t* %1, metadata !2121, metadata !DIExpression()), !dbg !3038
-  %3 = call i32 @hipGetDeviceProperties(%struct.hipDeviceProp_t* noundef nonnull %1, i32 noundef 0), !dbg !3039
-  call void @llvm.dbg.value(metadata i32 %3, metadata !2245, metadata !DIExpression()), !dbg !3040
-  %4 = icmp eq i32 %3, 0, !dbg !3042
-  br i1 %4, label %9, label %5, !dbg !3043
-
-5:                                                ; preds = %0
-  %6 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !3044
-  %7 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %6, i32 noundef %3), !dbg !3045
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %7, metadata !2259, metadata !DIExpression()), !dbg !3046
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2274, metadata !DIExpression()), !dbg !3046
-  %8 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %7), !dbg !3048
-  call void @exit(i32 noundef 1) #19, !dbg !3049
-  unreachable, !dbg !3049
-
-9:                                                ; preds = %0
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2280, metadata !DIExpression()), !dbg !3050
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([15 x i8], [15 x i8]* @.str.11, i64 0, i64 0), metadata !2286, metadata !DIExpression()), !dbg !3050
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([15 x i8], [15 x i8]* @.str.11, i64 0, i64 0), metadata !3052, metadata !DIExpression()), !dbg !3055
-  %10 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([15 x i8], [15 x i8]* @.str.11, i64 0, i64 0), i64 noundef 14), !dbg !3057
-  %11 = getelementptr inbounds %struct.hipDeviceProp_t, %struct.hipDeviceProp_t* %1, i64 0, i32 13, !dbg !3058
-  %12 = load i32, i32* %11, align 4, !dbg !3058, !tbaa !3059
-  %13 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i32 noundef %12), !dbg !3062
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %13, metadata !2259, metadata !DIExpression()), !dbg !3063
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2274, metadata !DIExpression()), !dbg !3063
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %13, metadata !2364, metadata !DIExpression()), !dbg !3065
-  %14 = bitcast %"class.std::basic_ostream"* %13 to i8**, !dbg !3067
-  %15 = load i8*, i8** %14, align 8, !dbg !3067, !tbaa !2370
-  %16 = getelementptr i8, i8* %15, i64 -24, !dbg !3067
-  %17 = bitcast i8* %16 to i64*, !dbg !3067
-  %18 = load i64, i64* %17, align 8, !dbg !3067
-  %19 = bitcast %"class.std::basic_ostream"* %13 to i8*, !dbg !3067
-  %20 = getelementptr inbounds i8, i8* %19, i64 %18, !dbg !3067
-  call void @llvm.dbg.value(metadata i8* %20, metadata !2372, metadata !DIExpression()), !dbg !3068
-  call void @llvm.dbg.value(metadata i8 10, metadata !2384, metadata !DIExpression()), !dbg !3068
-  %21 = getelementptr inbounds i8, i8* %20, i64 240, !dbg !3070
-  %22 = bitcast i8* %21 to %"class.std::ctype"**, !dbg !3070
-  %23 = load %"class.std::ctype"*, %"class.std::ctype"** %22, align 8, !dbg !3070, !tbaa !2389
-  call void @llvm.dbg.value(metadata %"class.std::ctype"* %23, metadata !2398, metadata !DIExpression()), !dbg !3071
-  %24 = icmp eq %"class.std::ctype"* %23, null, !dbg !3073
-  br i1 %24, label %25, label %26, !dbg !3074
-
-25:                                               ; preds = %9
-  call void @_ZSt16__throw_bad_castv() #20, !dbg !3075
-  unreachable, !dbg !3075
-
-26:                                               ; preds = %9
-  call void @llvm.dbg.value(metadata %"class.std::ctype"* %23, metadata !2416, metadata !DIExpression()), !dbg !3076
-  call void @llvm.dbg.value(metadata i8 10, metadata !2424, metadata !DIExpression()), !dbg !3076
-  %27 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %23, i64 0, i32 8, !dbg !3078
-  %28 = load i8, i8* %27, align 8, !dbg !3078, !tbaa !2429
-  %29 = icmp eq i8 %28, 0, !dbg !3078
-  br i1 %29, label %33, label %30, !dbg !3079
-
-30:                                               ; preds = %26
-  %31 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %23, i64 0, i32 9, i64 10, !dbg !3080
-  %32 = load i8, i8* %31, align 1, !dbg !3080, !tbaa !2434
-  br label %39, !dbg !3081
-
-33:                                               ; preds = %26
-  call void @_ZNKSt5ctypeIcE13_M_widen_initEv(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %23), !dbg !3082
-  %34 = bitcast %"class.std::ctype"* %23 to i8 (%"class.std::ctype"*, i8)***, !dbg !3083
-  %35 = load i8 (%"class.std::ctype"*, i8)**, i8 (%"class.std::ctype"*, i8)*** %34, align 8, !dbg !3083, !tbaa !2370
-  %36 = getelementptr inbounds i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %35, i64 6, !dbg !3083
-  %37 = load i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %36, align 8, !dbg !3083
-  %38 = call noundef signext i8 %37(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %23, i8 noundef signext 10), !dbg !3083
-  br label %39, !dbg !3084
-
-39:                                               ; preds = %30, %33
-  %40 = phi i8 [ %32, %30 ], [ %38, %33 ], !dbg !3076
-  %41 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo3putEc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %13, i8 noundef signext %40), !dbg !3085
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %41, metadata !2348, metadata !DIExpression()), !dbg !3086
-  %42 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo5flushEv(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %41), !dbg !3088
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2280, metadata !DIExpression()), !dbg !3089
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([15 x i8], [15 x i8]* @.str.12, i64 0, i64 0), metadata !2286, metadata !DIExpression()), !dbg !3089
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([15 x i8], [15 x i8]* @.str.12, i64 0, i64 0), metadata !3052, metadata !DIExpression()), !dbg !3091
-  %43 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([15 x i8], [15 x i8]* @.str.12, i64 0, i64 0), i64 noundef 14), !dbg !3093
-  %44 = getelementptr inbounds %struct.hipDeviceProp_t, %struct.hipDeviceProp_t* %1, i64 0, i32 12, !dbg !3094
-  %45 = load i32, i32* %44, align 8, !dbg !3094, !tbaa !3095
-  %46 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i32 noundef %45), !dbg !3096
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %46, metadata !2259, metadata !DIExpression()), !dbg !3097
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2274, metadata !DIExpression()), !dbg !3097
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %46, metadata !2364, metadata !DIExpression()), !dbg !3099
-  %47 = bitcast %"class.std::basic_ostream"* %46 to i8**, !dbg !3101
-  %48 = load i8*, i8** %47, align 8, !dbg !3101, !tbaa !2370
-  %49 = getelementptr i8, i8* %48, i64 -24, !dbg !3101
-  %50 = bitcast i8* %49 to i64*, !dbg !3101
-  %51 = load i64, i64* %50, align 8, !dbg !3101
-  %52 = bitcast %"class.std::basic_ostream"* %46 to i8*, !dbg !3101
-  %53 = getelementptr inbounds i8, i8* %52, i64 %51, !dbg !3101
-  call void @llvm.dbg.value(metadata i8* %53, metadata !2372, metadata !DIExpression()), !dbg !3102
-  call void @llvm.dbg.value(metadata i8 10, metadata !2384, metadata !DIExpression()), !dbg !3102
-  %54 = getelementptr inbounds i8, i8* %53, i64 240, !dbg !3104
-  %55 = bitcast i8* %54 to %"class.std::ctype"**, !dbg !3104
-  %56 = load %"class.std::ctype"*, %"class.std::ctype"** %55, align 8, !dbg !3104, !tbaa !2389
-  call void @llvm.dbg.value(metadata %"class.std::ctype"* %56, metadata !2398, metadata !DIExpression()), !dbg !3105
-  %57 = icmp eq %"class.std::ctype"* %56, null, !dbg !3107
-  br i1 %57, label %58, label %59, !dbg !3108
-
-58:                                               ; preds = %39
-  call void @_ZSt16__throw_bad_castv() #20, !dbg !3109
-  unreachable, !dbg !3109
-
-59:                                               ; preds = %39
-  call void @llvm.dbg.value(metadata %"class.std::ctype"* %56, metadata !2416, metadata !DIExpression()), !dbg !3110
-  call void @llvm.dbg.value(metadata i8 10, metadata !2424, metadata !DIExpression()), !dbg !3110
-  %60 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %56, i64 0, i32 8, !dbg !3112
-  %61 = load i8, i8* %60, align 8, !dbg !3112, !tbaa !2429
-  %62 = icmp eq i8 %61, 0, !dbg !3112
-  br i1 %62, label %66, label %63, !dbg !3113
-
-63:                                               ; preds = %59
-  %64 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %56, i64 0, i32 9, i64 10, !dbg !3114
-  %65 = load i8, i8* %64, align 1, !dbg !3114, !tbaa !2434
-  br label %72, !dbg !3115
-
-66:                                               ; preds = %59
-  call void @_ZNKSt5ctypeIcE13_M_widen_initEv(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %56), !dbg !3116
-  %67 = bitcast %"class.std::ctype"* %56 to i8 (%"class.std::ctype"*, i8)***, !dbg !3117
-  %68 = load i8 (%"class.std::ctype"*, i8)**, i8 (%"class.std::ctype"*, i8)*** %67, align 8, !dbg !3117, !tbaa !2370
-  %69 = getelementptr inbounds i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %68, i64 6, !dbg !3117
-  %70 = load i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %69, align 8, !dbg !3117
-  %71 = call noundef signext i8 %70(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %56, i8 noundef signext 10), !dbg !3117
-  br label %72, !dbg !3118
-
-72:                                               ; preds = %63, %66
-  %73 = phi i8 [ %65, %63 ], [ %71, %66 ], !dbg !3110
-  %74 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo3putEc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %46, i8 noundef signext %73), !dbg !3119
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %74, metadata !2348, metadata !DIExpression()), !dbg !3120
-  %75 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo5flushEv(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %74), !dbg !3122
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2280, metadata !DIExpression()), !dbg !3123
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([18 x i8], [18 x i8]* @.str.13, i64 0, i64 0), metadata !2286, metadata !DIExpression()), !dbg !3123
-  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([18 x i8], [18 x i8]* @.str.13, i64 0, i64 0), metadata !3052, metadata !DIExpression()), !dbg !3125
-  %76 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([18 x i8], [18 x i8]* @.str.13, i64 0, i64 0), i64 noundef 17), !dbg !3127
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2280, metadata !DIExpression()), !dbg !3128
-  call void @llvm.dbg.value(metadata i8* %2, metadata !2286, metadata !DIExpression()), !dbg !3128
-  call void @llvm.dbg.value(metadata i8* %2, metadata !3052, metadata !DIExpression()), !dbg !3130
-  %77 = call i64 @strlen(i8* noundef nonnull dereferenceable(1) %2) #18, !dbg !3132
-  %78 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull %2, i64 noundef %77), !dbg !3133
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2259, metadata !DIExpression()), !dbg !3134
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2274, metadata !DIExpression()), !dbg !3134
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2364, metadata !DIExpression()), !dbg !3136
-  %79 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !3138, !tbaa !2370
-  %80 = getelementptr i8, i8* %79, i64 -24, !dbg !3138
-  %81 = bitcast i8* %80 to i64*, !dbg !3138
-  %82 = load i64, i64* %81, align 8, !dbg !3138
-  %83 = getelementptr inbounds i8, i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %82, !dbg !3138
-  call void @llvm.dbg.value(metadata i8* %83, metadata !2372, metadata !DIExpression()), !dbg !3139
-  call void @llvm.dbg.value(metadata i8 10, metadata !2384, metadata !DIExpression()), !dbg !3139
-  %84 = getelementptr inbounds i8, i8* %83, i64 240, !dbg !3141
-  %85 = bitcast i8* %84 to %"class.std::ctype"**, !dbg !3141
-  %86 = load %"class.std::ctype"*, %"class.std::ctype"** %85, align 8, !dbg !3141, !tbaa !2389
-  call void @llvm.dbg.value(metadata %"class.std::ctype"* %86, metadata !2398, metadata !DIExpression()), !dbg !3142
-  %87 = icmp eq %"class.std::ctype"* %86, null, !dbg !3144
-  br i1 %87, label %88, label %89, !dbg !3145
-
-88:                                               ; preds = %72
-  call void @_ZSt16__throw_bad_castv() #20, !dbg !3146
-  unreachable, !dbg !3146
-
-89:                                               ; preds = %72
-  call void @llvm.dbg.value(metadata %"class.std::ctype"* %86, metadata !2416, metadata !DIExpression()), !dbg !3147
-  call void @llvm.dbg.value(metadata i8 10, metadata !2424, metadata !DIExpression()), !dbg !3147
-  %90 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %86, i64 0, i32 8, !dbg !3149
-  %91 = load i8, i8* %90, align 8, !dbg !3149, !tbaa !2429
-  %92 = icmp eq i8 %91, 0, !dbg !3149
-  br i1 %92, label %96, label %93, !dbg !3150
-
-93:                                               ; preds = %89
-  %94 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %86, i64 0, i32 9, i64 10, !dbg !3151
-  %95 = load i8, i8* %94, align 1, !dbg !3151, !tbaa !2434
-  br label %102, !dbg !3152
-
-96:                                               ; preds = %89
-  call void @_ZNKSt5ctypeIcE13_M_widen_initEv(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %86), !dbg !3153
-  %97 = bitcast %"class.std::ctype"* %86 to i8 (%"class.std::ctype"*, i8)***, !dbg !3154
-  %98 = load i8 (%"class.std::ctype"*, i8)**, i8 (%"class.std::ctype"*, i8)*** %97, align 8, !dbg !3154, !tbaa !2370
-  %99 = getelementptr inbounds i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %98, i64 6, !dbg !3154
-  %100 = load i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %99, align 8, !dbg !3154
-  %101 = call noundef signext i8 %100(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %86, i8 noundef signext 10), !dbg !3154
-  br label %102, !dbg !3155
-
-102:                                              ; preds = %93, %96
-  %103 = phi i8 [ %95, %93 ], [ %101, %96 ], !dbg !3147
-  %104 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo3putEc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8 noundef signext %103), !dbg !3156
-  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %104, metadata !2348, metadata !DIExpression()), !dbg !3157
-  %105 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo5flushEv(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %104), !dbg !3159
-  call void @_Z13tick_all_testv(), !dbg !3160
-  call void @llvm.lifetime.end.p0i8(i64 792, i8* nonnull %2) #18, !dbg !3161
-  ret i32 0, !dbg !3162
+; Function Attrs: norecurse uwtable
+define dso_local void @_Z27__device_stub__dummy_kernelv() #3 {
+  %1 = alloca %struct.dim3, align 8
+  %2 = alloca %struct.dim3, align 8
+  %3 = alloca i64, align 8
+  %4 = alloca i8*, align 8
+  %5 = alloca [2 x ptr], align 8
+  %6 = getelementptr inbounds [2 x ptr], [2 x ptr]* %5, i64 0, i64 0
+  %7 = call i32 @__hipPopCallConfiguration(%struct.dim3* nonnull %1, %struct.dim3* nonnull %2, i64* nonnull %3, i8** nonnull %4)
+  %8 = load i64, i64* %3, align 8
+  %9 = bitcast i8** %4 to %struct.ihipStream_t**
+  %10 = load %struct.ihipStream_t*, %struct.ihipStream_t** %9, align 8
+  %11 = bitcast %struct.dim3* %1 to i64*
+  %12 = load i64, i64* %11, align 8
+  %13 = getelementptr inbounds %struct.dim3, %struct.dim3* %1, i64 0, i32 2
+  %14 = load i32, i32* %13, align 8
+  %15 = bitcast %struct.dim3* %2 to i64*
+  %16 = load i64, i64* %15, align 8
+  %17 = getelementptr inbounds %struct.dim3, %struct.dim3* %2, i64 0, i32 2
+  %18 = load i32, i32* %17, align 8
+  %19 = alloca ptr, align 8
+  %20 = call ptr @scabbard.trace.register_job(%struct.ihipStream_t* %10)
+  store ptr %20, ptr* %19, align 8
+  %21 = getelementptr inbounds [2 x ptr], [2 x ptr]* %5, i64 0, i64 1
+  store ptr* %19, ptr* %21, align 8
+  %22 = call noundef i32 @hipLaunchKernel(i8* noundef bitcast (void ()** @_Z12dummy_kernelv to i8*), i64 %12, i32 %14, i64 %16, i32 %18, ptr* noundef nonnull %6, i64 noundef %8, %struct.ihipStream_t* noundef %10)
+  call void @scabbard.trace.register_job_callback(ptr %20, %struct.ihipStream_t* %10)
+  ret void
 }
 
-declare !dbg !3163 dso_local i32 @hipGetDeviceProperties(%struct.hipDeviceProp_t* noundef, i32 noundef) local_unnamed_addr #0
+; Function Attrs: norecurse uwtable
+define dso_local noundef i32 @main(i32 noundef %0, i8** nocapture noundef readnone %1) local_unnamed_addr #3 !dbg !2119 {
+  tail call void @scabbard.trace.scabbard_init()
+  %3 = alloca %struct.dim3, align 8
+  %4 = alloca %struct.dim3, align 8
+  %5 = alloca i64, align 8
+  %6 = alloca i8*, align 8
+  %7 = alloca [2 x ptr], align 8
+  %8 = getelementptr inbounds [2 x ptr], [2 x ptr]* %7, i64 0, i64 0
+  %9 = alloca %struct.hipDeviceProp_t, align 8
+  call void @llvm.dbg.value(metadata i32 %0, metadata !2123, metadata !DIExpression()), !dbg !3042
+  call void @llvm.dbg.value(metadata i8** %1, metadata !2124, metadata !DIExpression()), !dbg !3042
+  %10 = getelementptr inbounds %struct.hipDeviceProp_t, %struct.hipDeviceProp_t* %9, i64 0, i32 0, i64 0, !dbg !3043
+  call void @llvm.lifetime.start.p0i8(i64 792, i8* nonnull %10) #18, !dbg !3043
+  call void @llvm.dbg.declare(metadata %struct.hipDeviceProp_t* %9, metadata !2125, metadata !DIExpression()), !dbg !3044
+  %11 = call i32 @hipGetDeviceProperties(%struct.hipDeviceProp_t* noundef nonnull %9, i32 noundef 0), !dbg !3045
+  call void @llvm.dbg.value(metadata i32 %11, metadata !2250, metadata !DIExpression()), !dbg !3046
+  %12 = icmp eq i32 %11, 0, !dbg !3048
+  br i1 %12, label %17, label %13, !dbg !3049
+
+13:                                               ; preds = %2
+  %14 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cerr, i8* noundef getelementptr inbounds ([13 x i8], [13 x i8]* @.str.14, i64 0, i64 0)), !dbg !3050
+  %15 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %14, i32 noundef %11), !dbg !3051
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %15, metadata !2264, metadata !DIExpression()), !dbg !3052
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2279, metadata !DIExpression()), !dbg !3052
+  %16 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %15), !dbg !3054
+  call void @exit(i32 noundef 1) #19, !dbg !3055
+  unreachable, !dbg !3055
+
+17:                                               ; preds = %2
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2285, metadata !DIExpression()), !dbg !3056
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([15 x i8], [15 x i8]* @.str.11, i64 0, i64 0), metadata !2291, metadata !DIExpression()), !dbg !3056
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([15 x i8], [15 x i8]* @.str.11, i64 0, i64 0), metadata !3058, metadata !DIExpression()), !dbg !3061
+  %18 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([15 x i8], [15 x i8]* @.str.11, i64 0, i64 0), i64 noundef 14), !dbg !3063
+  %19 = getelementptr inbounds %struct.hipDeviceProp_t, %struct.hipDeviceProp_t* %9, i64 0, i32 13, !dbg !3064
+  %20 = load i32, i32* %19, align 4, !dbg !3064, !tbaa !3065
+  %21 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i32 noundef %20), !dbg !3068
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %21, metadata !2264, metadata !DIExpression()), !dbg !3069
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2279, metadata !DIExpression()), !dbg !3069
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %21, metadata !2369, metadata !DIExpression()), !dbg !3071
+  %22 = bitcast %"class.std::basic_ostream"* %21 to i8**, !dbg !3073
+  %23 = load i8*, i8** %22, align 8, !dbg !3073, !tbaa !2375
+  %24 = getelementptr i8, i8* %23, i64 -24, !dbg !3073
+  %25 = bitcast i8* %24 to i64*, !dbg !3073
+  %26 = load i64, i64* %25, align 8, !dbg !3073
+  %27 = bitcast %"class.std::basic_ostream"* %21 to i8*, !dbg !3073
+  %28 = getelementptr inbounds i8, i8* %27, i64 %26, !dbg !3073
+  call void @llvm.dbg.value(metadata i8* %28, metadata !2377, metadata !DIExpression()), !dbg !3074
+  call void @llvm.dbg.value(metadata i8 10, metadata !2389, metadata !DIExpression()), !dbg !3074
+  %29 = getelementptr inbounds i8, i8* %28, i64 240, !dbg !3076
+  %30 = bitcast i8* %29 to %"class.std::ctype"**, !dbg !3076
+  %31 = load %"class.std::ctype"*, %"class.std::ctype"** %30, align 8, !dbg !3076, !tbaa !2394
+  call void @llvm.dbg.value(metadata %"class.std::ctype"* %31, metadata !2403, metadata !DIExpression()), !dbg !3077
+  %32 = icmp eq %"class.std::ctype"* %31, null, !dbg !3079
+  br i1 %32, label %33, label %34, !dbg !3080
+
+33:                                               ; preds = %17
+  call void @_ZSt16__throw_bad_castv() #20, !dbg !3081
+  unreachable, !dbg !3081
+
+34:                                               ; preds = %17
+  call void @llvm.dbg.value(metadata %"class.std::ctype"* %31, metadata !2421, metadata !DIExpression()), !dbg !3082
+  call void @llvm.dbg.value(metadata i8 10, metadata !2429, metadata !DIExpression()), !dbg !3082
+  %35 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %31, i64 0, i32 8, !dbg !3084
+  %36 = load i8, i8* %35, align 8, !dbg !3084, !tbaa !2434
+  %37 = icmp eq i8 %36, 0, !dbg !3084
+  br i1 %37, label %41, label %38, !dbg !3085
+
+38:                                               ; preds = %34
+  %39 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %31, i64 0, i32 9, i64 10, !dbg !3086
+  %40 = load i8, i8* %39, align 1, !dbg !3086, !tbaa !2439
+  br label %47, !dbg !3087
+
+41:                                               ; preds = %34
+  call void @_ZNKSt5ctypeIcE13_M_widen_initEv(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %31), !dbg !3088
+  %42 = bitcast %"class.std::ctype"* %31 to i8 (%"class.std::ctype"*, i8)***, !dbg !3089
+  %43 = load i8 (%"class.std::ctype"*, i8)**, i8 (%"class.std::ctype"*, i8)*** %42, align 8, !dbg !3089, !tbaa !2375
+  %44 = getelementptr inbounds i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %43, i64 6, !dbg !3089
+  %45 = load i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %44, align 8, !dbg !3089
+  %46 = call noundef signext i8 %45(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %31, i8 noundef signext 10), !dbg !3089
+  br label %47, !dbg !3090
+
+47:                                               ; preds = %38, %41
+  %48 = phi i8 [ %40, %38 ], [ %46, %41 ], !dbg !3082
+  %49 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo3putEc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %21, i8 noundef signext %48), !dbg !3091
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %49, metadata !2353, metadata !DIExpression()), !dbg !3092
+  %50 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo5flushEv(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %49), !dbg !3094
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2285, metadata !DIExpression()), !dbg !3095
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([15 x i8], [15 x i8]* @.str.12, i64 0, i64 0), metadata !2291, metadata !DIExpression()), !dbg !3095
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([15 x i8], [15 x i8]* @.str.12, i64 0, i64 0), metadata !3058, metadata !DIExpression()), !dbg !3097
+  %51 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([15 x i8], [15 x i8]* @.str.12, i64 0, i64 0), i64 noundef 14), !dbg !3099
+  %52 = getelementptr inbounds %struct.hipDeviceProp_t, %struct.hipDeviceProp_t* %9, i64 0, i32 12, !dbg !3100
+  %53 = load i32, i32* %52, align 8, !dbg !3100, !tbaa !3101
+  %54 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSolsEi(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i32 noundef %53), !dbg !3102
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %54, metadata !2264, metadata !DIExpression()), !dbg !3103
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2279, metadata !DIExpression()), !dbg !3103
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %54, metadata !2369, metadata !DIExpression()), !dbg !3105
+  %55 = bitcast %"class.std::basic_ostream"* %54 to i8**, !dbg !3107
+  %56 = load i8*, i8** %55, align 8, !dbg !3107, !tbaa !2375
+  %57 = getelementptr i8, i8* %56, i64 -24, !dbg !3107
+  %58 = bitcast i8* %57 to i64*, !dbg !3107
+  %59 = load i64, i64* %58, align 8, !dbg !3107
+  %60 = bitcast %"class.std::basic_ostream"* %54 to i8*, !dbg !3107
+  %61 = getelementptr inbounds i8, i8* %60, i64 %59, !dbg !3107
+  call void @llvm.dbg.value(metadata i8* %61, metadata !2377, metadata !DIExpression()), !dbg !3108
+  call void @llvm.dbg.value(metadata i8 10, metadata !2389, metadata !DIExpression()), !dbg !3108
+  %62 = getelementptr inbounds i8, i8* %61, i64 240, !dbg !3110
+  %63 = bitcast i8* %62 to %"class.std::ctype"**, !dbg !3110
+  %64 = load %"class.std::ctype"*, %"class.std::ctype"** %63, align 8, !dbg !3110, !tbaa !2394
+  call void @llvm.dbg.value(metadata %"class.std::ctype"* %64, metadata !2403, metadata !DIExpression()), !dbg !3111
+  %65 = icmp eq %"class.std::ctype"* %64, null, !dbg !3113
+  br i1 %65, label %66, label %67, !dbg !3114
+
+66:                                               ; preds = %47
+  call void @_ZSt16__throw_bad_castv() #20, !dbg !3115
+  unreachable, !dbg !3115
+
+67:                                               ; preds = %47
+  call void @llvm.dbg.value(metadata %"class.std::ctype"* %64, metadata !2421, metadata !DIExpression()), !dbg !3116
+  call void @llvm.dbg.value(metadata i8 10, metadata !2429, metadata !DIExpression()), !dbg !3116
+  %68 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %64, i64 0, i32 8, !dbg !3118
+  %69 = load i8, i8* %68, align 8, !dbg !3118, !tbaa !2434
+  %70 = icmp eq i8 %69, 0, !dbg !3118
+  br i1 %70, label %74, label %71, !dbg !3119
+
+71:                                               ; preds = %67
+  %72 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %64, i64 0, i32 9, i64 10, !dbg !3120
+  %73 = load i8, i8* %72, align 1, !dbg !3120, !tbaa !2439
+  br label %80, !dbg !3121
+
+74:                                               ; preds = %67
+  call void @_ZNKSt5ctypeIcE13_M_widen_initEv(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %64), !dbg !3122
+  %75 = bitcast %"class.std::ctype"* %64 to i8 (%"class.std::ctype"*, i8)***, !dbg !3123
+  %76 = load i8 (%"class.std::ctype"*, i8)**, i8 (%"class.std::ctype"*, i8)*** %75, align 8, !dbg !3123, !tbaa !2375
+  %77 = getelementptr inbounds i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %76, i64 6, !dbg !3123
+  %78 = load i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %77, align 8, !dbg !3123
+  %79 = call noundef signext i8 %78(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %64, i8 noundef signext 10), !dbg !3123
+  br label %80, !dbg !3124
+
+80:                                               ; preds = %71, %74
+  %81 = phi i8 [ %73, %71 ], [ %79, %74 ], !dbg !3116
+  %82 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo3putEc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %54, i8 noundef signext %81), !dbg !3125
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %82, metadata !2353, metadata !DIExpression()), !dbg !3126
+  %83 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo5flushEv(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %82), !dbg !3128
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2285, metadata !DIExpression()), !dbg !3129
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([18 x i8], [18 x i8]* @.str.13, i64 0, i64 0), metadata !2291, metadata !DIExpression()), !dbg !3129
+  call void @llvm.dbg.value(metadata i8* getelementptr inbounds ([18 x i8], [18 x i8]* @.str.13, i64 0, i64 0), metadata !3058, metadata !DIExpression()), !dbg !3131
+  %84 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull getelementptr inbounds ([18 x i8], [18 x i8]* @.str.13, i64 0, i64 0), i64 noundef 17), !dbg !3133
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2285, metadata !DIExpression()), !dbg !3134
+  call void @llvm.dbg.value(metadata i8* %10, metadata !2291, metadata !DIExpression()), !dbg !3134
+  call void @llvm.dbg.value(metadata i8* %10, metadata !3058, metadata !DIExpression()), !dbg !3136
+  %85 = call i64 @strlen(i8* noundef nonnull dereferenceable(1) %10) #18, !dbg !3138
+  %86 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8* noundef nonnull %10, i64 noundef %85), !dbg !3139
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2264, metadata !DIExpression()), !dbg !3140
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* (%"class.std::basic_ostream"*)* @_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_, metadata !2279, metadata !DIExpression()), !dbg !3140
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* @_ZSt4cout, metadata !2369, metadata !DIExpression()), !dbg !3142
+  %87 = load i8*, i8** bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8**), align 8, !dbg !3144, !tbaa !2375
+  %88 = getelementptr i8, i8* %87, i64 -24, !dbg !3144
+  %89 = bitcast i8* %88 to i64*, !dbg !3144
+  %90 = load i64, i64* %89, align 8, !dbg !3144
+  %91 = getelementptr inbounds i8, i8* bitcast (%"class.std::basic_ostream"* @_ZSt4cout to i8*), i64 %90, !dbg !3144
+  call void @llvm.dbg.value(metadata i8* %91, metadata !2377, metadata !DIExpression()), !dbg !3145
+  call void @llvm.dbg.value(metadata i8 10, metadata !2389, metadata !DIExpression()), !dbg !3145
+  %92 = getelementptr inbounds i8, i8* %91, i64 240, !dbg !3147
+  %93 = bitcast i8* %92 to %"class.std::ctype"**, !dbg !3147
+  %94 = load %"class.std::ctype"*, %"class.std::ctype"** %93, align 8, !dbg !3147, !tbaa !2394
+  call void @llvm.dbg.value(metadata %"class.std::ctype"* %94, metadata !2403, metadata !DIExpression()), !dbg !3148
+  %95 = icmp eq %"class.std::ctype"* %94, null, !dbg !3150
+  br i1 %95, label %96, label %97, !dbg !3151
+
+96:                                               ; preds = %80
+  call void @_ZSt16__throw_bad_castv() #20, !dbg !3152
+  unreachable, !dbg !3152
+
+97:                                               ; preds = %80
+  call void @llvm.dbg.value(metadata %"class.std::ctype"* %94, metadata !2421, metadata !DIExpression()), !dbg !3153
+  call void @llvm.dbg.value(metadata i8 10, metadata !2429, metadata !DIExpression()), !dbg !3153
+  %98 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %94, i64 0, i32 8, !dbg !3155
+  %99 = load i8, i8* %98, align 8, !dbg !3155, !tbaa !2434
+  %100 = icmp eq i8 %99, 0, !dbg !3155
+  br i1 %100, label %104, label %101, !dbg !3156
+
+101:                                              ; preds = %97
+  %102 = getelementptr inbounds %"class.std::ctype", %"class.std::ctype"* %94, i64 0, i32 9, i64 10, !dbg !3157
+  %103 = load i8, i8* %102, align 1, !dbg !3157, !tbaa !2439
+  br label %110, !dbg !3158
+
+104:                                              ; preds = %97
+  call void @_ZNKSt5ctypeIcE13_M_widen_initEv(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %94), !dbg !3159
+  %105 = bitcast %"class.std::ctype"* %94 to i8 (%"class.std::ctype"*, i8)***, !dbg !3160
+  %106 = load i8 (%"class.std::ctype"*, i8)**, i8 (%"class.std::ctype"*, i8)*** %105, align 8, !dbg !3160, !tbaa !2375
+  %107 = getelementptr inbounds i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %106, i64 6, !dbg !3160
+  %108 = load i8 (%"class.std::ctype"*, i8)*, i8 (%"class.std::ctype"*, i8)** %107, align 8, !dbg !3160
+  %109 = call noundef signext i8 %108(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570) %94, i8 noundef signext 10), !dbg !3160
+  br label %110, !dbg !3161
+
+110:                                              ; preds = %101, %104
+  %111 = phi i8 [ %103, %101 ], [ %109, %104 ], !dbg !3153
+  %112 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo3putEc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) @_ZSt4cout, i8 noundef signext %111), !dbg !3162
+  call void @llvm.dbg.value(metadata %"class.std::basic_ostream"* %112, metadata !2353, metadata !DIExpression()), !dbg !3163
+  %113 = call noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo5flushEv(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8) %112), !dbg !3165
+  call void @_Z13tick_all_testi(i32 noundef %0), !dbg !3166
+  %114 = call i32 @__hipPushCallConfiguration(i64 4294968320, i32 1, i64 4294968320, i32 1, i64 noundef 0, %struct.ihipStream_t* noundef null), !dbg !3167
+  %115 = icmp eq i32 %114, 0, !dbg !3167
+  br i1 %115, label %116, label %138, !dbg !3168
+
+116:                                              ; preds = %110
+  %117 = bitcast %struct.dim3* %3 to i8*, !dbg !3168
+  call void @llvm.lifetime.start.p0i8(i64 12, i8* nonnull %117), !dbg !3168
+  %118 = bitcast %struct.dim3* %4 to i8*, !dbg !3168
+  call void @llvm.lifetime.start.p0i8(i64 12, i8* nonnull %118), !dbg !3168
+  %119 = bitcast i64* %5 to i8*, !dbg !3168
+  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %119), !dbg !3168
+  %120 = bitcast i8** %6 to i8*, !dbg !3168
+  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %120), !dbg !3168
+  %121 = bitcast [2 x ptr]* %7 to i8*, !dbg !3168
+  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %121), !dbg !3168
+  %122 = call i32 @__hipPopCallConfiguration(%struct.dim3* nonnull %3, %struct.dim3* nonnull %4, i64* nonnull %5, i8** nonnull %6), !dbg !3168
+  %123 = load i64, i64* %5, align 8, !dbg !3168
+  %124 = bitcast i8** %6 to %struct.ihipStream_t**, !dbg !3168
+  %125 = load %struct.ihipStream_t*, %struct.ihipStream_t** %124, align 8, !dbg !3168
+  %126 = bitcast %struct.dim3* %3 to i64*, !dbg !3168
+  %127 = load i64, i64* %126, align 8, !dbg !3168
+  %128 = getelementptr inbounds %struct.dim3, %struct.dim3* %3, i64 0, i32 2, !dbg !3168
+  %129 = load i32, i32* %128, align 8, !dbg !3168
+  %130 = bitcast %struct.dim3* %4 to i64*, !dbg !3168
+  %131 = load i64, i64* %130, align 8, !dbg !3168
+  %132 = getelementptr inbounds %struct.dim3, %struct.dim3* %4, i64 0, i32 2, !dbg !3168
+  %133 = load i32, i32* %132, align 8, !dbg !3168
+  %134 = alloca ptr, align 8
+  %135 = call ptr @scabbard.trace.register_job(%struct.ihipStream_t* %125)
+  store ptr %135, ptr* %134, align 8
+  %136 = getelementptr inbounds [2 x ptr], [2 x ptr]* %7, i64 0, i64 1
+  store ptr* %134, ptr* %136, align 8
+  %137 = call noundef i32 @hipLaunchKernel(i8* noundef bitcast (void ()** @_Z12dummy_kernelv to i8*), i64 %127, i32 %129, i64 %131, i32 %133, ptr* noundef nonnull %8, i64 noundef %123, %struct.ihipStream_t* noundef %125), !dbg !3168
+  call void @scabbard.trace.register_job_callback(ptr %135, %struct.ihipStream_t* %125)
+  call void @llvm.lifetime.end.p0i8(i64 12, i8* nonnull %117), !dbg !3168
+  call void @llvm.lifetime.end.p0i8(i64 12, i8* nonnull %118), !dbg !3168
+  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %119), !dbg !3168
+  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %120), !dbg !3168
+  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %121), !dbg !3168
+  br label %138, !dbg !3168
+
+138:                                              ; preds = %116, %110
+  call void @llvm.lifetime.end.p0i8(i64 792, i8* nonnull %10) #18, !dbg !3169
+  ret i32 0, !dbg !3170
+}
+
+declare !dbg !3171 dso_local i32 @hipGetDeviceProperties(%struct.hipDeviceProp_t* noundef, i32 noundef) local_unnamed_addr #0
 
 ; Function Attrs: noreturn nounwind
-declare dso_local void @exit(i32 noundef) local_unnamed_addr #13
+declare dso_local void @exit(i32 noundef) local_unnamed_addr #12
 
 declare dso_local noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_l(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8), i8* noundef, i64 noundef) local_unnamed_addr #0
 
 ; Function Attrs: argmemonly mustprogress nofree nounwind readonly willreturn
-declare dso_local i64 @strlen(i8* nocapture noundef) local_unnamed_addr #14
+declare dso_local i64 @strlen(i8* nocapture noundef) local_unnamed_addr #13
 
 declare dso_local noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo5flushEv(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8)) local_unnamed_addr #0
 
 declare dso_local noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo3putEc(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8), i8 noundef signext) local_unnamed_addr #0
 
 ; Function Attrs: noreturn
-declare dso_local void @_ZSt16__throw_bad_castv() local_unnamed_addr #15
+declare dso_local void @_ZSt16__throw_bad_castv() local_unnamed_addr #14
 
 declare dso_local void @_ZNKSt5ctypeIcE13_M_widen_initEv(%"class.std::ctype"* noundef nonnull align 8 dereferenceable(570)) local_unnamed_addr #0
 
-declare !dbg !3167 dso_local i32 @hipMallocManaged(i8** noundef, i64 noundef, i32 noundef) local_unnamed_addr #0
+declare !dbg !3175 dso_local i32 @hipMallocManaged(i8** noundef, i64 noundef, i32 noundef) local_unnamed_addr #0
 
-declare !dbg !3170 dso_local i32 @hipMalloc(i8** noundef, i64 noundef) local_unnamed_addr #0
+declare !dbg !3178 dso_local i32 @hipMalloc(i8** noundef, i64 noundef) local_unnamed_addr #0
 
 declare dso_local noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo9_M_insertIlEERSoT_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8), i64 noundef) local_unnamed_addr #0
 
-declare !dbg !3173 dso_local i32 @nanosleep(%struct.timespec* noundef, %struct.timespec* noundef) local_unnamed_addr #0
+declare !dbg !3181 dso_local i32 @nanosleep(%struct.timespec* noundef, %struct.timespec* noundef) local_unnamed_addr #0
 
 ; Function Attrs: mustprogress nofree nosync nounwind readnone willreturn
-declare dso_local i32* @__errno_location() local_unnamed_addr #16
+declare dso_local i32* @__errno_location() local_unnamed_addr #15
 
 declare dso_local i32 @__gxx_personality_v0(...)
 
 declare dso_local noundef nonnull align 8 dereferenceable(8) %"class.std::basic_ostream"* @_ZNSo9_M_insertImEERSoT_(%"class.std::basic_ostream"* noundef nonnull align 8 dereferenceable(8), i64 noundef) local_unnamed_addr #0
 
 ; Function Attrs: uwtable
-define internal void @_GLOBAL__sub_I_managed_clock_test.cpp() #4 section ".text.startup" !dbg !3178 {
-  tail call void @_ZNSt8ios_base4InitC1Ev(%"class.std::ios_base::Init"* noundef nonnull align 1 dereferenceable(1) @_ZStL8__ioinit), !dbg !3180
-  %1 = tail call i32 @__cxa_atexit(void (i8*)* bitcast (void (%"class.std::ios_base::Init"*)* @_ZNSt8ios_base4InitD1Ev to void (i8*)*), i8* getelementptr inbounds (%"class.std::ios_base::Init", %"class.std::ios_base::Init"* @_ZStL8__ioinit, i64 0, i32 0), i8* nonnull @__dso_handle) #18, !dbg !3184
+define internal void @_GLOBAL__sub_I_managed_clock_test.cpp() #16 section ".text.startup" !dbg !3186 {
+  tail call void @_ZNSt8ios_base4InitC1Ev(%"class.std::ios_base::Init"* noundef nonnull align 1 dereferenceable(1) @_ZStL8__ioinit), !dbg !3188
+  %1 = tail call i32 @__cxa_atexit(void (i8*)* bitcast (void (%"class.std::ios_base::Init"*)* @_ZNSt8ios_base4InitD1Ev to void (i8*)*), i8* getelementptr inbounds (%"class.std::ios_base::Init", %"class.std::ios_base::Init"* @_ZStL8__ioinit, i64 0, i32 0), i8* nonnull @__dso_handle) #18, !dbg !3192
   ret void
 }
 
@@ -3674,9 +3722,10 @@ define internal void @__hip_module_ctor() {
 
 5:                                                ; preds = %3, %0
   %6 = phi i8** [ %4, %3 ], [ %1, %0 ]
-  %7 = tail call i32 @__hipRegisterFunction(i8** %6, i8* bitcast (void (i64*, i64*, i64*)** @_Z15tick_all_kernelPU7_AtomicmPmPl to i8*), i8* getelementptr inbounds ([35 x i8], [35 x i8]* @0, i64 0, i64 0), i8* getelementptr inbounds ([35 x i8], [35 x i8]* @0, i64 0, i64 0), i32 -1, i8* null, i8* null, i8* null, i8* null, i32* null)
-  %8 = tail call i32 @__hipRegisterFunction(i8** %6, i8* bitcast (void (i64*)** @_Z10dummy_initPl to i8*), i8* getelementptr inbounds ([17 x i8], [17 x i8]* @1, i64 0, i64 0), i8* getelementptr inbounds ([17 x i8], [17 x i8]* @1, i64 0, i64 0), i32 -1, i8* null, i8* null, i8* null, i8* null, i32* null)
-  %9 = tail call i32 @atexit(void ()* nonnull @__hip_module_dtor)
+  %7 = tail call i32 @__hipRegisterFunction(i8** %6, i8* bitcast (void (i64*, i64*, i64*, i32)** @_Z15tick_all_kernelPU7_AtomicmPmPli to i8*), i8* getelementptr inbounds ([36 x i8], [36 x i8]* @0, i64 0, i64 0), i8* getelementptr inbounds ([36 x i8], [36 x i8]* @0, i64 0, i64 0), i32 -1, i8* null, i8* null, i8* null, i8* null, i32* null)
+  %8 = tail call i32 @__hipRegisterFunction(i8** %6, i8* bitcast (void ()** @_Z12dummy_kernelv to i8*), i8* getelementptr inbounds ([18 x i8], [18 x i8]* @1, i64 0, i64 0), i8* getelementptr inbounds ([18 x i8], [18 x i8]* @1, i64 0, i64 0), i32 -1, i8* null, i8* null, i8* null, i8* null, i32* null)
+  %9 = tail call i32 @__hipRegisterFunction(i8** %6, i8* bitcast (void (i64*)** @_Z10dummy_initPl to i8*), i8* getelementptr inbounds ([17 x i8], [17 x i8]* @2, i64 0, i64 0), i8* getelementptr inbounds ([17 x i8], [17 x i8]* @2, i64 0, i64 0), i32 -1, i8* null, i8* null, i8* null, i8* null, i32* null)
+  %10 = tail call i32 @atexit(void ()* nonnull @__hip_module_dtor)
   ret void
 }
 
@@ -3707,6 +3756,10 @@ declare void @"scabbard.trace.host.trace_append$mem"(i16, ptr, ptr, i32, i32)
 
 declare void @"scabbard.trace.host.trace_append$alloc"(i16, ptr, ptr, i32, i32, i64)
 
+declare ptr @scabbard.trace.register_job(ptr)
+
+declare void @scabbard.trace.register_job_callback(ptr, ptr)
+
 declare i64 @"scabbard.trace.metadata_register$src"(i8*)
 
 define void @scabbard.trace.module_ctor() {
@@ -3722,19 +3775,19 @@ attributes #0 = { "frame-pointer"="none" "no-trapping-math"="true" "stack-protec
 attributes #1 = { nounwind "frame-pointer"="none" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #2 = { nofree nounwind }
 attributes #3 = { norecurse uwtable "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
-attributes #4 = { uwtable "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
-attributes #5 = { argmemonly mustprogress nocallback nofree nosync nounwind willreturn }
-attributes #6 = { mustprogress nocallback nofree nosync nounwind readnone speculatable willreturn }
+attributes #4 = { noinline uwtable "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #5 = { mustprogress nocallback nofree nosync nounwind readnone speculatable willreturn }
+attributes #6 = { argmemonly mustprogress nocallback nofree nosync nounwind willreturn }
 attributes #7 = { mustprogress uwtable "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #8 = { inlinehint mustprogress uwtable "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #9 = { nobuiltin allocsize(0) "frame-pointer"="none" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #10 = { argmemonly mustprogress nocallback nofree nounwind willreturn writeonly }
 attributes #11 = { nobuiltin nounwind "frame-pointer"="none" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
-attributes #12 = { mustprogress norecurse uwtable "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
-attributes #13 = { noreturn nounwind "frame-pointer"="none" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
-attributes #14 = { argmemonly mustprogress nofree nounwind readonly willreturn "frame-pointer"="none" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
-attributes #15 = { noreturn "frame-pointer"="none" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
-attributes #16 = { mustprogress nofree nosync nounwind readnone willreturn "frame-pointer"="none" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #12 = { noreturn nounwind "frame-pointer"="none" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #13 = { argmemonly mustprogress nofree nounwind readonly willreturn "frame-pointer"="none" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #14 = { noreturn "frame-pointer"="none" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #15 = { mustprogress nofree nosync nounwind readnone willreturn "frame-pointer"="none" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #16 = { uwtable "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #17 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
 attributes #18 = { nounwind }
 attributes #19 = { noreturn nounwind }
@@ -3744,8 +3797,8 @@ attributes #22 = { nounwind readnone willreturn }
 attributes #23 = { builtin nounwind }
 
 !llvm.dbg.cu = !{!79}
-!llvm.module.flags = !{!2208, !2209, !2210, !2211}
-!llvm.ident = !{!2212}
+!llvm.module.flags = !{!2212, !2213, !2214, !2215}
+!llvm.ident = !{!2216}
 
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "__ioinit", linkageName: "_ZStL8__ioinit", scope: !2, file: !3, line: 74, type: !4, isLocal: true, isDefinition: true)
@@ -3756,7 +3809,7 @@ attributes #23 = { builtin nounwind }
 !6 = !DICompositeType(tag: DW_TAG_class_type, name: "ios_base", scope: !2, file: !5, line: 228, size: 1728, flags: DIFlagFwdDecl | DIFlagNonTrivial, identifier: "_ZTSSt8ios_base")
 !7 = !DIGlobalVariableExpression(var: !8, expr: !DIExpression())
 !8 = distinct !DIGlobalVariable(scope: null, file: !9, line: 70, type: !10, isLocal: true, isDefinition: true)
-!9 = !DIFile(filename: "test/managed_clock_test.cpp", directory: "/g/g11/osterhou/repos/scabbard", checksumkind: CSK_MD5, checksum: "3cdb439f8feef572cb544d3e9cde4206")
+!9 = !DIFile(filename: "test/managed_clock_test.cpp", directory: "/g/g11/osterhou/repos/scabbard", checksumkind: CSK_MD5, checksum: "f3b95071d78788dcbdfb6777dea84a9e")
 !10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !11, size: 296, elements: !13)
 !11 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !12)
 !12 = !DIBasicType(name: "char", size: 8, encoding: DW_ATE_signed_char)
@@ -3810,19 +3863,19 @@ attributes #23 = { builtin nounwind }
 !60 = !{!61}
 !61 = !DISubrange(count: 35)
 !62 = !DIGlobalVariableExpression(var: !63, expr: !DIExpression())
-!63 = distinct !DIGlobalVariable(scope: null, file: !9, line: 165, type: !64, isLocal: true, isDefinition: true)
+!63 = distinct !DIGlobalVariable(scope: null, file: !9, line: 170, type: !64, isLocal: true, isDefinition: true)
 !64 = !DICompositeType(tag: DW_TAG_array_type, baseType: !11, size: 120, elements: !65)
 !65 = !{!66}
 !66 = !DISubrange(count: 15)
 !67 = !DIGlobalVariableExpression(var: !68, expr: !DIExpression())
-!68 = distinct !DIGlobalVariable(scope: null, file: !9, line: 166, type: !64, isLocal: true, isDefinition: true)
+!68 = distinct !DIGlobalVariable(scope: null, file: !9, line: 171, type: !64, isLocal: true, isDefinition: true)
 !69 = !DIGlobalVariableExpression(var: !70, expr: !DIExpression())
-!70 = distinct !DIGlobalVariable(scope: null, file: !9, line: 167, type: !71, isLocal: true, isDefinition: true)
+!70 = distinct !DIGlobalVariable(scope: null, file: !9, line: 172, type: !71, isLocal: true, isDefinition: true)
 !71 = !DICompositeType(tag: DW_TAG_array_type, baseType: !11, size: 144, elements: !72)
 !72 = !{!73}
 !73 = !DISubrange(count: 18)
 !74 = !DIGlobalVariableExpression(var: !75, expr: !DIExpression())
-!75 = distinct !DIGlobalVariable(scope: null, file: !9, line: 176, type: !76, isLocal: true, isDefinition: true)
+!75 = distinct !DIGlobalVariable(scope: null, file: !9, line: 182, type: !76, isLocal: true, isDefinition: true)
 !76 = !DICompositeType(tag: DW_TAG_array_type, baseType: !11, size: 104, elements: !77)
 !77 = !{!78}
 !78 = !DISubrange(count: 13)
@@ -5865,1072 +5918,1080 @@ attributes #23 = { builtin nounwind }
 !2115 = !DISubprogram(name: "strrchr", scope: !2047, file: !2047, line: 246, type: !2108, flags: DIFlagPrototyped, spFlags: DISPFlagOptimized)
 !2116 = !DIImportedEntity(tag: DW_TAG_imported_declaration, scope: !2, entity: !2117, file: !2050, line: 98)
 !2117 = !DISubprogram(name: "strstr", scope: !2047, file: !2047, line: 323, type: !2112, flags: DIFlagPrototyped, spFlags: DISPFlagOptimized)
-!2118 = !DIImportedEntity(tag: DW_TAG_imported_module, scope: !2119, entity: !2, file: !9, line: 162)
-!2119 = distinct !DISubprogram(name: "main", scope: !9, file: !9, line: 160, type: !914, scopeLine: 161, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, retainedNodes: !2120)
-!2120 = !{!2121}
-!2121 = !DILocalVariable(name: "devProp", scope: !2119, file: !9, line: 163, type: !2122)
-!2122 = !DIDerivedType(tag: DW_TAG_typedef, name: "hipDeviceProp_t", file: !90, line: 153, baseType: !2123)
-!2123 = distinct !DICompositeType(tag: DW_TAG_structure_type, name: "hipDeviceProp_t", file: !90, line: 87, size: 6336, flags: DIFlagTypePassByValue, elements: !2124, identifier: "_ZTS15hipDeviceProp_t")
-!2124 = !{!2125, !2129, !2130, !2131, !2132, !2133, !2134, !2138, !2139, !2140, !2141, !2142, !2143, !2144, !2145, !2146, !2147, !2148, !2149, !2150, !2171, !2172, !2173, !2174, !2175, !2176, !2177, !2178, !2179, !2180, !2181, !2182, !2183, !2184, !2185, !2187, !2188, !2190, !2191, !2192, !2193, !2194, !2195, !2196, !2197, !2198, !2199, !2200, !2201, !2202, !2203, !2204, !2205, !2206, !2207}
-!2125 = !DIDerivedType(tag: DW_TAG_member, name: "name", scope: !2123, file: !90, line: 88, baseType: !2126, size: 2048)
-!2126 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 2048, elements: !2127)
-!2127 = !{!2128}
-!2128 = !DISubrange(count: 256)
-!2129 = !DIDerivedType(tag: DW_TAG_member, name: "totalGlobalMem", scope: !2123, file: !90, line: 89, baseType: !827, size: 64, offset: 2048)
-!2130 = !DIDerivedType(tag: DW_TAG_member, name: "sharedMemPerBlock", scope: !2123, file: !90, line: 90, baseType: !827, size: 64, offset: 2112)
-!2131 = !DIDerivedType(tag: DW_TAG_member, name: "regsPerBlock", scope: !2123, file: !90, line: 91, baseType: !179, size: 32, offset: 2176)
-!2132 = !DIDerivedType(tag: DW_TAG_member, name: "warpSize", scope: !2123, file: !90, line: 92, baseType: !179, size: 32, offset: 2208)
-!2133 = !DIDerivedType(tag: DW_TAG_member, name: "maxThreadsPerBlock", scope: !2123, file: !90, line: 93, baseType: !179, size: 32, offset: 2240)
-!2134 = !DIDerivedType(tag: DW_TAG_member, name: "maxThreadsDim", scope: !2123, file: !90, line: 94, baseType: !2135, size: 96, offset: 2272)
-!2135 = !DICompositeType(tag: DW_TAG_array_type, baseType: !179, size: 96, elements: !2136)
-!2136 = !{!2137}
-!2137 = !DISubrange(count: 3)
-!2138 = !DIDerivedType(tag: DW_TAG_member, name: "maxGridSize", scope: !2123, file: !90, line: 95, baseType: !2135, size: 96, offset: 2368)
-!2139 = !DIDerivedType(tag: DW_TAG_member, name: "clockRate", scope: !2123, file: !90, line: 96, baseType: !179, size: 32, offset: 2464)
-!2140 = !DIDerivedType(tag: DW_TAG_member, name: "memoryClockRate", scope: !2123, file: !90, line: 97, baseType: !179, size: 32, offset: 2496)
-!2141 = !DIDerivedType(tag: DW_TAG_member, name: "memoryBusWidth", scope: !2123, file: !90, line: 98, baseType: !179, size: 32, offset: 2528)
-!2142 = !DIDerivedType(tag: DW_TAG_member, name: "totalConstMem", scope: !2123, file: !90, line: 99, baseType: !827, size: 64, offset: 2560)
-!2143 = !DIDerivedType(tag: DW_TAG_member, name: "major", scope: !2123, file: !90, line: 100, baseType: !179, size: 32, offset: 2624)
-!2144 = !DIDerivedType(tag: DW_TAG_member, name: "minor", scope: !2123, file: !90, line: 103, baseType: !179, size: 32, offset: 2656)
-!2145 = !DIDerivedType(tag: DW_TAG_member, name: "multiProcessorCount", scope: !2123, file: !90, line: 106, baseType: !179, size: 32, offset: 2688)
-!2146 = !DIDerivedType(tag: DW_TAG_member, name: "l2CacheSize", scope: !2123, file: !90, line: 107, baseType: !179, size: 32, offset: 2720)
-!2147 = !DIDerivedType(tag: DW_TAG_member, name: "maxThreadsPerMultiProcessor", scope: !2123, file: !90, line: 108, baseType: !179, size: 32, offset: 2752)
-!2148 = !DIDerivedType(tag: DW_TAG_member, name: "computeMode", scope: !2123, file: !90, line: 109, baseType: !179, size: 32, offset: 2784)
-!2149 = !DIDerivedType(tag: DW_TAG_member, name: "clockInstructionRate", scope: !2123, file: !90, line: 110, baseType: !179, size: 32, offset: 2816)
-!2150 = !DIDerivedType(tag: DW_TAG_member, name: "arch", scope: !2123, file: !90, line: 112, baseType: !2151, size: 32, offset: 2848)
-!2151 = !DIDerivedType(tag: DW_TAG_typedef, name: "hipDeviceArch_t", file: !90, line: 74, baseType: !2152)
-!2152 = distinct !DICompositeType(tag: DW_TAG_structure_type, file: !90, line: 45, size: 32, flags: DIFlagTypePassByValue, elements: !2153, identifier: "_ZTS15hipDeviceArch_t")
-!2153 = !{!2154, !2155, !2156, !2157, !2158, !2159, !2160, !2161, !2162, !2163, !2164, !2165, !2166, !2167, !2168, !2169, !2170}
-!2154 = !DIDerivedType(tag: DW_TAG_member, name: "hasGlobalInt32Atomics", scope: !2152, file: !90, line: 47, baseType: !84, size: 1, flags: DIFlagBitField, extraData: i64 0)
-!2155 = !DIDerivedType(tag: DW_TAG_member, name: "hasGlobalFloatAtomicExch", scope: !2152, file: !90, line: 48, baseType: !84, size: 1, offset: 1, flags: DIFlagBitField, extraData: i64 0)
-!2156 = !DIDerivedType(tag: DW_TAG_member, name: "hasSharedInt32Atomics", scope: !2152, file: !90, line: 49, baseType: !84, size: 1, offset: 2, flags: DIFlagBitField, extraData: i64 0)
-!2157 = !DIDerivedType(tag: DW_TAG_member, name: "hasSharedFloatAtomicExch", scope: !2152, file: !90, line: 50, baseType: !84, size: 1, offset: 3, flags: DIFlagBitField, extraData: i64 0)
-!2158 = !DIDerivedType(tag: DW_TAG_member, name: "hasFloatAtomicAdd", scope: !2152, file: !90, line: 51, baseType: !84, size: 1, offset: 4, flags: DIFlagBitField, extraData: i64 0)
-!2159 = !DIDerivedType(tag: DW_TAG_member, name: "hasGlobalInt64Atomics", scope: !2152, file: !90, line: 54, baseType: !84, size: 1, offset: 5, flags: DIFlagBitField, extraData: i64 0)
-!2160 = !DIDerivedType(tag: DW_TAG_member, name: "hasSharedInt64Atomics", scope: !2152, file: !90, line: 55, baseType: !84, size: 1, offset: 6, flags: DIFlagBitField, extraData: i64 0)
-!2161 = !DIDerivedType(tag: DW_TAG_member, name: "hasDoubles", scope: !2152, file: !90, line: 58, baseType: !84, size: 1, offset: 7, flags: DIFlagBitField, extraData: i64 0)
-!2162 = !DIDerivedType(tag: DW_TAG_member, name: "hasWarpVote", scope: !2152, file: !90, line: 61, baseType: !84, size: 1, offset: 8, flags: DIFlagBitField, extraData: i64 0)
-!2163 = !DIDerivedType(tag: DW_TAG_member, name: "hasWarpBallot", scope: !2152, file: !90, line: 62, baseType: !84, size: 1, offset: 9, flags: DIFlagBitField, extraData: i64 0)
-!2164 = !DIDerivedType(tag: DW_TAG_member, name: "hasWarpShuffle", scope: !2152, file: !90, line: 63, baseType: !84, size: 1, offset: 10, flags: DIFlagBitField, extraData: i64 0)
-!2165 = !DIDerivedType(tag: DW_TAG_member, name: "hasFunnelShift", scope: !2152, file: !90, line: 64, baseType: !84, size: 1, offset: 11, flags: DIFlagBitField, extraData: i64 0)
-!2166 = !DIDerivedType(tag: DW_TAG_member, name: "hasThreadFenceSystem", scope: !2152, file: !90, line: 67, baseType: !84, size: 1, offset: 12, flags: DIFlagBitField, extraData: i64 0)
-!2167 = !DIDerivedType(tag: DW_TAG_member, name: "hasSyncThreadsExt", scope: !2152, file: !90, line: 68, baseType: !84, size: 1, offset: 13, flags: DIFlagBitField, extraData: i64 0)
-!2168 = !DIDerivedType(tag: DW_TAG_member, name: "hasSurfaceFuncs", scope: !2152, file: !90, line: 71, baseType: !84, size: 1, offset: 14, flags: DIFlagBitField, extraData: i64 0)
-!2169 = !DIDerivedType(tag: DW_TAG_member, name: "has3dGrid", scope: !2152, file: !90, line: 72, baseType: !84, size: 1, offset: 15, flags: DIFlagBitField, extraData: i64 0)
-!2170 = !DIDerivedType(tag: DW_TAG_member, name: "hasDynamicParallelism", scope: !2152, file: !90, line: 73, baseType: !84, size: 1, offset: 16, flags: DIFlagBitField, extraData: i64 0)
-!2171 = !DIDerivedType(tag: DW_TAG_member, name: "concurrentKernels", scope: !2123, file: !90, line: 113, baseType: !179, size: 32, offset: 2880)
-!2172 = !DIDerivedType(tag: DW_TAG_member, name: "pciDomainID", scope: !2123, file: !90, line: 114, baseType: !179, size: 32, offset: 2912)
-!2173 = !DIDerivedType(tag: DW_TAG_member, name: "pciBusID", scope: !2123, file: !90, line: 115, baseType: !179, size: 32, offset: 2944)
-!2174 = !DIDerivedType(tag: DW_TAG_member, name: "pciDeviceID", scope: !2123, file: !90, line: 116, baseType: !179, size: 32, offset: 2976)
-!2175 = !DIDerivedType(tag: DW_TAG_member, name: "maxSharedMemoryPerMultiProcessor", scope: !2123, file: !90, line: 117, baseType: !827, size: 64, offset: 3008)
-!2176 = !DIDerivedType(tag: DW_TAG_member, name: "isMultiGpuBoard", scope: !2123, file: !90, line: 118, baseType: !179, size: 32, offset: 3072)
-!2177 = !DIDerivedType(tag: DW_TAG_member, name: "canMapHostMemory", scope: !2123, file: !90, line: 119, baseType: !179, size: 32, offset: 3104)
-!2178 = !DIDerivedType(tag: DW_TAG_member, name: "gcnArch", scope: !2123, file: !90, line: 120, baseType: !179, size: 32, offset: 3136)
-!2179 = !DIDerivedType(tag: DW_TAG_member, name: "gcnArchName", scope: !2123, file: !90, line: 121, baseType: !2126, size: 2048, offset: 3168)
-!2180 = !DIDerivedType(tag: DW_TAG_member, name: "integrated", scope: !2123, file: !90, line: 122, baseType: !179, size: 32, offset: 5216)
-!2181 = !DIDerivedType(tag: DW_TAG_member, name: "cooperativeLaunch", scope: !2123, file: !90, line: 123, baseType: !179, size: 32, offset: 5248)
-!2182 = !DIDerivedType(tag: DW_TAG_member, name: "cooperativeMultiDeviceLaunch", scope: !2123, file: !90, line: 124, baseType: !179, size: 32, offset: 5280)
-!2183 = !DIDerivedType(tag: DW_TAG_member, name: "maxTexture1DLinear", scope: !2123, file: !90, line: 125, baseType: !179, size: 32, offset: 5312)
-!2184 = !DIDerivedType(tag: DW_TAG_member, name: "maxTexture1D", scope: !2123, file: !90, line: 126, baseType: !179, size: 32, offset: 5344)
-!2185 = !DIDerivedType(tag: DW_TAG_member, name: "maxTexture2D", scope: !2123, file: !90, line: 127, baseType: !2186, size: 64, offset: 5376)
-!2186 = !DICompositeType(tag: DW_TAG_array_type, baseType: !179, size: 64, elements: !33)
-!2187 = !DIDerivedType(tag: DW_TAG_member, name: "maxTexture3D", scope: !2123, file: !90, line: 128, baseType: !2135, size: 96, offset: 5440)
-!2188 = !DIDerivedType(tag: DW_TAG_member, name: "hdpMemFlushCntl", scope: !2123, file: !90, line: 129, baseType: !2189, size: 64, offset: 5568)
-!2189 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !84, size: 64)
-!2190 = !DIDerivedType(tag: DW_TAG_member, name: "hdpRegFlushCntl", scope: !2123, file: !90, line: 130, baseType: !2189, size: 64, offset: 5632)
-!2191 = !DIDerivedType(tag: DW_TAG_member, name: "memPitch", scope: !2123, file: !90, line: 131, baseType: !827, size: 64, offset: 5696)
-!2192 = !DIDerivedType(tag: DW_TAG_member, name: "textureAlignment", scope: !2123, file: !90, line: 132, baseType: !827, size: 64, offset: 5760)
-!2193 = !DIDerivedType(tag: DW_TAG_member, name: "texturePitchAlignment", scope: !2123, file: !90, line: 133, baseType: !827, size: 64, offset: 5824)
-!2194 = !DIDerivedType(tag: DW_TAG_member, name: "kernelExecTimeoutEnabled", scope: !2123, file: !90, line: 134, baseType: !179, size: 32, offset: 5888)
-!2195 = !DIDerivedType(tag: DW_TAG_member, name: "ECCEnabled", scope: !2123, file: !90, line: 135, baseType: !179, size: 32, offset: 5920)
-!2196 = !DIDerivedType(tag: DW_TAG_member, name: "tccDriver", scope: !2123, file: !90, line: 136, baseType: !179, size: 32, offset: 5952)
-!2197 = !DIDerivedType(tag: DW_TAG_member, name: "cooperativeMultiDeviceUnmatchedFunc", scope: !2123, file: !90, line: 137, baseType: !179, size: 32, offset: 5984)
-!2198 = !DIDerivedType(tag: DW_TAG_member, name: "cooperativeMultiDeviceUnmatchedGridDim", scope: !2123, file: !90, line: 139, baseType: !179, size: 32, offset: 6016)
-!2199 = !DIDerivedType(tag: DW_TAG_member, name: "cooperativeMultiDeviceUnmatchedBlockDim", scope: !2123, file: !90, line: 141, baseType: !179, size: 32, offset: 6048)
-!2200 = !DIDerivedType(tag: DW_TAG_member, name: "cooperativeMultiDeviceUnmatchedSharedMem", scope: !2123, file: !90, line: 143, baseType: !179, size: 32, offset: 6080)
-!2201 = !DIDerivedType(tag: DW_TAG_member, name: "isLargeBar", scope: !2123, file: !90, line: 145, baseType: !179, size: 32, offset: 6112)
-!2202 = !DIDerivedType(tag: DW_TAG_member, name: "asicRevision", scope: !2123, file: !90, line: 146, baseType: !179, size: 32, offset: 6144)
-!2203 = !DIDerivedType(tag: DW_TAG_member, name: "managedMemory", scope: !2123, file: !90, line: 147, baseType: !179, size: 32, offset: 6176)
-!2204 = !DIDerivedType(tag: DW_TAG_member, name: "directManagedMemAccessFromHost", scope: !2123, file: !90, line: 148, baseType: !179, size: 32, offset: 6208)
-!2205 = !DIDerivedType(tag: DW_TAG_member, name: "concurrentManagedAccess", scope: !2123, file: !90, line: 149, baseType: !179, size: 32, offset: 6240)
-!2206 = !DIDerivedType(tag: DW_TAG_member, name: "pageableMemoryAccess", scope: !2123, file: !90, line: 150, baseType: !179, size: 32, offset: 6272)
-!2207 = !DIDerivedType(tag: DW_TAG_member, name: "pageableMemoryAccessUsesHostPageTables", scope: !2123, file: !90, line: 152, baseType: !179, size: 32, offset: 6304)
-!2208 = !{i32 7, !"Dwarf Version", i32 5}
-!2209 = !{i32 2, !"Debug Info Version", i32 3}
-!2210 = !{i32 1, !"wchar_size", i32 4}
-!2211 = !{i32 7, !"uwtable", i32 2}
-!2212 = !{!"AMD clang version 15.0.0 (https://github.com/RadeonOpenCompute/llvm-project roc-5.4.3 23045 a29fe425c7b0e5aba97ed2f95f61fd5ecba68aed)"}
-!2213 = !{!2214, !2214, i64 0}
-!2214 = !{!"any pointer", !2215, i64 0}
-!2215 = !{!"omnipotent char", !2216, i64 0}
-!2216 = !{!"Simple C++ TBAA"}
-!2217 = distinct !DISubprogram(name: "tick_all_test", linkageName: "_Z13tick_all_testv", scope: !9, file: !9, line: 66, type: !821, scopeLine: 67, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, retainedNodes: !2218)
-!2218 = !{!2219, !2220, !2222, !2223, !2225, !2226, !2229, !2231, !2232, !2234, !2235, !2237}
-!2219 = !DILocalVariable(name: "device", scope: !2217, file: !9, line: 68, type: !179)
-!2220 = !DILocalVariable(name: "SIZE", scope: !2217, file: !9, line: 72, type: !2221)
-!2221 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !193)
-!2222 = !DILocalVariable(name: "spin_limit", scope: !2217, file: !9, line: 73, type: !1648)
-!2223 = !DILocalVariable(name: "DISPLAY_LIMIT", scope: !2217, file: !9, line: 74, type: !2224)
-!2224 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !827)
-!2225 = !DILocalVariable(name: "DISPLAY_LINE_LIMIT", scope: !2217, file: !9, line: 75, type: !2224)
-!2226 = !DILocalVariable(name: "clk", scope: !2217, file: !9, line: 79, type: !2227)
-!2227 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2228, size: 64)
-!2228 = !DIDerivedType(tag: DW_TAG_atomic_type, baseType: !1681)
-!2229 = !DILocalVariable(name: "h_vals", scope: !2217, file: !9, line: 85, type: !2230)
-!2230 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !1681, size: 64)
-!2231 = !DILocalVariable(name: "d_vals", scope: !2217, file: !9, line: 87, type: !2230)
-!2232 = !DILocalVariable(name: "dummy_data", scope: !2217, file: !9, line: 92, type: !2233)
-!2233 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !1648, size: 64)
-!2234 = !DILocalVariable(name: "h_dummy_data", scope: !2217, file: !9, line: 98, type: !2233)
-!2235 = !DILocalVariable(name: "i", scope: !2236, file: !9, line: 102, type: !827)
-!2236 = distinct !DILexicalBlock(scope: !2217, file: !9, line: 102, column: 3)
-!2237 = !DILocalVariable(name: "i", scope: !2238, file: !9, line: 137, type: !827)
-!2238 = distinct !DILexicalBlock(scope: !2217, file: !9, line: 137, column: 3)
-!2239 = !DILocation(line: 68, column: 3, scope: !2217)
-!2240 = !DILocation(line: 0, scope: !2217)
-!2241 = !DILocation(line: 68, column: 7, scope: !2217)
-!2242 = !{!2243, !2243, i64 0}
-!2243 = !{!"int", !2215, i64 0}
-!2244 = !DILocation(line: 69, column: 17, scope: !2217)
-!2245 = !DILocalVariable(name: "resCode", arg: 1, scope: !2246, file: !9, line: 174, type: !2249)
-!2246 = distinct !DISubprogram(name: "__HIP_CHECK__", linkageName: "_Z13__HIP_CHECK__10hipError_t", scope: !9, file: !9, line: 174, type: !2247, scopeLine: 174, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, retainedNodes: !2250)
-!2247 = !DISubroutineType(types: !2248)
-!2248 = !{null, !2249}
-!2249 = !DIDerivedType(tag: DW_TAG_typedef, name: "hipError_t", file: !90, line: 320, baseType: !89)
-!2250 = !{!2245}
-!2251 = !DILocation(line: 0, scope: !2246, inlinedAt: !2252)
-!2252 = distinct !DILocation(line: 69, column: 3, scope: !2217)
-!2253 = !DILocation(line: 175, column: 15, scope: !2254, inlinedAt: !2252)
-!2254 = distinct !DILexicalBlock(scope: !2246, file: !9, line: 175, column: 7)
-!2255 = !DILocation(line: 175, column: 7, scope: !2246, inlinedAt: !2252)
-!2256 = !DILocation(line: 176, column: 15, scope: !2257, inlinedAt: !2252)
-!2257 = distinct !DILexicalBlock(scope: !2254, file: !9, line: 175, column: 30)
-!2258 = !DILocation(line: 176, column: 34, scope: !2257, inlinedAt: !2252)
-!2259 = !DILocalVariable(name: "this", arg: 1, scope: !2260, type: !2275, flags: DIFlagArtificial | DIFlagObjectPointer)
-!2260 = distinct !DISubprogram(name: "operator<<", linkageName: "_ZNSolsEPFRSoS_E", scope: !2262, file: !2261, line: 108, type: !2264, scopeLine: 109, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, declaration: !2272, retainedNodes: !2273)
-!2261 = !DIFile(filename: "/opt/rh/gcc-toolset-10/root/usr/lib/gcc/x86_64-redhat-linux/10/../../../../include/c++/10/ostream", directory: "")
-!2262 = !DICompositeType(tag: DW_TAG_class_type, name: "basic_ostream<char, std::char_traits<char> >", scope: !2, file: !2263, line: 359, size: 2176, flags: DIFlagFwdDecl | DIFlagNonTrivial)
-!2263 = !DIFile(filename: "/opt/rh/gcc-toolset-10/root/usr/lib/gcc/x86_64-redhat-linux/10/../../../../include/c++/10/bits/ostream.tcc", directory: "")
-!2264 = !DISubroutineType(types: !2265)
-!2265 = !{!2266, !2268, !2269}
-!2266 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !2267, size: 64)
-!2267 = !DIDerivedType(tag: DW_TAG_typedef, name: "__ostream_type", scope: !2262, file: !2261, line: 71, baseType: !2262)
-!2268 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2262, size: 64, flags: DIFlagArtificial | DIFlagObjectPointer)
-!2269 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2270, size: 64)
-!2270 = !DISubroutineType(types: !2271)
-!2271 = !{!2266, !2266}
-!2272 = !DISubprogram(name: "operator<<", linkageName: "_ZNSolsEPFRSoS_E", scope: !2262, file: !2261, line: 108, type: !2264, scopeLine: 108, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
-!2273 = !{!2259, !2274}
-!2274 = !DILocalVariable(name: "__pf", arg: 2, scope: !2260, file: !2261, line: 108, type: !2269)
-!2275 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2262, size: 64)
-!2276 = !DILocation(line: 0, scope: !2260, inlinedAt: !2277)
-!2277 = distinct !DILocation(line: 176, column: 45, scope: !2257, inlinedAt: !2252)
-!2278 = !DILocation(line: 113, column: 9, scope: !2260, inlinedAt: !2277)
-!2279 = !DILocation(line: 177, column: 5, scope: !2257, inlinedAt: !2252)
-!2280 = !DILocalVariable(name: "__out", arg: 1, scope: !2281, file: !2261, line: 606, type: !2284)
-!2281 = distinct !DISubprogram(name: "operator<<<std::char_traits<char> >", linkageName: "_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc", scope: !2, file: !2261, line: 606, type: !2282, scopeLine: 607, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, templateParams: !2287, retainedNodes: !2285)
-!2282 = !DISubroutineType(types: !2283)
-!2283 = !{!2284, !2284, !710}
-!2284 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !2262, size: 64)
-!2285 = !{!2280, !2286}
-!2286 = !DILocalVariable(name: "__s", arg: 2, scope: !2281, file: !2261, line: 606, type: !710)
-!2287 = !{!2288}
-!2288 = !DITemplateTypeParameter(name: "_Traits", type: !2289)
-!2289 = distinct !DICompositeType(tag: DW_TAG_structure_type, name: "char_traits<char>", scope: !2, file: !2290, line: 316, size: 8, flags: DIFlagTypePassByValue, elements: !2291, templateParams: !2340, identifier: "_ZTSSt11char_traitsIcE")
-!2290 = !DIFile(filename: "/opt/rh/gcc-toolset-10/root/usr/lib/gcc/x86_64-redhat-linux/10/../../../../include/c++/10/bits/char_traits.h", directory: "")
-!2291 = !{!2292, !2299, !2302, !2303, !2308, !2311, !2314, !2318, !2319, !2322, !2328, !2331, !2334, !2337}
-!2292 = !DISubprogram(name: "assign", linkageName: "_ZNSt11char_traitsIcE6assignERcRKc", scope: !2289, file: !2290, line: 328, type: !2293, scopeLine: 328, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
-!2293 = !DISubroutineType(types: !2294)
-!2294 = !{null, !2295, !2297}
-!2295 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !2296, size: 64)
-!2296 = !DIDerivedType(tag: DW_TAG_typedef, name: "char_type", scope: !2289, file: !2290, line: 318, baseType: !12)
-!2297 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !2298, size: 64)
-!2298 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !2296)
-!2299 = !DISubprogram(name: "eq", linkageName: "_ZNSt11char_traitsIcE2eqERKcS2_", scope: !2289, file: !2290, line: 332, type: !2300, scopeLine: 332, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
-!2300 = !DISubroutineType(types: !2301)
-!2301 = !{!286, !2297, !2297}
-!2302 = !DISubprogram(name: "lt", linkageName: "_ZNSt11char_traitsIcE2ltERKcS2_", scope: !2289, file: !2290, line: 336, type: !2300, scopeLine: 336, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
-!2303 = !DISubprogram(name: "compare", linkageName: "_ZNSt11char_traitsIcE7compareEPKcS2_m", scope: !2289, file: !2290, line: 344, type: !2304, scopeLine: 344, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
-!2304 = !DISubroutineType(types: !2305)
-!2305 = !{!179, !2306, !2306, !2307}
-!2306 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2298, size: 64)
-!2307 = !DIDerivedType(tag: DW_TAG_typedef, name: "size_t", scope: !2, file: !275, line: 2306, baseType: !829)
-!2308 = !DISubprogram(name: "length", linkageName: "_ZNSt11char_traitsIcE6lengthEPKc", scope: !2289, file: !2290, line: 365, type: !2309, scopeLine: 365, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!2118 = !DIImportedEntity(tag: DW_TAG_imported_module, scope: !2119, entity: !2, file: !9, line: 167)
+!2119 = distinct !DISubprogram(name: "main", scope: !9, file: !9, line: 165, type: !2120, scopeLine: 166, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, retainedNodes: !2122)
+!2120 = !DISubroutineType(types: !2121)
+!2121 = !{!179, !179, !929}
+!2122 = !{!2123, !2124, !2125}
+!2123 = !DILocalVariable(name: "argc", arg: 1, scope: !2119, file: !9, line: 165, type: !179)
+!2124 = !DILocalVariable(name: "argv", arg: 2, scope: !2119, file: !9, line: 165, type: !929)
+!2125 = !DILocalVariable(name: "devProp", scope: !2119, file: !9, line: 168, type: !2126)
+!2126 = !DIDerivedType(tag: DW_TAG_typedef, name: "hipDeviceProp_t", file: !90, line: 153, baseType: !2127)
+!2127 = distinct !DICompositeType(tag: DW_TAG_structure_type, name: "hipDeviceProp_t", file: !90, line: 87, size: 6336, flags: DIFlagTypePassByValue, elements: !2128, identifier: "_ZTS15hipDeviceProp_t")
+!2128 = !{!2129, !2133, !2134, !2135, !2136, !2137, !2138, !2142, !2143, !2144, !2145, !2146, !2147, !2148, !2149, !2150, !2151, !2152, !2153, !2154, !2175, !2176, !2177, !2178, !2179, !2180, !2181, !2182, !2183, !2184, !2185, !2186, !2187, !2188, !2189, !2191, !2192, !2194, !2195, !2196, !2197, !2198, !2199, !2200, !2201, !2202, !2203, !2204, !2205, !2206, !2207, !2208, !2209, !2210, !2211}
+!2129 = !DIDerivedType(tag: DW_TAG_member, name: "name", scope: !2127, file: !90, line: 88, baseType: !2130, size: 2048)
+!2130 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 2048, elements: !2131)
+!2131 = !{!2132}
+!2132 = !DISubrange(count: 256)
+!2133 = !DIDerivedType(tag: DW_TAG_member, name: "totalGlobalMem", scope: !2127, file: !90, line: 89, baseType: !827, size: 64, offset: 2048)
+!2134 = !DIDerivedType(tag: DW_TAG_member, name: "sharedMemPerBlock", scope: !2127, file: !90, line: 90, baseType: !827, size: 64, offset: 2112)
+!2135 = !DIDerivedType(tag: DW_TAG_member, name: "regsPerBlock", scope: !2127, file: !90, line: 91, baseType: !179, size: 32, offset: 2176)
+!2136 = !DIDerivedType(tag: DW_TAG_member, name: "warpSize", scope: !2127, file: !90, line: 92, baseType: !179, size: 32, offset: 2208)
+!2137 = !DIDerivedType(tag: DW_TAG_member, name: "maxThreadsPerBlock", scope: !2127, file: !90, line: 93, baseType: !179, size: 32, offset: 2240)
+!2138 = !DIDerivedType(tag: DW_TAG_member, name: "maxThreadsDim", scope: !2127, file: !90, line: 94, baseType: !2139, size: 96, offset: 2272)
+!2139 = !DICompositeType(tag: DW_TAG_array_type, baseType: !179, size: 96, elements: !2140)
+!2140 = !{!2141}
+!2141 = !DISubrange(count: 3)
+!2142 = !DIDerivedType(tag: DW_TAG_member, name: "maxGridSize", scope: !2127, file: !90, line: 95, baseType: !2139, size: 96, offset: 2368)
+!2143 = !DIDerivedType(tag: DW_TAG_member, name: "clockRate", scope: !2127, file: !90, line: 96, baseType: !179, size: 32, offset: 2464)
+!2144 = !DIDerivedType(tag: DW_TAG_member, name: "memoryClockRate", scope: !2127, file: !90, line: 97, baseType: !179, size: 32, offset: 2496)
+!2145 = !DIDerivedType(tag: DW_TAG_member, name: "memoryBusWidth", scope: !2127, file: !90, line: 98, baseType: !179, size: 32, offset: 2528)
+!2146 = !DIDerivedType(tag: DW_TAG_member, name: "totalConstMem", scope: !2127, file: !90, line: 99, baseType: !827, size: 64, offset: 2560)
+!2147 = !DIDerivedType(tag: DW_TAG_member, name: "major", scope: !2127, file: !90, line: 100, baseType: !179, size: 32, offset: 2624)
+!2148 = !DIDerivedType(tag: DW_TAG_member, name: "minor", scope: !2127, file: !90, line: 103, baseType: !179, size: 32, offset: 2656)
+!2149 = !DIDerivedType(tag: DW_TAG_member, name: "multiProcessorCount", scope: !2127, file: !90, line: 106, baseType: !179, size: 32, offset: 2688)
+!2150 = !DIDerivedType(tag: DW_TAG_member, name: "l2CacheSize", scope: !2127, file: !90, line: 107, baseType: !179, size: 32, offset: 2720)
+!2151 = !DIDerivedType(tag: DW_TAG_member, name: "maxThreadsPerMultiProcessor", scope: !2127, file: !90, line: 108, baseType: !179, size: 32, offset: 2752)
+!2152 = !DIDerivedType(tag: DW_TAG_member, name: "computeMode", scope: !2127, file: !90, line: 109, baseType: !179, size: 32, offset: 2784)
+!2153 = !DIDerivedType(tag: DW_TAG_member, name: "clockInstructionRate", scope: !2127, file: !90, line: 110, baseType: !179, size: 32, offset: 2816)
+!2154 = !DIDerivedType(tag: DW_TAG_member, name: "arch", scope: !2127, file: !90, line: 112, baseType: !2155, size: 32, offset: 2848)
+!2155 = !DIDerivedType(tag: DW_TAG_typedef, name: "hipDeviceArch_t", file: !90, line: 74, baseType: !2156)
+!2156 = distinct !DICompositeType(tag: DW_TAG_structure_type, file: !90, line: 45, size: 32, flags: DIFlagTypePassByValue, elements: !2157, identifier: "_ZTS15hipDeviceArch_t")
+!2157 = !{!2158, !2159, !2160, !2161, !2162, !2163, !2164, !2165, !2166, !2167, !2168, !2169, !2170, !2171, !2172, !2173, !2174}
+!2158 = !DIDerivedType(tag: DW_TAG_member, name: "hasGlobalInt32Atomics", scope: !2156, file: !90, line: 47, baseType: !84, size: 1, flags: DIFlagBitField, extraData: i64 0)
+!2159 = !DIDerivedType(tag: DW_TAG_member, name: "hasGlobalFloatAtomicExch", scope: !2156, file: !90, line: 48, baseType: !84, size: 1, offset: 1, flags: DIFlagBitField, extraData: i64 0)
+!2160 = !DIDerivedType(tag: DW_TAG_member, name: "hasSharedInt32Atomics", scope: !2156, file: !90, line: 49, baseType: !84, size: 1, offset: 2, flags: DIFlagBitField, extraData: i64 0)
+!2161 = !DIDerivedType(tag: DW_TAG_member, name: "hasSharedFloatAtomicExch", scope: !2156, file: !90, line: 50, baseType: !84, size: 1, offset: 3, flags: DIFlagBitField, extraData: i64 0)
+!2162 = !DIDerivedType(tag: DW_TAG_member, name: "hasFloatAtomicAdd", scope: !2156, file: !90, line: 51, baseType: !84, size: 1, offset: 4, flags: DIFlagBitField, extraData: i64 0)
+!2163 = !DIDerivedType(tag: DW_TAG_member, name: "hasGlobalInt64Atomics", scope: !2156, file: !90, line: 54, baseType: !84, size: 1, offset: 5, flags: DIFlagBitField, extraData: i64 0)
+!2164 = !DIDerivedType(tag: DW_TAG_member, name: "hasSharedInt64Atomics", scope: !2156, file: !90, line: 55, baseType: !84, size: 1, offset: 6, flags: DIFlagBitField, extraData: i64 0)
+!2165 = !DIDerivedType(tag: DW_TAG_member, name: "hasDoubles", scope: !2156, file: !90, line: 58, baseType: !84, size: 1, offset: 7, flags: DIFlagBitField, extraData: i64 0)
+!2166 = !DIDerivedType(tag: DW_TAG_member, name: "hasWarpVote", scope: !2156, file: !90, line: 61, baseType: !84, size: 1, offset: 8, flags: DIFlagBitField, extraData: i64 0)
+!2167 = !DIDerivedType(tag: DW_TAG_member, name: "hasWarpBallot", scope: !2156, file: !90, line: 62, baseType: !84, size: 1, offset: 9, flags: DIFlagBitField, extraData: i64 0)
+!2168 = !DIDerivedType(tag: DW_TAG_member, name: "hasWarpShuffle", scope: !2156, file: !90, line: 63, baseType: !84, size: 1, offset: 10, flags: DIFlagBitField, extraData: i64 0)
+!2169 = !DIDerivedType(tag: DW_TAG_member, name: "hasFunnelShift", scope: !2156, file: !90, line: 64, baseType: !84, size: 1, offset: 11, flags: DIFlagBitField, extraData: i64 0)
+!2170 = !DIDerivedType(tag: DW_TAG_member, name: "hasThreadFenceSystem", scope: !2156, file: !90, line: 67, baseType: !84, size: 1, offset: 12, flags: DIFlagBitField, extraData: i64 0)
+!2171 = !DIDerivedType(tag: DW_TAG_member, name: "hasSyncThreadsExt", scope: !2156, file: !90, line: 68, baseType: !84, size: 1, offset: 13, flags: DIFlagBitField, extraData: i64 0)
+!2172 = !DIDerivedType(tag: DW_TAG_member, name: "hasSurfaceFuncs", scope: !2156, file: !90, line: 71, baseType: !84, size: 1, offset: 14, flags: DIFlagBitField, extraData: i64 0)
+!2173 = !DIDerivedType(tag: DW_TAG_member, name: "has3dGrid", scope: !2156, file: !90, line: 72, baseType: !84, size: 1, offset: 15, flags: DIFlagBitField, extraData: i64 0)
+!2174 = !DIDerivedType(tag: DW_TAG_member, name: "hasDynamicParallelism", scope: !2156, file: !90, line: 73, baseType: !84, size: 1, offset: 16, flags: DIFlagBitField, extraData: i64 0)
+!2175 = !DIDerivedType(tag: DW_TAG_member, name: "concurrentKernels", scope: !2127, file: !90, line: 113, baseType: !179, size: 32, offset: 2880)
+!2176 = !DIDerivedType(tag: DW_TAG_member, name: "pciDomainID", scope: !2127, file: !90, line: 114, baseType: !179, size: 32, offset: 2912)
+!2177 = !DIDerivedType(tag: DW_TAG_member, name: "pciBusID", scope: !2127, file: !90, line: 115, baseType: !179, size: 32, offset: 2944)
+!2178 = !DIDerivedType(tag: DW_TAG_member, name: "pciDeviceID", scope: !2127, file: !90, line: 116, baseType: !179, size: 32, offset: 2976)
+!2179 = !DIDerivedType(tag: DW_TAG_member, name: "maxSharedMemoryPerMultiProcessor", scope: !2127, file: !90, line: 117, baseType: !827, size: 64, offset: 3008)
+!2180 = !DIDerivedType(tag: DW_TAG_member, name: "isMultiGpuBoard", scope: !2127, file: !90, line: 118, baseType: !179, size: 32, offset: 3072)
+!2181 = !DIDerivedType(tag: DW_TAG_member, name: "canMapHostMemory", scope: !2127, file: !90, line: 119, baseType: !179, size: 32, offset: 3104)
+!2182 = !DIDerivedType(tag: DW_TAG_member, name: "gcnArch", scope: !2127, file: !90, line: 120, baseType: !179, size: 32, offset: 3136)
+!2183 = !DIDerivedType(tag: DW_TAG_member, name: "gcnArchName", scope: !2127, file: !90, line: 121, baseType: !2130, size: 2048, offset: 3168)
+!2184 = !DIDerivedType(tag: DW_TAG_member, name: "integrated", scope: !2127, file: !90, line: 122, baseType: !179, size: 32, offset: 5216)
+!2185 = !DIDerivedType(tag: DW_TAG_member, name: "cooperativeLaunch", scope: !2127, file: !90, line: 123, baseType: !179, size: 32, offset: 5248)
+!2186 = !DIDerivedType(tag: DW_TAG_member, name: "cooperativeMultiDeviceLaunch", scope: !2127, file: !90, line: 124, baseType: !179, size: 32, offset: 5280)
+!2187 = !DIDerivedType(tag: DW_TAG_member, name: "maxTexture1DLinear", scope: !2127, file: !90, line: 125, baseType: !179, size: 32, offset: 5312)
+!2188 = !DIDerivedType(tag: DW_TAG_member, name: "maxTexture1D", scope: !2127, file: !90, line: 126, baseType: !179, size: 32, offset: 5344)
+!2189 = !DIDerivedType(tag: DW_TAG_member, name: "maxTexture2D", scope: !2127, file: !90, line: 127, baseType: !2190, size: 64, offset: 5376)
+!2190 = !DICompositeType(tag: DW_TAG_array_type, baseType: !179, size: 64, elements: !33)
+!2191 = !DIDerivedType(tag: DW_TAG_member, name: "maxTexture3D", scope: !2127, file: !90, line: 128, baseType: !2139, size: 96, offset: 5440)
+!2192 = !DIDerivedType(tag: DW_TAG_member, name: "hdpMemFlushCntl", scope: !2127, file: !90, line: 129, baseType: !2193, size: 64, offset: 5568)
+!2193 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !84, size: 64)
+!2194 = !DIDerivedType(tag: DW_TAG_member, name: "hdpRegFlushCntl", scope: !2127, file: !90, line: 130, baseType: !2193, size: 64, offset: 5632)
+!2195 = !DIDerivedType(tag: DW_TAG_member, name: "memPitch", scope: !2127, file: !90, line: 131, baseType: !827, size: 64, offset: 5696)
+!2196 = !DIDerivedType(tag: DW_TAG_member, name: "textureAlignment", scope: !2127, file: !90, line: 132, baseType: !827, size: 64, offset: 5760)
+!2197 = !DIDerivedType(tag: DW_TAG_member, name: "texturePitchAlignment", scope: !2127, file: !90, line: 133, baseType: !827, size: 64, offset: 5824)
+!2198 = !DIDerivedType(tag: DW_TAG_member, name: "kernelExecTimeoutEnabled", scope: !2127, file: !90, line: 134, baseType: !179, size: 32, offset: 5888)
+!2199 = !DIDerivedType(tag: DW_TAG_member, name: "ECCEnabled", scope: !2127, file: !90, line: 135, baseType: !179, size: 32, offset: 5920)
+!2200 = !DIDerivedType(tag: DW_TAG_member, name: "tccDriver", scope: !2127, file: !90, line: 136, baseType: !179, size: 32, offset: 5952)
+!2201 = !DIDerivedType(tag: DW_TAG_member, name: "cooperativeMultiDeviceUnmatchedFunc", scope: !2127, file: !90, line: 137, baseType: !179, size: 32, offset: 5984)
+!2202 = !DIDerivedType(tag: DW_TAG_member, name: "cooperativeMultiDeviceUnmatchedGridDim", scope: !2127, file: !90, line: 139, baseType: !179, size: 32, offset: 6016)
+!2203 = !DIDerivedType(tag: DW_TAG_member, name: "cooperativeMultiDeviceUnmatchedBlockDim", scope: !2127, file: !90, line: 141, baseType: !179, size: 32, offset: 6048)
+!2204 = !DIDerivedType(tag: DW_TAG_member, name: "cooperativeMultiDeviceUnmatchedSharedMem", scope: !2127, file: !90, line: 143, baseType: !179, size: 32, offset: 6080)
+!2205 = !DIDerivedType(tag: DW_TAG_member, name: "isLargeBar", scope: !2127, file: !90, line: 145, baseType: !179, size: 32, offset: 6112)
+!2206 = !DIDerivedType(tag: DW_TAG_member, name: "asicRevision", scope: !2127, file: !90, line: 146, baseType: !179, size: 32, offset: 6144)
+!2207 = !DIDerivedType(tag: DW_TAG_member, name: "managedMemory", scope: !2127, file: !90, line: 147, baseType: !179, size: 32, offset: 6176)
+!2208 = !DIDerivedType(tag: DW_TAG_member, name: "directManagedMemAccessFromHost", scope: !2127, file: !90, line: 148, baseType: !179, size: 32, offset: 6208)
+!2209 = !DIDerivedType(tag: DW_TAG_member, name: "concurrentManagedAccess", scope: !2127, file: !90, line: 149, baseType: !179, size: 32, offset: 6240)
+!2210 = !DIDerivedType(tag: DW_TAG_member, name: "pageableMemoryAccess", scope: !2127, file: !90, line: 150, baseType: !179, size: 32, offset: 6272)
+!2211 = !DIDerivedType(tag: DW_TAG_member, name: "pageableMemoryAccessUsesHostPageTables", scope: !2127, file: !90, line: 152, baseType: !179, size: 32, offset: 6304)
+!2212 = !{i32 7, !"Dwarf Version", i32 5}
+!2213 = !{i32 2, !"Debug Info Version", i32 3}
+!2214 = !{i32 1, !"wchar_size", i32 4}
+!2215 = !{i32 7, !"uwtable", i32 2}
+!2216 = !{!"AMD clang version 15.0.0 (https://github.com/RadeonOpenCompute/llvm-project roc-5.4.3 23045 a29fe425c7b0e5aba97ed2f95f61fd5ecba68aed)"}
+!2217 = !{!2218, !2218, i64 0}
+!2218 = !{!"any pointer", !2219, i64 0}
+!2219 = !{!"omnipotent char", !2220, i64 0}
+!2220 = !{!"Simple C++ TBAA"}
+!2221 = !{!2222, !2222, i64 0}
+!2222 = !{!"int", !2219, i64 0}
+!2223 = distinct !DISubprogram(name: "tick_all_test", linkageName: "_Z13tick_all_testi", scope: !9, file: !9, line: 66, type: !867, scopeLine: 67, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, retainedNodes: !2224)
+!2224 = !{!2225, !2226, !2227, !2229, !2230, !2232, !2233, !2236, !2238, !2239, !2241, !2242, !2244}
+!2225 = !DILocalVariable(name: "test", arg: 1, scope: !2223, file: !9, line: 66, type: !179)
+!2226 = !DILocalVariable(name: "device", scope: !2223, file: !9, line: 68, type: !179)
+!2227 = !DILocalVariable(name: "SIZE", scope: !2223, file: !9, line: 72, type: !2228)
+!2228 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !193)
+!2229 = !DILocalVariable(name: "spin_limit", scope: !2223, file: !9, line: 73, type: !1648)
+!2230 = !DILocalVariable(name: "DISPLAY_LIMIT", scope: !2223, file: !9, line: 74, type: !2231)
+!2231 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !827)
+!2232 = !DILocalVariable(name: "DISPLAY_LINE_LIMIT", scope: !2223, file: !9, line: 75, type: !2231)
+!2233 = !DILocalVariable(name: "clk", scope: !2223, file: !9, line: 79, type: !2234)
+!2234 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2235, size: 64)
+!2235 = !DIDerivedType(tag: DW_TAG_atomic_type, baseType: !1681)
+!2236 = !DILocalVariable(name: "h_vals", scope: !2223, file: !9, line: 85, type: !2237)
+!2237 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !1681, size: 64)
+!2238 = !DILocalVariable(name: "d_vals", scope: !2223, file: !9, line: 87, type: !2237)
+!2239 = !DILocalVariable(name: "dummy_data", scope: !2223, file: !9, line: 92, type: !2240)
+!2240 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !1648, size: 64)
+!2241 = !DILocalVariable(name: "h_dummy_data", scope: !2223, file: !9, line: 98, type: !2240)
+!2242 = !DILocalVariable(name: "i", scope: !2243, file: !9, line: 102, type: !827)
+!2243 = distinct !DILexicalBlock(scope: !2223, file: !9, line: 102, column: 3)
+!2244 = !DILocalVariable(name: "i", scope: !2245, file: !9, line: 137, type: !827)
+!2245 = distinct !DILexicalBlock(scope: !2223, file: !9, line: 137, column: 3)
+!2246 = !DILocation(line: 0, scope: !2223)
+!2247 = !DILocation(line: 68, column: 3, scope: !2223)
+!2248 = !DILocation(line: 68, column: 7, scope: !2223)
+!2249 = !DILocation(line: 69, column: 17, scope: !2223)
+!2250 = !DILocalVariable(name: "resCode", arg: 1, scope: !2251, file: !9, line: 180, type: !2254)
+!2251 = distinct !DISubprogram(name: "__HIP_CHECK__", linkageName: "_Z13__HIP_CHECK__10hipError_t", scope: !9, file: !9, line: 180, type: !2252, scopeLine: 180, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, retainedNodes: !2255)
+!2252 = !DISubroutineType(types: !2253)
+!2253 = !{null, !2254}
+!2254 = !DIDerivedType(tag: DW_TAG_typedef, name: "hipError_t", file: !90, line: 320, baseType: !89)
+!2255 = !{!2250}
+!2256 = !DILocation(line: 0, scope: !2251, inlinedAt: !2257)
+!2257 = distinct !DILocation(line: 69, column: 3, scope: !2223)
+!2258 = !DILocation(line: 181, column: 15, scope: !2259, inlinedAt: !2257)
+!2259 = distinct !DILexicalBlock(scope: !2251, file: !9, line: 181, column: 7)
+!2260 = !DILocation(line: 181, column: 7, scope: !2251, inlinedAt: !2257)
+!2261 = !DILocation(line: 182, column: 15, scope: !2262, inlinedAt: !2257)
+!2262 = distinct !DILexicalBlock(scope: !2259, file: !9, line: 181, column: 30)
+!2263 = !DILocation(line: 182, column: 34, scope: !2262, inlinedAt: !2257)
+!2264 = !DILocalVariable(name: "this", arg: 1, scope: !2265, type: !2280, flags: DIFlagArtificial | DIFlagObjectPointer)
+!2265 = distinct !DISubprogram(name: "operator<<", linkageName: "_ZNSolsEPFRSoS_E", scope: !2267, file: !2266, line: 108, type: !2269, scopeLine: 109, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, declaration: !2277, retainedNodes: !2278)
+!2266 = !DIFile(filename: "/opt/rh/gcc-toolset-10/root/usr/lib/gcc/x86_64-redhat-linux/10/../../../../include/c++/10/ostream", directory: "")
+!2267 = !DICompositeType(tag: DW_TAG_class_type, name: "basic_ostream<char, std::char_traits<char> >", scope: !2, file: !2268, line: 359, size: 2176, flags: DIFlagFwdDecl | DIFlagNonTrivial)
+!2268 = !DIFile(filename: "/opt/rh/gcc-toolset-10/root/usr/lib/gcc/x86_64-redhat-linux/10/../../../../include/c++/10/bits/ostream.tcc", directory: "")
+!2269 = !DISubroutineType(types: !2270)
+!2270 = !{!2271, !2273, !2274}
+!2271 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !2272, size: 64)
+!2272 = !DIDerivedType(tag: DW_TAG_typedef, name: "__ostream_type", scope: !2267, file: !2266, line: 71, baseType: !2267)
+!2273 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2267, size: 64, flags: DIFlagArtificial | DIFlagObjectPointer)
+!2274 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2275, size: 64)
+!2275 = !DISubroutineType(types: !2276)
+!2276 = !{!2271, !2271}
+!2277 = !DISubprogram(name: "operator<<", linkageName: "_ZNSolsEPFRSoS_E", scope: !2267, file: !2266, line: 108, type: !2269, scopeLine: 108, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!2278 = !{!2264, !2279}
+!2279 = !DILocalVariable(name: "__pf", arg: 2, scope: !2265, file: !2266, line: 108, type: !2274)
+!2280 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2267, size: 64)
+!2281 = !DILocation(line: 0, scope: !2265, inlinedAt: !2282)
+!2282 = distinct !DILocation(line: 182, column: 45, scope: !2262, inlinedAt: !2257)
+!2283 = !DILocation(line: 113, column: 9, scope: !2265, inlinedAt: !2282)
+!2284 = !DILocation(line: 183, column: 5, scope: !2262, inlinedAt: !2257)
+!2285 = !DILocalVariable(name: "__out", arg: 1, scope: !2286, file: !2266, line: 606, type: !2289)
+!2286 = distinct !DISubprogram(name: "operator<<<std::char_traits<char> >", linkageName: "_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc", scope: !2, file: !2266, line: 606, type: !2287, scopeLine: 607, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, templateParams: !2292, retainedNodes: !2290)
+!2287 = !DISubroutineType(types: !2288)
+!2288 = !{!2289, !2289, !710}
+!2289 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !2267, size: 64)
+!2290 = !{!2285, !2291}
+!2291 = !DILocalVariable(name: "__s", arg: 2, scope: !2286, file: !2266, line: 606, type: !710)
+!2292 = !{!2293}
+!2293 = !DITemplateTypeParameter(name: "_Traits", type: !2294)
+!2294 = distinct !DICompositeType(tag: DW_TAG_structure_type, name: "char_traits<char>", scope: !2, file: !2295, line: 316, size: 8, flags: DIFlagTypePassByValue, elements: !2296, templateParams: !2345, identifier: "_ZTSSt11char_traitsIcE")
+!2295 = !DIFile(filename: "/opt/rh/gcc-toolset-10/root/usr/lib/gcc/x86_64-redhat-linux/10/../../../../include/c++/10/bits/char_traits.h", directory: "")
+!2296 = !{!2297, !2304, !2307, !2308, !2313, !2316, !2319, !2323, !2324, !2327, !2333, !2336, !2339, !2342}
+!2297 = !DISubprogram(name: "assign", linkageName: "_ZNSt11char_traitsIcE6assignERcRKc", scope: !2294, file: !2295, line: 328, type: !2298, scopeLine: 328, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!2298 = !DISubroutineType(types: !2299)
+!2299 = !{null, !2300, !2302}
+!2300 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !2301, size: 64)
+!2301 = !DIDerivedType(tag: DW_TAG_typedef, name: "char_type", scope: !2294, file: !2295, line: 318, baseType: !12)
+!2302 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !2303, size: 64)
+!2303 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !2301)
+!2304 = !DISubprogram(name: "eq", linkageName: "_ZNSt11char_traitsIcE2eqERKcS2_", scope: !2294, file: !2295, line: 332, type: !2305, scopeLine: 332, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!2305 = !DISubroutineType(types: !2306)
+!2306 = !{!286, !2302, !2302}
+!2307 = !DISubprogram(name: "lt", linkageName: "_ZNSt11char_traitsIcE2ltERKcS2_", scope: !2294, file: !2295, line: 336, type: !2305, scopeLine: 336, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!2308 = !DISubprogram(name: "compare", linkageName: "_ZNSt11char_traitsIcE7compareEPKcS2_m", scope: !2294, file: !2295, line: 344, type: !2309, scopeLine: 344, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
 !2309 = !DISubroutineType(types: !2310)
-!2310 = !{!2307, !2306}
-!2311 = !DISubprogram(name: "find", linkageName: "_ZNSt11char_traitsIcE4findEPKcmRS1_", scope: !2289, file: !2290, line: 375, type: !2312, scopeLine: 375, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
-!2312 = !DISubroutineType(types: !2313)
-!2313 = !{!2306, !2306, !2307, !2297}
-!2314 = !DISubprogram(name: "move", linkageName: "_ZNSt11char_traitsIcE4moveEPcPKcm", scope: !2289, file: !2290, line: 389, type: !2315, scopeLine: 389, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
-!2315 = !DISubroutineType(types: !2316)
-!2316 = !{!2317, !2317, !2306, !2307}
-!2317 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2296, size: 64)
-!2318 = !DISubprogram(name: "copy", linkageName: "_ZNSt11char_traitsIcE4copyEPcPKcm", scope: !2289, file: !2290, line: 401, type: !2315, scopeLine: 401, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
-!2319 = !DISubprogram(name: "assign", linkageName: "_ZNSt11char_traitsIcE6assignEPcmc", scope: !2289, file: !2290, line: 413, type: !2320, scopeLine: 413, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!2310 = !{!179, !2311, !2311, !2312}
+!2311 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2303, size: 64)
+!2312 = !DIDerivedType(tag: DW_TAG_typedef, name: "size_t", scope: !2, file: !275, line: 2306, baseType: !829)
+!2313 = !DISubprogram(name: "length", linkageName: "_ZNSt11char_traitsIcE6lengthEPKc", scope: !2294, file: !2295, line: 365, type: !2314, scopeLine: 365, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!2314 = !DISubroutineType(types: !2315)
+!2315 = !{!2312, !2311}
+!2316 = !DISubprogram(name: "find", linkageName: "_ZNSt11char_traitsIcE4findEPKcmRS1_", scope: !2294, file: !2295, line: 375, type: !2317, scopeLine: 375, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!2317 = !DISubroutineType(types: !2318)
+!2318 = !{!2311, !2311, !2312, !2302}
+!2319 = !DISubprogram(name: "move", linkageName: "_ZNSt11char_traitsIcE4moveEPcPKcm", scope: !2294, file: !2295, line: 389, type: !2320, scopeLine: 389, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
 !2320 = !DISubroutineType(types: !2321)
-!2321 = !{!2317, !2317, !2307, !2296}
-!2322 = !DISubprogram(name: "to_char_type", linkageName: "_ZNSt11char_traitsIcE12to_char_typeERKi", scope: !2289, file: !2290, line: 425, type: !2323, scopeLine: 425, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
-!2323 = !DISubroutineType(types: !2324)
-!2324 = !{!2296, !2325}
-!2325 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !2326, size: 64)
-!2326 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !2327)
-!2327 = !DIDerivedType(tag: DW_TAG_typedef, name: "int_type", scope: !2289, file: !2290, line: 319, baseType: !179)
-!2328 = !DISubprogram(name: "to_int_type", linkageName: "_ZNSt11char_traitsIcE11to_int_typeERKc", scope: !2289, file: !2290, line: 431, type: !2329, scopeLine: 431, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
-!2329 = !DISubroutineType(types: !2330)
-!2330 = !{!2327, !2297}
-!2331 = !DISubprogram(name: "eq_int_type", linkageName: "_ZNSt11char_traitsIcE11eq_int_typeERKiS2_", scope: !2289, file: !2290, line: 435, type: !2332, scopeLine: 435, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
-!2332 = !DISubroutineType(types: !2333)
-!2333 = !{!286, !2325, !2325}
-!2334 = !DISubprogram(name: "eof", linkageName: "_ZNSt11char_traitsIcE3eofEv", scope: !2289, file: !2290, line: 439, type: !2335, scopeLine: 439, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
-!2335 = !DISubroutineType(types: !2336)
-!2336 = !{!2327}
-!2337 = !DISubprogram(name: "not_eof", linkageName: "_ZNSt11char_traitsIcE7not_eofERKi", scope: !2289, file: !2290, line: 443, type: !2338, scopeLine: 443, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
-!2338 = !DISubroutineType(types: !2339)
-!2339 = !{!2327, !2325}
-!2340 = !{!2341}
-!2341 = !DITemplateTypeParameter(name: "_CharT", type: !12)
-!2342 = !DILocation(line: 0, scope: !2281, inlinedAt: !2343)
-!2343 = distinct !DILocation(line: 70, column: 13, scope: !2217)
-!2344 = !DILocation(line: 611, column: 2, scope: !2345, inlinedAt: !2343)
-!2345 = distinct !DILexicalBlock(scope: !2281, file: !2261, line: 608, column: 11)
-!2346 = !DILocation(line: 0, scope: !2260, inlinedAt: !2347)
-!2347 = distinct !DILocation(line: 70, column: 58, scope: !2217)
-!2348 = !DILocalVariable(name: "__os", arg: 1, scope: !2349, file: !2261, line: 703, type: !2284)
-!2349 = distinct !DISubprogram(name: "flush<char, std::char_traits<char> >", linkageName: "_ZSt5flushIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_", scope: !2, file: !2261, line: 703, type: !2350, scopeLine: 704, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, templateParams: !2353, retainedNodes: !2352)
-!2350 = !DISubroutineType(types: !2351)
-!2351 = !{!2284, !2284}
-!2352 = !{!2348}
-!2353 = !{!2341, !2288}
-!2354 = !DILocation(line: 0, scope: !2349, inlinedAt: !2355)
-!2355 = distinct !DILocation(line: 113, column: 9, scope: !2260, inlinedAt: !2347)
-!2356 = !DILocation(line: 704, column: 19, scope: !2349, inlinedAt: !2355)
-!2357 = !DILocation(line: 0, scope: !2281, inlinedAt: !2358)
-!2358 = distinct !DILocation(line: 71, column: 13, scope: !2217)
-!2359 = !DILocation(line: 611, column: 2, scope: !2345, inlinedAt: !2358)
-!2360 = !DILocation(line: 71, column: 48, scope: !2217)
-!2361 = !DILocation(line: 71, column: 45, scope: !2217)
-!2362 = !DILocation(line: 0, scope: !2260, inlinedAt: !2363)
-!2363 = distinct !DILocation(line: 71, column: 55, scope: !2217)
-!2364 = !DILocalVariable(name: "__os", arg: 1, scope: !2365, file: !2261, line: 681, type: !2284)
-!2365 = distinct !DISubprogram(name: "endl<char, std::char_traits<char> >", linkageName: "_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_", scope: !2, file: !2261, line: 681, type: !2350, scopeLine: 682, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, templateParams: !2353, retainedNodes: !2366)
-!2366 = !{!2364}
-!2367 = !DILocation(line: 0, scope: !2365, inlinedAt: !2368)
-!2368 = distinct !DILocation(line: 113, column: 9, scope: !2260, inlinedAt: !2363)
-!2369 = !DILocation(line: 682, column: 29, scope: !2365, inlinedAt: !2368)
-!2370 = !{!2371, !2371, i64 0}
-!2371 = !{!"vtable pointer", !2216, i64 0}
-!2372 = !DILocalVariable(name: "this", arg: 1, scope: !2373, type: !2385, flags: DIFlagArtificial | DIFlagObjectPointer)
-!2373 = distinct !DISubprogram(name: "widen", linkageName: "_ZNKSt9basic_iosIcSt11char_traitsIcEE5widenEc", scope: !2375, file: !2374, line: 449, type: !2377, scopeLine: 450, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, declaration: !2382, retainedNodes: !2383)
-!2374 = !DIFile(filename: "/opt/rh/gcc-toolset-10/root/usr/lib/gcc/x86_64-redhat-linux/10/../../../../include/c++/10/bits/basic_ios.h", directory: "")
-!2375 = !DICompositeType(tag: DW_TAG_class_type, name: "basic_ios<char, std::char_traits<char> >", scope: !2, file: !2376, line: 178, size: 2112, flags: DIFlagFwdDecl | DIFlagNonTrivial)
-!2376 = !DIFile(filename: "/opt/rh/gcc-toolset-10/root/usr/lib/gcc/x86_64-redhat-linux/10/../../../../include/c++/10/bits/basic_ios.tcc", directory: "")
-!2377 = !DISubroutineType(types: !2378)
-!2378 = !{!2379, !2380, !12}
-!2379 = !DIDerivedType(tag: DW_TAG_typedef, name: "char_type", scope: !2375, file: !2374, line: 76, baseType: !12)
-!2380 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2381, size: 64, flags: DIFlagArtificial | DIFlagObjectPointer)
-!2381 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !2375)
-!2382 = !DISubprogram(name: "widen", linkageName: "_ZNKSt9basic_iosIcSt11char_traitsIcEE5widenEc", scope: !2375, file: !2374, line: 449, type: !2377, scopeLine: 449, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
-!2383 = !{!2372, !2384}
-!2384 = !DILocalVariable(name: "__c", arg: 2, scope: !2373, file: !2374, line: 449, type: !12)
-!2385 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2381, size: 64)
-!2386 = !DILocation(line: 0, scope: !2373, inlinedAt: !2387)
-!2387 = distinct !DILocation(line: 682, column: 34, scope: !2365, inlinedAt: !2368)
-!2388 = !DILocation(line: 450, column: 30, scope: !2373, inlinedAt: !2387)
-!2389 = !{!2390, !2214, i64 240}
-!2390 = !{!"_ZTSSt9basic_iosIcSt11char_traitsIcEE", !2391, i64 0, !2214, i64 216, !2215, i64 224, !2397, i64 225, !2214, i64 232, !2214, i64 240, !2214, i64 248, !2214, i64 256}
-!2391 = !{!"_ZTSSt8ios_base", !2392, i64 8, !2392, i64 16, !2393, i64 24, !2394, i64 28, !2394, i64 32, !2214, i64 40, !2395, i64 48, !2215, i64 64, !2243, i64 192, !2214, i64 200, !2396, i64 208}
-!2392 = !{!"long", !2215, i64 0}
-!2393 = !{!"_ZTSSt13_Ios_Fmtflags", !2215, i64 0}
-!2394 = !{!"_ZTSSt12_Ios_Iostate", !2215, i64 0}
-!2395 = !{!"_ZTSNSt8ios_base6_WordsE", !2214, i64 0, !2392, i64 8}
-!2396 = !{!"_ZTSSt6locale", !2214, i64 0}
-!2397 = !{!"bool", !2215, i64 0}
-!2398 = !DILocalVariable(name: "__f", arg: 1, scope: !2399, file: !2374, line: 47, type: !2406)
-!2399 = distinct !DISubprogram(name: "__check_facet<std::ctype<char> >", linkageName: "_ZSt13__check_facetISt5ctypeIcEERKT_PS3_", scope: !2, file: !2374, line: 47, type: !2400, scopeLine: 48, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, templateParams: !2408, retainedNodes: !2407)
-!2400 = !DISubroutineType(types: !2401)
-!2401 = !{!2402, !2406}
-!2402 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !2403, size: 64)
-!2403 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !2404)
-!2404 = !DICompositeType(tag: DW_TAG_class_type, name: "ctype<char>", scope: !2, file: !2405, line: 681, size: 4608, flags: DIFlagFwdDecl | DIFlagNonTrivial, identifier: "_ZTSSt5ctypeIcE")
-!2405 = !DIFile(filename: "/opt/rh/gcc-toolset-10/root/usr/lib/gcc/x86_64-redhat-linux/10/../../../../include/c++/10/bits/locale_facets.h", directory: "")
-!2406 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2403, size: 64)
-!2407 = !{!2398}
-!2408 = !{!2409}
-!2409 = !DITemplateTypeParameter(name: "_Facet", type: !2404)
-!2410 = !DILocation(line: 0, scope: !2399, inlinedAt: !2411)
-!2411 = distinct !DILocation(line: 450, column: 16, scope: !2373, inlinedAt: !2387)
-!2412 = !DILocation(line: 49, column: 12, scope: !2413, inlinedAt: !2411)
-!2413 = distinct !DILexicalBlock(scope: !2399, file: !2374, line: 49, column: 11)
-!2414 = !DILocation(line: 49, column: 11, scope: !2399, inlinedAt: !2411)
-!2415 = !DILocation(line: 50, column: 2, scope: !2413, inlinedAt: !2411)
-!2416 = !DILocalVariable(name: "this", arg: 1, scope: !2417, type: !2406, flags: DIFlagArtificial | DIFlagObjectPointer)
-!2417 = distinct !DISubprogram(name: "widen", linkageName: "_ZNKSt5ctypeIcE5widenEc", scope: !2404, file: !2405, line: 872, type: !2418, scopeLine: 873, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, declaration: !2422, retainedNodes: !2423)
-!2418 = !DISubroutineType(types: !2419)
-!2419 = !{!2420, !2421, !12}
-!2420 = !DIDerivedType(tag: DW_TAG_typedef, name: "char_type", scope: !2404, file: !2405, line: 686, baseType: !12)
-!2421 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2403, size: 64, flags: DIFlagArtificial | DIFlagObjectPointer)
-!2422 = !DISubprogram(name: "widen", linkageName: "_ZNKSt5ctypeIcE5widenEc", scope: !2404, file: !2405, line: 872, type: !2418, scopeLine: 872, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
-!2423 = !{!2416, !2424}
-!2424 = !DILocalVariable(name: "__c", arg: 2, scope: !2417, file: !2405, line: 872, type: !12)
-!2425 = !DILocation(line: 0, scope: !2417, inlinedAt: !2426)
-!2426 = distinct !DILocation(line: 450, column: 40, scope: !2373, inlinedAt: !2387)
-!2427 = !DILocation(line: 874, column: 6, scope: !2428, inlinedAt: !2426)
-!2428 = distinct !DILexicalBlock(scope: !2417, file: !2405, line: 874, column: 6)
-!2429 = !{!2430, !2215, i64 56}
-!2430 = !{!"_ZTSSt5ctypeIcE", !2431, i64 0, !2214, i64 16, !2397, i64 24, !2214, i64 32, !2214, i64 40, !2214, i64 48, !2215, i64 56, !2215, i64 57, !2215, i64 313, !2215, i64 569}
-!2431 = !{!"_ZTSNSt6locale5facetE", !2243, i64 8}
-!2432 = !DILocation(line: 874, column: 6, scope: !2417, inlinedAt: !2426)
-!2433 = !DILocation(line: 875, column: 11, scope: !2428, inlinedAt: !2426)
-!2434 = !{!2215, !2215, i64 0}
-!2435 = !DILocation(line: 875, column: 4, scope: !2428, inlinedAt: !2426)
-!2436 = !DILocation(line: 876, column: 8, scope: !2417, inlinedAt: !2426)
-!2437 = !DILocation(line: 877, column: 15, scope: !2417, inlinedAt: !2426)
-!2438 = !DILocation(line: 877, column: 2, scope: !2417, inlinedAt: !2426)
-!2439 = !DILocation(line: 682, column: 25, scope: !2365, inlinedAt: !2368)
-!2440 = !DILocation(line: 0, scope: !2349, inlinedAt: !2441)
-!2441 = distinct !DILocation(line: 682, column: 14, scope: !2365, inlinedAt: !2368)
-!2442 = !DILocation(line: 704, column: 19, scope: !2349, inlinedAt: !2441)
-!2443 = !DILocation(line: 79, column: 3, scope: !2217)
-!2444 = !DILocalVariable(name: "devPtr", arg: 1, scope: !2445, file: !90, line: 6957, type: !2448)
-!2445 = distinct !DISubprogram(name: "hipMallocManaged<_Atomic(unsigned long)>", linkageName: "_ZL16hipMallocManagedIU7_AtomicmE10hipError_tPPT_mj", scope: !90, file: !90, line: 6957, type: !2446, scopeLine: 6958, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !79, templateParams: !2454, retainedNodes: !2451)
-!2446 = !DISubroutineType(cc: DW_CC_nocall, types: !2447)
-!2447 = !{!2249, !2448, !827, !84}
-!2448 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2449, size: 64)
-!2449 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2450, size: 64)
-!2450 = !DIDerivedType(tag: DW_TAG_atomic_type, baseType: !829)
-!2451 = !{!2444, !2452, !2453}
-!2452 = !DILocalVariable(name: "size", arg: 2, scope: !2445, file: !90, line: 6957, type: !827)
-!2453 = !DILocalVariable(name: "flags", arg: 3, scope: !2445, file: !90, line: 6958, type: !84)
-!2454 = !{!2455}
-!2455 = !DITemplateTypeParameter(name: "T", type: !2450)
-!2456 = !DILocation(line: 0, scope: !2445, inlinedAt: !2457)
-!2457 = distinct !DILocation(line: 80, column: 17, scope: !2217)
-!2458 = !DILocation(line: 6959, column: 29, scope: !2445, inlinedAt: !2457)
-!2459 = !DILocation(line: 6959, column: 12, scope: !2445, inlinedAt: !2457)
-!2460 = !DILocation(line: 0, scope: !2246, inlinedAt: !2461)
-!2461 = distinct !DILocation(line: 80, column: 3, scope: !2217)
-!2462 = !DILocation(line: 175, column: 15, scope: !2254, inlinedAt: !2461)
-!2463 = !DILocation(line: 175, column: 7, scope: !2246, inlinedAt: !2461)
-!2464 = !DILocation(line: 176, column: 15, scope: !2257, inlinedAt: !2461)
-!2465 = !DILocation(line: 176, column: 34, scope: !2257, inlinedAt: !2461)
-!2466 = !DILocation(line: 0, scope: !2260, inlinedAt: !2467)
-!2467 = distinct !DILocation(line: 176, column: 45, scope: !2257, inlinedAt: !2461)
-!2468 = !DILocation(line: 113, column: 9, scope: !2260, inlinedAt: !2467)
-!2469 = !DILocation(line: 177, column: 5, scope: !2257, inlinedAt: !2461)
-!2470 = !DILocation(line: 82, column: 4, scope: !2217)
-!2471 = !DILocation(line: 82, column: 8, scope: !2217)
-!2472 = !DILocation(line: 85, column: 22, scope: !2217)
-!2473 = !DILocation(line: 86, column: 3, scope: !2217)
-!2474 = !DILocation(line: 87, column: 3, scope: !2217)
-!2475 = !DILocalVariable(name: "devPtr", arg: 1, scope: !2476, file: !90, line: 6944, type: !2479)
-!2476 = distinct !DISubprogram(name: "hipMalloc<unsigned long>", linkageName: "_ZL9hipMallocImE10hipError_tPPT_m", scope: !90, file: !90, line: 6944, type: !2477, scopeLine: 6944, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !79, templateParams: !2483, retainedNodes: !2481)
-!2477 = !DISubroutineType(cc: DW_CC_nocall, types: !2478)
-!2478 = !{!2249, !2479, !827}
-!2479 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2480, size: 64)
-!2480 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !829, size: 64)
-!2481 = !{!2475, !2482}
-!2482 = !DILocalVariable(name: "size", arg: 2, scope: !2476, file: !90, line: 6944, type: !827)
-!2483 = !{!2484}
-!2484 = !DITemplateTypeParameter(name: "T", type: !829)
-!2485 = !DILocation(line: 0, scope: !2476, inlinedAt: !2486)
-!2486 = distinct !DILocation(line: 88, column: 17, scope: !2217)
-!2487 = !DILocation(line: 6945, column: 22, scope: !2476, inlinedAt: !2486)
-!2488 = !DILocation(line: 6945, column: 12, scope: !2476, inlinedAt: !2486)
-!2489 = !DILocation(line: 0, scope: !2246, inlinedAt: !2490)
-!2490 = distinct !DILocation(line: 88, column: 3, scope: !2217)
-!2491 = !DILocation(line: 175, column: 15, scope: !2254, inlinedAt: !2490)
-!2492 = !DILocation(line: 175, column: 7, scope: !2246, inlinedAt: !2490)
-!2493 = !DILocation(line: 176, column: 15, scope: !2257, inlinedAt: !2490)
-!2494 = !DILocation(line: 176, column: 34, scope: !2257, inlinedAt: !2490)
-!2495 = !DILocation(line: 0, scope: !2260, inlinedAt: !2496)
-!2496 = distinct !DILocation(line: 176, column: 45, scope: !2257, inlinedAt: !2490)
-!2497 = !DILocation(line: 113, column: 9, scope: !2260, inlinedAt: !2496)
-!2498 = !DILocation(line: 177, column: 5, scope: !2257, inlinedAt: !2490)
-!2499 = !DILocation(line: 89, column: 27, scope: !2217)
-!2500 = !DILocation(line: 89, column: 17, scope: !2217)
-!2501 = !DILocation(line: 0, scope: !2246, inlinedAt: !2502)
-!2502 = distinct !DILocation(line: 89, column: 3, scope: !2217)
-!2503 = !DILocation(line: 175, column: 15, scope: !2254, inlinedAt: !2502)
-!2504 = !DILocation(line: 175, column: 7, scope: !2246, inlinedAt: !2502)
-!2505 = !DILocation(line: 176, column: 15, scope: !2257, inlinedAt: !2502)
-!2506 = !DILocation(line: 176, column: 34, scope: !2257, inlinedAt: !2502)
-!2507 = !DILocation(line: 0, scope: !2260, inlinedAt: !2508)
-!2508 = distinct !DILocation(line: 176, column: 45, scope: !2257, inlinedAt: !2502)
-!2509 = !DILocation(line: 113, column: 9, scope: !2260, inlinedAt: !2508)
-!2510 = !DILocation(line: 177, column: 5, scope: !2257, inlinedAt: !2502)
-!2511 = !DILocation(line: 92, column: 3, scope: !2217)
-!2512 = !DILocalVariable(name: "devPtr", arg: 1, scope: !2513, file: !90, line: 6944, type: !2516)
-!2513 = distinct !DISubprogram(name: "hipMalloc<long>", linkageName: "_ZL9hipMallocIlE10hipError_tPPT_m", scope: !90, file: !90, line: 6944, type: !2514, scopeLine: 6944, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !79, templateParams: !2520, retainedNodes: !2518)
-!2514 = !DISubroutineType(cc: DW_CC_nocall, types: !2515)
-!2515 = !{!2249, !2516, !827}
-!2516 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2517, size: 64)
-!2517 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !210, size: 64)
-!2518 = !{!2512, !2519}
-!2519 = !DILocalVariable(name: "size", arg: 2, scope: !2513, file: !90, line: 6944, type: !827)
-!2520 = !{!2521}
-!2521 = !DITemplateTypeParameter(name: "T", type: !210)
-!2522 = !DILocation(line: 0, scope: !2513, inlinedAt: !2523)
-!2523 = distinct !DILocation(line: 93, column: 17, scope: !2217)
-!2524 = !DILocation(line: 6945, column: 22, scope: !2513, inlinedAt: !2523)
-!2525 = !DILocation(line: 6945, column: 12, scope: !2513, inlinedAt: !2523)
-!2526 = !DILocation(line: 0, scope: !2246, inlinedAt: !2527)
-!2527 = distinct !DILocation(line: 93, column: 3, scope: !2217)
-!2528 = !DILocation(line: 175, column: 15, scope: !2254, inlinedAt: !2527)
-!2529 = !DILocation(line: 175, column: 7, scope: !2246, inlinedAt: !2527)
-!2530 = !DILocation(line: 176, column: 15, scope: !2257, inlinedAt: !2527)
-!2531 = !DILocation(line: 176, column: 34, scope: !2257, inlinedAt: !2527)
-!2532 = !DILocation(line: 0, scope: !2260, inlinedAt: !2533)
-!2533 = distinct !DILocation(line: 176, column: 45, scope: !2257, inlinedAt: !2527)
-!2534 = !DILocation(line: 113, column: 9, scope: !2260, inlinedAt: !2533)
-!2535 = !DILocation(line: 177, column: 5, scope: !2257, inlinedAt: !2527)
-!2536 = !DILocation(line: 95, column: 2, scope: !2537)
-!2537 = distinct !DILexicalBlock(scope: !2217, file: !9, line: 95, column: 2)
-!2538 = !DILocation(line: 98, column: 27, scope: !2217)
-!2539 = !DILocation(line: 99, column: 3, scope: !2217)
-!2540 = !DILocation(line: 100, column: 41, scope: !2217)
-!2541 = !DILocation(line: 100, column: 17, scope: !2217)
-!2542 = !DILocation(line: 0, scope: !2246, inlinedAt: !2543)
-!2543 = distinct !DILocation(line: 100, column: 3, scope: !2217)
-!2544 = !DILocation(line: 175, column: 15, scope: !2254, inlinedAt: !2543)
-!2545 = !DILocation(line: 175, column: 7, scope: !2246, inlinedAt: !2543)
-!2546 = !DILocation(line: 176, column: 15, scope: !2257, inlinedAt: !2543)
-!2547 = !DILocation(line: 176, column: 34, scope: !2257, inlinedAt: !2543)
-!2548 = !DILocation(line: 0, scope: !2260, inlinedAt: !2549)
-!2549 = distinct !DILocation(line: 176, column: 45, scope: !2257, inlinedAt: !2543)
-!2550 = !DILocation(line: 113, column: 9, scope: !2260, inlinedAt: !2549)
-!2551 = !DILocation(line: 177, column: 5, scope: !2257, inlinedAt: !2543)
-!2552 = !DILocation(line: 0, scope: !2281, inlinedAt: !2553)
-!2553 = distinct !DILocation(line: 101, column: 13, scope: !2217)
-!2554 = !DILocation(line: 611, column: 2, scope: !2345, inlinedAt: !2553)
-!2555 = !DILocation(line: 0, scope: !2236)
-!2556 = !DILocation(line: 102, column: 3, scope: !2236)
-!2557 = !DILocation(line: 0, scope: !2281, inlinedAt: !2558)
-!2558 = distinct !DILocation(line: 108, column: 15, scope: !2559)
-!2559 = distinct !DILexicalBlock(scope: !2217, file: !9, line: 107, column: 7)
-!2560 = !DILocation(line: 611, column: 2, scope: !2345, inlinedAt: !2558)
-!2561 = !DILocalVariable(name: "__f", arg: 2, scope: !2562, file: !2563, line: 178, type: !2566)
-!2562 = distinct !DISubprogram(name: "operator<<<char, std::char_traits<char> >", linkageName: "_ZStlsIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_St8_SetfillIS3_E", scope: !2, file: !2563, line: 178, type: !2564, scopeLine: 179, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, templateParams: !2353, retainedNodes: !2569)
-!2563 = !DIFile(filename: "/opt/rh/gcc-toolset-10/root/usr/lib/gcc/x86_64-redhat-linux/10/../../../../include/c++/10/iomanip", directory: "")
-!2564 = !DISubroutineType(types: !2565)
-!2565 = !{!2284, !2284, !2566}
-!2566 = distinct !DICompositeType(tag: DW_TAG_structure_type, name: "_Setfill<char>", scope: !2, file: !2563, line: 154, size: 8, flags: DIFlagTypePassByValue, elements: !2567, templateParams: !2340, identifier: "_ZTSSt8_SetfillIcE")
-!2567 = !{!2568}
-!2568 = !DIDerivedType(tag: DW_TAG_member, name: "_M_c", scope: !2566, file: !2563, line: 154, baseType: !12, size: 8)
-!2569 = !{!2570, !2561}
-!2570 = !DILocalVariable(name: "__os", arg: 1, scope: !2562, file: !2563, line: 178, type: !2284)
-!2571 = !DILocation(line: 0, scope: !2562, inlinedAt: !2572)
-!2572 = distinct !DILocation(line: 108, column: 27, scope: !2559)
-!2573 = !DILocation(line: 180, column: 7, scope: !2562, inlinedAt: !2572)
-!2574 = !DILocalVariable(name: "this", arg: 1, scope: !2575, type: !2583, flags: DIFlagArtificial | DIFlagObjectPointer)
-!2575 = distinct !DISubprogram(name: "fill", linkageName: "_ZNSt9basic_iosIcSt11char_traitsIcEE4fillEc", scope: !2375, file: !2374, line: 390, type: !2576, scopeLine: 391, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, declaration: !2579, retainedNodes: !2580)
-!2576 = !DISubroutineType(types: !2577)
-!2577 = !{!2379, !2578, !2379}
-!2578 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2375, size: 64, flags: DIFlagArtificial | DIFlagObjectPointer)
-!2579 = !DISubprogram(name: "fill", linkageName: "_ZNSt9basic_iosIcSt11char_traitsIcEE4fillEc", scope: !2375, file: !2374, line: 390, type: !2576, scopeLine: 390, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
-!2580 = !{!2574, !2581, !2582}
-!2581 = !DILocalVariable(name: "__ch", arg: 2, scope: !2575, file: !2374, line: 390, type: !2379)
-!2582 = !DILocalVariable(name: "__old", scope: !2575, file: !2374, line: 392, type: !2379)
-!2583 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2375, size: 64)
-!2584 = !DILocation(line: 0, scope: !2575, inlinedAt: !2585)
-!2585 = distinct !DILocation(line: 180, column: 12, scope: !2562, inlinedAt: !2572)
-!2586 = !DILocalVariable(name: "this", arg: 1, scope: !2587, type: !2385, flags: DIFlagArtificial | DIFlagObjectPointer)
-!2587 = distinct !DISubprogram(name: "fill", linkageName: "_ZNKSt9basic_iosIcSt11char_traitsIcEE4fillEv", scope: !2375, file: !2374, line: 370, type: !2588, scopeLine: 371, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, declaration: !2590, retainedNodes: !2591)
-!2588 = !DISubroutineType(types: !2589)
-!2589 = !{!2379, !2380}
-!2590 = !DISubprogram(name: "fill", linkageName: "_ZNKSt9basic_iosIcSt11char_traitsIcEE4fillEv", scope: !2375, file: !2374, line: 370, type: !2588, scopeLine: 370, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
-!2591 = !{!2586}
-!2592 = !DILocation(line: 0, scope: !2587, inlinedAt: !2593)
-!2593 = distinct !DILocation(line: 392, column: 26, scope: !2575, inlinedAt: !2585)
-!2594 = !DILocation(line: 372, column: 7, scope: !2595, inlinedAt: !2593)
-!2595 = distinct !DILexicalBlock(scope: !2587, file: !2374, line: 372, column: 6)
-!2596 = !{!2390, !2397, i64 225}
-!2597 = !{i8 0, i8 2}
-!2598 = !DILocation(line: 372, column: 6, scope: !2587, inlinedAt: !2593)
-!2599 = !DILocation(line: 0, scope: !2373, inlinedAt: !2600)
-!2600 = distinct !DILocation(line: 374, column: 22, scope: !2601, inlinedAt: !2593)
-!2601 = distinct !DILexicalBlock(scope: !2595, file: !2374, line: 373, column: 4)
-!2602 = !DILocation(line: 450, column: 30, scope: !2373, inlinedAt: !2600)
-!2603 = !DILocation(line: 0, scope: !2399, inlinedAt: !2604)
-!2604 = distinct !DILocation(line: 450, column: 16, scope: !2373, inlinedAt: !2600)
-!2605 = !DILocation(line: 49, column: 12, scope: !2413, inlinedAt: !2604)
-!2606 = !DILocation(line: 49, column: 11, scope: !2399, inlinedAt: !2604)
-!2607 = !DILocation(line: 50, column: 2, scope: !2413, inlinedAt: !2604)
-!2608 = !DILocation(line: 0, scope: !2417, inlinedAt: !2609)
-!2609 = distinct !DILocation(line: 450, column: 40, scope: !2373, inlinedAt: !2600)
-!2610 = !DILocation(line: 874, column: 6, scope: !2428, inlinedAt: !2609)
-!2611 = !DILocation(line: 874, column: 6, scope: !2417, inlinedAt: !2609)
-!2612 = !DILocation(line: 876, column: 8, scope: !2417, inlinedAt: !2609)
-!2613 = !DILocation(line: 877, column: 15, scope: !2417, inlinedAt: !2609)
-!2614 = !DILocation(line: 240, column: 7, scope: !2615, inlinedAt: !2624)
-!2615 = distinct !DISubprogram(name: "operator<<<char, std::char_traits<char> >", linkageName: "_ZStlsIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_St5_Setw", scope: !2, file: !2563, line: 238, type: !2616, scopeLine: 239, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, templateParams: !2353, retainedNodes: !2621)
-!2616 = !DISubroutineType(types: !2617)
-!2617 = !{!2284, !2284, !2618}
-!2618 = distinct !DICompositeType(tag: DW_TAG_structure_type, name: "_Setw", scope: !2, file: !2563, line: 215, size: 32, flags: DIFlagTypePassByValue, elements: !2619, identifier: "_ZTSSt5_Setw")
-!2619 = !{!2620}
-!2620 = !DIDerivedType(tag: DW_TAG_member, name: "_M_n", scope: !2618, file: !2563, line: 215, baseType: !179, size: 32)
-!2621 = !{!2622, !2623}
-!2622 = !DILocalVariable(name: "__os", arg: 1, scope: !2615, file: !2563, line: 238, type: !2284)
-!2623 = !DILocalVariable(name: "__f", arg: 2, scope: !2615, file: !2563, line: 238, type: !2618)
-!2624 = distinct !DILocation(line: 108, column: 48, scope: !2559)
-!2625 = !DILocation(line: 877, column: 2, scope: !2417, inlinedAt: !2609)
-!2626 = !DILocation(line: 375, column: 19, scope: !2601, inlinedAt: !2593)
-!2627 = !DILocation(line: 376, column: 4, scope: !2601, inlinedAt: !2593)
-!2628 = !DILocation(line: 393, column: 2, scope: !2575, inlinedAt: !2585)
-!2629 = !DILocation(line: 393, column: 10, scope: !2575, inlinedAt: !2585)
-!2630 = !{!2390, !2215, i64 224}
-!2631 = !DILocation(line: 0, scope: !2615, inlinedAt: !2624)
-!2632 = !DILocalVariable(name: "this", arg: 1, scope: !2633, type: !2641, flags: DIFlagArtificial | DIFlagObjectPointer)
-!2633 = distinct !DISubprogram(name: "width", linkageName: "_ZNSt8ios_base5widthEl", scope: !6, file: !5, line: 751, type: !2634, scopeLine: 752, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, declaration: !2637, retainedNodes: !2638)
-!2634 = !DISubroutineType(types: !2635)
-!2635 = !{!272, !2636, !272}
-!2636 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !6, size: 64, flags: DIFlagArtificial | DIFlagObjectPointer)
-!2637 = !DISubprogram(name: "width", linkageName: "_ZNSt8ios_base5widthEl", scope: !6, file: !5, line: 751, type: !2634, scopeLine: 751, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
-!2638 = !{!2632, !2639, !2640}
-!2639 = !DILocalVariable(name: "__wide", arg: 2, scope: !2633, file: !5, line: 751, type: !272)
-!2640 = !DILocalVariable(name: "__old", scope: !2633, file: !5, line: 753, type: !272)
-!2641 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !6, size: 64)
-!2642 = !DILocation(line: 0, scope: !2633, inlinedAt: !2643)
-!2643 = distinct !DILocation(line: 240, column: 12, scope: !2615, inlinedAt: !2624)
-!2644 = !DILocation(line: 753, column: 26, scope: !2633, inlinedAt: !2643)
-!2645 = !DILocation(line: 754, column: 16, scope: !2633, inlinedAt: !2643)
-!2646 = !{!2391, !2392, i64 16}
-!2647 = !DILocation(line: 0, scope: !2281, inlinedAt: !2648)
-!2648 = distinct !DILocation(line: 108, column: 64, scope: !2559)
-!2649 = !DILocation(line: 611, column: 2, scope: !2345, inlinedAt: !2648)
-!2650 = !DILocation(line: 0, scope: !2281, inlinedAt: !2651)
-!2651 = distinct !DILocation(line: 109, column: 13, scope: !2217)
-!2652 = !DILocation(line: 611, column: 2, scope: !2345, inlinedAt: !2651)
-!2653 = !DILocation(line: 0, scope: !2260, inlinedAt: !2654)
-!2654 = distinct !DILocation(line: 109, column: 26, scope: !2217)
-!2655 = !DILocation(line: 0, scope: !2349, inlinedAt: !2656)
-!2656 = distinct !DILocation(line: 113, column: 9, scope: !2260, inlinedAt: !2654)
-!2657 = !DILocation(line: 704, column: 19, scope: !2349, inlinedAt: !2656)
-!2658 = !DILocation(line: 113, column: 18, scope: !2217)
-!2659 = !DILocation(line: 113, column: 3, scope: !2217)
-!2660 = !DILocation(line: 103, column: 11, scope: !2661)
-!2661 = distinct !DILexicalBlock(scope: !2662, file: !9, line: 103, column: 9)
-!2662 = distinct !DILexicalBlock(scope: !2663, file: !9, line: 102, column: 42)
-!2663 = distinct !DILexicalBlock(scope: !2236, file: !9, line: 102, column: 3)
-!2664 = !DILocation(line: 103, column: 32, scope: !2661)
-!2665 = !DILocation(line: 103, column: 9, scope: !2662)
-!2666 = !DILocation(line: 0, scope: !2281, inlinedAt: !2667)
-!2667 = distinct !DILocation(line: 104, column: 17, scope: !2661)
-!2668 = !DILocation(line: 611, column: 2, scope: !2345, inlinedAt: !2667)
-!2669 = !DILocation(line: 104, column: 7, scope: !2661)
-!2670 = !DILocation(line: 0, scope: !2562, inlinedAt: !2671)
-!2671 = distinct !DILocation(line: 105, column: 15, scope: !2662)
-!2672 = !DILocation(line: 180, column: 7, scope: !2562, inlinedAt: !2671)
-!2673 = !DILocation(line: 0, scope: !2575, inlinedAt: !2674)
-!2674 = distinct !DILocation(line: 180, column: 12, scope: !2562, inlinedAt: !2671)
-!2675 = !DILocation(line: 0, scope: !2587, inlinedAt: !2676)
-!2676 = distinct !DILocation(line: 392, column: 26, scope: !2575, inlinedAt: !2674)
-!2677 = !DILocation(line: 372, column: 7, scope: !2595, inlinedAt: !2676)
-!2678 = !DILocation(line: 372, column: 6, scope: !2587, inlinedAt: !2676)
-!2679 = !DILocation(line: 0, scope: !2373, inlinedAt: !2680)
-!2680 = distinct !DILocation(line: 374, column: 22, scope: !2601, inlinedAt: !2676)
-!2681 = !DILocation(line: 450, column: 30, scope: !2373, inlinedAt: !2680)
-!2682 = !DILocation(line: 0, scope: !2399, inlinedAt: !2683)
-!2683 = distinct !DILocation(line: 450, column: 16, scope: !2373, inlinedAt: !2680)
-!2684 = !DILocation(line: 49, column: 12, scope: !2413, inlinedAt: !2683)
-!2685 = !DILocation(line: 49, column: 11, scope: !2399, inlinedAt: !2683)
-!2686 = !DILocation(line: 50, column: 2, scope: !2413, inlinedAt: !2683)
-!2687 = !DILocation(line: 0, scope: !2417, inlinedAt: !2688)
-!2688 = distinct !DILocation(line: 450, column: 40, scope: !2373, inlinedAt: !2680)
-!2689 = !DILocation(line: 874, column: 6, scope: !2428, inlinedAt: !2688)
-!2690 = !DILocation(line: 874, column: 6, scope: !2417, inlinedAt: !2688)
-!2691 = !DILocation(line: 876, column: 8, scope: !2417, inlinedAt: !2688)
-!2692 = !DILocation(line: 877, column: 15, scope: !2417, inlinedAt: !2688)
-!2693 = !DILocation(line: 240, column: 7, scope: !2615, inlinedAt: !2694)
-!2694 = distinct !DILocation(line: 105, column: 36, scope: !2662)
-!2695 = !DILocation(line: 877, column: 2, scope: !2417, inlinedAt: !2688)
-!2696 = !DILocation(line: 375, column: 19, scope: !2601, inlinedAt: !2676)
-!2697 = !DILocation(line: 376, column: 4, scope: !2601, inlinedAt: !2676)
-!2698 = !DILocation(line: 393, column: 2, scope: !2575, inlinedAt: !2674)
-!2699 = !DILocation(line: 393, column: 10, scope: !2575, inlinedAt: !2674)
-!2700 = !DILocation(line: 0, scope: !2615, inlinedAt: !2694)
-!2701 = !DILocation(line: 0, scope: !2633, inlinedAt: !2702)
-!2702 = distinct !DILocation(line: 240, column: 12, scope: !2615, inlinedAt: !2694)
-!2703 = !DILocation(line: 753, column: 26, scope: !2633, inlinedAt: !2702)
-!2704 = !DILocation(line: 754, column: 16, scope: !2633, inlinedAt: !2702)
-!2705 = !DILocation(line: 105, column: 55, scope: !2662)
-!2706 = !{!2392, !2392, i64 0}
-!2707 = !DILocalVariable(name: "this", arg: 1, scope: !2708, type: !2275, flags: DIFlagArtificial | DIFlagObjectPointer)
-!2708 = distinct !DISubprogram(name: "operator<<", linkageName: "_ZNSolsEl", scope: !2262, file: !2261, line: 166, type: !2709, scopeLine: 167, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, declaration: !2711, retainedNodes: !2712)
-!2709 = !DISubroutineType(types: !2710)
-!2710 = !{!2266, !2268, !210}
-!2711 = !DISubprogram(name: "operator<<", linkageName: "_ZNSolsEl", scope: !2262, file: !2261, line: 166, type: !2709, scopeLine: 166, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
-!2712 = !{!2707, !2713}
-!2713 = !DILocalVariable(name: "__n", arg: 2, scope: !2708, file: !2261, line: 166, type: !210)
-!2714 = !DILocation(line: 0, scope: !2708, inlinedAt: !2715)
-!2715 = distinct !DILocation(line: 105, column: 52, scope: !2662)
-!2716 = !DILocation(line: 167, column: 16, scope: !2708, inlinedAt: !2715)
-!2717 = !DILocation(line: 0, scope: !2281, inlinedAt: !2718)
-!2718 = distinct !DILocation(line: 105, column: 71, scope: !2662)
-!2719 = !DILocation(line: 611, column: 2, scope: !2345, inlinedAt: !2718)
-!2720 = !DILocation(line: 102, column: 37, scope: !2663)
-!2721 = !DILocation(line: 102, column: 21, scope: !2663)
-!2722 = distinct !{!2722, !2556, !2723, !2724}
-!2723 = !DILocation(line: 106, column: 3, scope: !2236)
-!2724 = !{!"llvm.loop.mustprogress"}
-!2725 = !DILocation(line: 113, column: 49, scope: !2217)
-!2726 = !DILocation(line: 113, column: 54, scope: !2217)
-!2727 = !DILocation(line: 113, column: 62, scope: !2217)
-!2728 = !DILocation(line: 117, column: 3, scope: !2217)
-!2729 = !DILocation(line: 401, column: 2, scope: !2730, inlinedAt: !2753)
-!2730 = distinct !DISubprogram(name: "sleep_for<long, std::ratio<1L, 1000L> >", linkageName: "_ZNSt11this_thread9sleep_forIlSt5ratioILl1ELl1000EEEEvRKNSt6chrono8durationIT_T0_EE", scope: !2732, file: !2731, line: 389, type: !2733, scopeLine: 390, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, templateParams: !260, retainedNodes: !2735)
-!2731 = !DIFile(filename: "/opt/rh/gcc-toolset-10/root/usr/lib/gcc/x86_64-redhat-linux/10/../../../../include/c++/10/thread", directory: "")
-!2732 = !DINamespace(name: "this_thread", scope: !2)
-!2733 = !DISubroutineType(types: !2734)
-!2734 = !{null, !224}
-!2735 = !{!2736, !2737, !2744, !2750}
-!2736 = !DILocalVariable(name: "__rtime", arg: 1, scope: !2730, file: !2731, line: 389, type: !224)
-!2737 = !DILocalVariable(name: "__s", scope: !2730, file: !2731, line: 393, type: !2738)
-!2738 = !DIDerivedType(tag: DW_TAG_typedef, name: "__enable_if_is_duration<std::chrono::duration<long, std::ratio<1L, 1L> > >", scope: !205, file: !204, line: 242, baseType: !2739)
-!2739 = !DIDerivedType(tag: DW_TAG_typedef, name: "type", scope: !2740, file: !423, line: 2188, baseType: !302)
-!2740 = distinct !DICompositeType(tag: DW_TAG_structure_type, name: "enable_if<true, std::chrono::duration<long, std::ratio<1L, 1L> > >", scope: !2, file: !423, line: 2187, size: 8, flags: DIFlagTypePassByValue, elements: !297, templateParams: !2741, identifier: "_ZTSSt9enable_ifILb1ENSt6chrono8durationIlSt5ratioILl1ELl1EEEEE")
-!2741 = !{!2742, !2743}
-!2742 = !DITemplateValueParameter(type: !286, value: i1 true)
-!2743 = !DITemplateTypeParameter(name: "_Tp", type: !302)
-!2744 = !DILocalVariable(name: "__ns", scope: !2730, file: !2731, line: 394, type: !2745)
-!2745 = !DIDerivedType(tag: DW_TAG_typedef, name: "__enable_if_is_duration<std::chrono::duration<long, std::ratio<1L, 1000000000L> > >", scope: !205, file: !204, line: 242, baseType: !2746)
-!2746 = !DIDerivedType(tag: DW_TAG_typedef, name: "type", scope: !2747, file: !423, line: 2188, baseType: !358)
-!2747 = distinct !DICompositeType(tag: DW_TAG_structure_type, name: "enable_if<true, std::chrono::duration<long, std::ratio<1L, 1000000000L> > >", scope: !2, file: !423, line: 2187, size: 8, flags: DIFlagTypePassByValue, elements: !297, templateParams: !2748, identifier: "_ZTSSt9enable_ifILb1ENSt6chrono8durationIlSt5ratioILl1ELl1000000000EEEEE")
-!2748 = !{!2742, !2749}
-!2749 = !DITemplateTypeParameter(name: "_Tp", type: !358)
-!2750 = !DILocalVariable(name: "__ts", scope: !2730, file: !2731, line: 396, type: !2751)
-!2751 = !DIDerivedType(tag: DW_TAG_typedef, name: "__gthread_time_t", file: !2752, line: 53, baseType: !2026)
-!2752 = !DIFile(filename: "/opt/rh/gcc-toolset-10/root/usr/lib/gcc/x86_64-redhat-linux/10/../../../../include/c++/10/x86_64-redhat-linux/bits/gthr-default.h", directory: "", checksumkind: CSK_MD5, checksum: "67de20ea417b349191308ef2cace4b80")
-!2753 = distinct !DILocation(line: 118, column: 5, scope: !2754)
-!2754 = distinct !DILexicalBlock(scope: !2217, file: !9, line: 117, column: 6)
-!2755 = !DILocation(line: 0, scope: !2730, inlinedAt: !2753)
-!2756 = !DILocation(line: 396, column: 2, scope: !2730, inlinedAt: !2753)
-!2757 = !DILocation(line: 396, column: 19, scope: !2730, inlinedAt: !2753)
-!2758 = !DILocation(line: 397, column: 4, scope: !2730, inlinedAt: !2753)
-!2759 = !DILocation(line: 401, column: 9, scope: !2730, inlinedAt: !2753)
-!2760 = !DILocation(line: 401, column: 35, scope: !2730, inlinedAt: !2753)
-!2761 = !DILocation(line: 401, column: 41, scope: !2730, inlinedAt: !2753)
-!2762 = !DILocation(line: 401, column: 44, scope: !2730, inlinedAt: !2753)
-!2763 = !DILocation(line: 401, column: 50, scope: !2730, inlinedAt: !2753)
-!2764 = distinct !{!2764, !2729, !2765, !2724}
-!2765 = !DILocation(line: 402, column: 6, scope: !2730, inlinedAt: !2753)
-!2766 = !DILocation(line: 406, column: 7, scope: !2730, inlinedAt: !2753)
-!2767 = !DILocation(line: 119, column: 13, scope: !2217)
-!2768 = !DILocation(line: 119, column: 12, scope: !2217)
-!2769 = !DILocation(line: 119, column: 17, scope: !2217)
-!2770 = !DILocation(line: 119, column: 22, scope: !2217)
-!2771 = !DILocation(line: 119, column: 26, scope: !2217)
-!2772 = !DILocation(line: 119, column: 39, scope: !2217)
-!2773 = !DILocation(line: 119, column: 3, scope: !2754)
-!2774 = distinct !{!2774, !2728, !2775, !2724}
-!2775 = !DILocation(line: 119, column: 43, scope: !2217)
-!2776 = !DILocation(line: 121, column: 8, scope: !2777)
-!2777 = distinct !DILexicalBlock(scope: !2217, file: !9, line: 121, column: 7)
-!2778 = !DILocation(line: 121, column: 7, scope: !2777)
-!2779 = !DILocation(line: 121, column: 12, scope: !2777)
-!2780 = !DILocation(line: 121, column: 7, scope: !2217)
-!2781 = !DILocation(line: 0, scope: !2281, inlinedAt: !2782)
-!2782 = distinct !DILocation(line: 122, column: 15, scope: !2777)
-!2783 = !DILocation(line: 611, column: 2, scope: !2345, inlinedAt: !2782)
-!2784 = !DILocation(line: 0, scope: !2260, inlinedAt: !2785)
-!2785 = distinct !DILocation(line: 122, column: 81, scope: !2777)
-!2786 = !DILocation(line: 0, scope: !2365, inlinedAt: !2787)
-!2787 = distinct !DILocation(line: 113, column: 9, scope: !2260, inlinedAt: !2785)
-!2788 = !DILocation(line: 682, column: 29, scope: !2365, inlinedAt: !2787)
-!2789 = !DILocation(line: 0, scope: !2373, inlinedAt: !2790)
-!2790 = distinct !DILocation(line: 682, column: 34, scope: !2365, inlinedAt: !2787)
-!2791 = !DILocation(line: 450, column: 30, scope: !2373, inlinedAt: !2790)
-!2792 = !DILocation(line: 0, scope: !2399, inlinedAt: !2793)
-!2793 = distinct !DILocation(line: 450, column: 16, scope: !2373, inlinedAt: !2790)
-!2794 = !DILocation(line: 49, column: 12, scope: !2413, inlinedAt: !2793)
-!2795 = !DILocation(line: 49, column: 11, scope: !2399, inlinedAt: !2793)
-!2796 = !DILocation(line: 50, column: 2, scope: !2413, inlinedAt: !2793)
-!2797 = !DILocation(line: 0, scope: !2417, inlinedAt: !2798)
-!2798 = distinct !DILocation(line: 450, column: 40, scope: !2373, inlinedAt: !2790)
-!2799 = !DILocation(line: 874, column: 6, scope: !2428, inlinedAt: !2798)
-!2800 = !DILocation(line: 874, column: 6, scope: !2417, inlinedAt: !2798)
-!2801 = !DILocation(line: 875, column: 11, scope: !2428, inlinedAt: !2798)
-!2802 = !DILocation(line: 875, column: 4, scope: !2428, inlinedAt: !2798)
-!2803 = !DILocation(line: 876, column: 8, scope: !2417, inlinedAt: !2798)
-!2804 = !DILocation(line: 877, column: 15, scope: !2417, inlinedAt: !2798)
-!2805 = !DILocation(line: 877, column: 2, scope: !2417, inlinedAt: !2798)
-!2806 = !DILocation(line: 682, column: 25, scope: !2365, inlinedAt: !2787)
-!2807 = !DILocation(line: 0, scope: !2349, inlinedAt: !2808)
-!2808 = distinct !DILocation(line: 682, column: 14, scope: !2365, inlinedAt: !2787)
-!2809 = !DILocation(line: 704, column: 19, scope: !2349, inlinedAt: !2808)
-!2810 = !DILocation(line: 122, column: 5, scope: !2777)
-!2811 = !DILocation(line: 130, column: 35, scope: !2217)
-!2812 = !DILocation(line: 130, column: 17, scope: !2217)
-!2813 = !DILocation(line: 0, scope: !2246, inlinedAt: !2814)
-!2814 = distinct !DILocation(line: 130, column: 3, scope: !2217)
-!2815 = !DILocation(line: 175, column: 15, scope: !2254, inlinedAt: !2814)
-!2816 = !DILocation(line: 175, column: 7, scope: !2246, inlinedAt: !2814)
-!2817 = !DILocation(line: 176, column: 15, scope: !2257, inlinedAt: !2814)
-!2818 = !DILocation(line: 176, column: 34, scope: !2257, inlinedAt: !2814)
-!2819 = !DILocation(line: 0, scope: !2260, inlinedAt: !2820)
-!2820 = distinct !DILocation(line: 176, column: 45, scope: !2257, inlinedAt: !2814)
-!2821 = !DILocation(line: 113, column: 9, scope: !2260, inlinedAt: !2820)
-!2822 = !DILocation(line: 177, column: 5, scope: !2257, inlinedAt: !2814)
-!2823 = !DILocation(line: 0, scope: !2281, inlinedAt: !2824)
-!2824 = distinct !DILocation(line: 134, column: 13, scope: !2217)
-!2825 = !DILocation(line: 611, column: 2, scope: !2345, inlinedAt: !2824)
-!2826 = !DILocation(line: 134, column: 47, scope: !2217)
-!2827 = !DILocation(line: 134, column: 46, scope: !2217)
-!2828 = !DILocalVariable(name: "this", arg: 1, scope: !2829, type: !2275, flags: DIFlagArtificial | DIFlagObjectPointer)
-!2829 = distinct !DISubprogram(name: "operator<<", linkageName: "_ZNSolsEm", scope: !2262, file: !2261, line: 170, type: !2830, scopeLine: 171, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, declaration: !2832, retainedNodes: !2833)
-!2830 = !DISubroutineType(types: !2831)
-!2831 = !{!2266, !2268, !829}
-!2832 = !DISubprogram(name: "operator<<", linkageName: "_ZNSolsEm", scope: !2262, file: !2261, line: 170, type: !2830, scopeLine: 170, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
-!2833 = !{!2828, !2834}
-!2834 = !DILocalVariable(name: "__n", arg: 2, scope: !2829, file: !2261, line: 170, type: !829)
-!2835 = !DILocation(line: 0, scope: !2829, inlinedAt: !2836)
-!2836 = distinct !DILocation(line: 134, column: 43, scope: !2217)
-!2837 = !DILocation(line: 171, column: 16, scope: !2829, inlinedAt: !2836)
-!2838 = !DILocation(line: 0, scope: !2281, inlinedAt: !2839)
-!2839 = distinct !DILocation(line: 135, column: 13, scope: !2217)
-!2840 = !DILocation(line: 611, column: 2, scope: !2345, inlinedAt: !2839)
-!2841 = !DILocation(line: 0, scope: !2238)
-!2842 = !DILocation(line: 137, column: 3, scope: !2238)
-!2843 = !DILocation(line: 0, scope: !2281, inlinedAt: !2844)
-!2844 = distinct !DILocation(line: 143, column: 15, scope: !2845)
-!2845 = distinct !DILexicalBlock(scope: !2217, file: !9, line: 142, column: 7)
-!2846 = !DILocation(line: 611, column: 2, scope: !2345, inlinedAt: !2844)
-!2847 = !DILocation(line: 0, scope: !2562, inlinedAt: !2848)
-!2848 = distinct !DILocation(line: 143, column: 27, scope: !2845)
-!2849 = !DILocation(line: 180, column: 7, scope: !2562, inlinedAt: !2848)
-!2850 = !DILocation(line: 0, scope: !2575, inlinedAt: !2851)
-!2851 = distinct !DILocation(line: 180, column: 12, scope: !2562, inlinedAt: !2848)
-!2852 = !DILocation(line: 0, scope: !2587, inlinedAt: !2853)
-!2853 = distinct !DILocation(line: 392, column: 26, scope: !2575, inlinedAt: !2851)
-!2854 = !DILocation(line: 372, column: 7, scope: !2595, inlinedAt: !2853)
-!2855 = !DILocation(line: 372, column: 6, scope: !2587, inlinedAt: !2853)
-!2856 = !DILocation(line: 0, scope: !2373, inlinedAt: !2857)
-!2857 = distinct !DILocation(line: 374, column: 22, scope: !2601, inlinedAt: !2853)
-!2858 = !DILocation(line: 450, column: 30, scope: !2373, inlinedAt: !2857)
-!2859 = !DILocation(line: 0, scope: !2399, inlinedAt: !2860)
-!2860 = distinct !DILocation(line: 450, column: 16, scope: !2373, inlinedAt: !2857)
-!2861 = !DILocation(line: 49, column: 12, scope: !2413, inlinedAt: !2860)
-!2862 = !DILocation(line: 49, column: 11, scope: !2399, inlinedAt: !2860)
-!2863 = !DILocation(line: 50, column: 2, scope: !2413, inlinedAt: !2860)
-!2864 = !DILocation(line: 0, scope: !2417, inlinedAt: !2865)
-!2865 = distinct !DILocation(line: 450, column: 40, scope: !2373, inlinedAt: !2857)
-!2866 = !DILocation(line: 874, column: 6, scope: !2428, inlinedAt: !2865)
-!2867 = !DILocation(line: 874, column: 6, scope: !2417, inlinedAt: !2865)
-!2868 = !DILocation(line: 876, column: 8, scope: !2417, inlinedAt: !2865)
-!2869 = !DILocation(line: 877, column: 15, scope: !2417, inlinedAt: !2865)
-!2870 = !DILocation(line: 240, column: 7, scope: !2615, inlinedAt: !2871)
-!2871 = distinct !DILocation(line: 143, column: 48, scope: !2845)
-!2872 = !DILocation(line: 877, column: 2, scope: !2417, inlinedAt: !2865)
-!2873 = !DILocation(line: 375, column: 19, scope: !2601, inlinedAt: !2853)
-!2874 = !DILocation(line: 376, column: 4, scope: !2601, inlinedAt: !2853)
-!2875 = !DILocation(line: 393, column: 2, scope: !2575, inlinedAt: !2851)
-!2876 = !DILocation(line: 393, column: 10, scope: !2575, inlinedAt: !2851)
-!2877 = !DILocation(line: 0, scope: !2615, inlinedAt: !2871)
-!2878 = !DILocation(line: 0, scope: !2633, inlinedAt: !2879)
-!2879 = distinct !DILocation(line: 240, column: 12, scope: !2615, inlinedAt: !2871)
-!2880 = !DILocation(line: 753, column: 26, scope: !2633, inlinedAt: !2879)
-!2881 = !DILocation(line: 754, column: 16, scope: !2633, inlinedAt: !2879)
-!2882 = !DILocation(line: 0, scope: !2281, inlinedAt: !2883)
-!2883 = distinct !DILocation(line: 143, column: 64, scope: !2845)
-!2884 = !DILocation(line: 611, column: 2, scope: !2345, inlinedAt: !2883)
-!2885 = !DILocation(line: 0, scope: !2281, inlinedAt: !2886)
-!2886 = distinct !DILocation(line: 144, column: 13, scope: !2217)
-!2887 = !DILocation(line: 611, column: 2, scope: !2345, inlinedAt: !2886)
-!2888 = !DILocation(line: 0, scope: !2260, inlinedAt: !2889)
-!2889 = distinct !DILocation(line: 144, column: 26, scope: !2217)
-!2890 = !DILocation(line: 0, scope: !2365, inlinedAt: !2891)
-!2891 = distinct !DILocation(line: 113, column: 9, scope: !2260, inlinedAt: !2889)
-!2892 = !DILocation(line: 682, column: 29, scope: !2365, inlinedAt: !2891)
-!2893 = !DILocation(line: 0, scope: !2373, inlinedAt: !2894)
-!2894 = distinct !DILocation(line: 682, column: 34, scope: !2365, inlinedAt: !2891)
-!2895 = !DILocation(line: 450, column: 30, scope: !2373, inlinedAt: !2894)
-!2896 = !DILocation(line: 0, scope: !2399, inlinedAt: !2897)
-!2897 = distinct !DILocation(line: 450, column: 16, scope: !2373, inlinedAt: !2894)
-!2898 = !DILocation(line: 49, column: 12, scope: !2413, inlinedAt: !2897)
-!2899 = !DILocation(line: 49, column: 11, scope: !2399, inlinedAt: !2897)
-!2900 = !DILocation(line: 50, column: 2, scope: !2413, inlinedAt: !2897)
-!2901 = !DILocation(line: 0, scope: !2417, inlinedAt: !2902)
-!2902 = distinct !DILocation(line: 450, column: 40, scope: !2373, inlinedAt: !2894)
-!2903 = !DILocation(line: 874, column: 6, scope: !2428, inlinedAt: !2902)
-!2904 = !DILocation(line: 874, column: 6, scope: !2417, inlinedAt: !2902)
-!2905 = !DILocation(line: 875, column: 11, scope: !2428, inlinedAt: !2902)
-!2906 = !DILocation(line: 875, column: 4, scope: !2428, inlinedAt: !2902)
-!2907 = !DILocation(line: 876, column: 8, scope: !2417, inlinedAt: !2902)
-!2908 = !DILocation(line: 877, column: 15, scope: !2417, inlinedAt: !2902)
-!2909 = !DILocation(line: 877, column: 2, scope: !2417, inlinedAt: !2902)
-!2910 = !DILocation(line: 682, column: 25, scope: !2365, inlinedAt: !2891)
-!2911 = !DILocation(line: 0, scope: !2349, inlinedAt: !2912)
-!2912 = distinct !DILocation(line: 682, column: 14, scope: !2365, inlinedAt: !2891)
-!2913 = !DILocation(line: 704, column: 19, scope: !2349, inlinedAt: !2912)
-!2914 = !DILocation(line: 148, column: 25, scope: !2217)
-!2915 = !DILocation(line: 148, column: 17, scope: !2217)
-!2916 = !DILocation(line: 0, scope: !2246, inlinedAt: !2917)
-!2917 = distinct !DILocation(line: 148, column: 3, scope: !2217)
-!2918 = !DILocation(line: 175, column: 15, scope: !2254, inlinedAt: !2917)
-!2919 = !DILocation(line: 175, column: 7, scope: !2246, inlinedAt: !2917)
-!2920 = !DILocation(line: 176, column: 15, scope: !2257, inlinedAt: !2917)
-!2921 = !DILocation(line: 176, column: 34, scope: !2257, inlinedAt: !2917)
-!2922 = !DILocation(line: 0, scope: !2260, inlinedAt: !2923)
-!2923 = distinct !DILocation(line: 176, column: 45, scope: !2257, inlinedAt: !2917)
-!2924 = !DILocation(line: 113, column: 9, scope: !2260, inlinedAt: !2923)
-!2925 = !DILocation(line: 177, column: 5, scope: !2257, inlinedAt: !2917)
-!2926 = !DILocation(line: 149, column: 25, scope: !2217)
-!2927 = !DILocation(line: 149, column: 17, scope: !2217)
-!2928 = !DILocation(line: 0, scope: !2246, inlinedAt: !2929)
-!2929 = distinct !DILocation(line: 149, column: 3, scope: !2217)
-!2930 = !DILocation(line: 175, column: 15, scope: !2254, inlinedAt: !2929)
-!2931 = !DILocation(line: 175, column: 7, scope: !2246, inlinedAt: !2929)
-!2932 = !DILocation(line: 176, column: 15, scope: !2257, inlinedAt: !2929)
-!2933 = !DILocation(line: 176, column: 34, scope: !2257, inlinedAt: !2929)
-!2934 = !DILocation(line: 0, scope: !2260, inlinedAt: !2935)
-!2935 = distinct !DILocation(line: 176, column: 45, scope: !2257, inlinedAt: !2929)
-!2936 = !DILocation(line: 113, column: 9, scope: !2260, inlinedAt: !2935)
-!2937 = !DILocation(line: 177, column: 5, scope: !2257, inlinedAt: !2929)
-!2938 = !DILocation(line: 150, column: 25, scope: !2217)
-!2939 = !DILocation(line: 150, column: 17, scope: !2217)
-!2940 = !DILocation(line: 0, scope: !2246, inlinedAt: !2941)
-!2941 = distinct !DILocation(line: 150, column: 3, scope: !2217)
-!2942 = !DILocation(line: 175, column: 15, scope: !2254, inlinedAt: !2941)
-!2943 = !DILocation(line: 175, column: 7, scope: !2246, inlinedAt: !2941)
-!2944 = !DILocation(line: 176, column: 15, scope: !2257, inlinedAt: !2941)
-!2945 = !DILocation(line: 176, column: 34, scope: !2257, inlinedAt: !2941)
-!2946 = !DILocation(line: 0, scope: !2260, inlinedAt: !2947)
-!2947 = distinct !DILocation(line: 176, column: 45, scope: !2257, inlinedAt: !2941)
-!2948 = !DILocation(line: 113, column: 9, scope: !2260, inlinedAt: !2947)
-!2949 = !DILocation(line: 177, column: 5, scope: !2257, inlinedAt: !2941)
-!2950 = !DILocation(line: 151, column: 3, scope: !2217)
-!2951 = !DILocation(line: 151, column: 20, scope: !2217)
-!2952 = !DILocation(line: 0, scope: !2281, inlinedAt: !2953)
-!2953 = distinct !DILocation(line: 152, column: 13, scope: !2217)
-!2954 = !DILocation(line: 611, column: 2, scope: !2345, inlinedAt: !2953)
-!2955 = !DILocation(line: 0, scope: !2260, inlinedAt: !2956)
-!2956 = distinct !DILocation(line: 152, column: 56, scope: !2217)
-!2957 = !DILocation(line: 0, scope: !2349, inlinedAt: !2958)
-!2958 = distinct !DILocation(line: 113, column: 9, scope: !2260, inlinedAt: !2956)
-!2959 = !DILocation(line: 704, column: 19, scope: !2349, inlinedAt: !2958)
-!2960 = !DILocation(line: 153, column: 1, scope: !2217)
-!2961 = !DILocation(line: 138, column: 11, scope: !2962)
-!2962 = distinct !DILexicalBlock(scope: !2963, file: !9, line: 138, column: 9)
-!2963 = distinct !DILexicalBlock(scope: !2964, file: !9, line: 137, column: 42)
-!2964 = distinct !DILexicalBlock(scope: !2238, file: !9, line: 137, column: 3)
-!2965 = !DILocation(line: 138, column: 32, scope: !2962)
-!2966 = !DILocation(line: 138, column: 9, scope: !2963)
-!2967 = !DILocation(line: 0, scope: !2281, inlinedAt: !2968)
-!2968 = distinct !DILocation(line: 139, column: 17, scope: !2962)
-!2969 = !DILocation(line: 611, column: 2, scope: !2345, inlinedAt: !2968)
-!2970 = !DILocation(line: 139, column: 7, scope: !2962)
-!2971 = !DILocation(line: 0, scope: !2562, inlinedAt: !2972)
-!2972 = distinct !DILocation(line: 140, column: 15, scope: !2963)
-!2973 = !DILocation(line: 180, column: 7, scope: !2562, inlinedAt: !2972)
-!2974 = !DILocation(line: 0, scope: !2575, inlinedAt: !2975)
-!2975 = distinct !DILocation(line: 180, column: 12, scope: !2562, inlinedAt: !2972)
-!2976 = !DILocation(line: 0, scope: !2587, inlinedAt: !2977)
-!2977 = distinct !DILocation(line: 392, column: 26, scope: !2575, inlinedAt: !2975)
-!2978 = !DILocation(line: 372, column: 7, scope: !2595, inlinedAt: !2977)
-!2979 = !DILocation(line: 372, column: 6, scope: !2587, inlinedAt: !2977)
-!2980 = !DILocation(line: 0, scope: !2373, inlinedAt: !2981)
-!2981 = distinct !DILocation(line: 374, column: 22, scope: !2601, inlinedAt: !2977)
-!2982 = !DILocation(line: 450, column: 30, scope: !2373, inlinedAt: !2981)
-!2983 = !DILocation(line: 0, scope: !2399, inlinedAt: !2984)
-!2984 = distinct !DILocation(line: 450, column: 16, scope: !2373, inlinedAt: !2981)
-!2985 = !DILocation(line: 49, column: 12, scope: !2413, inlinedAt: !2984)
-!2986 = !DILocation(line: 49, column: 11, scope: !2399, inlinedAt: !2984)
-!2987 = !DILocation(line: 50, column: 2, scope: !2413, inlinedAt: !2984)
-!2988 = !DILocation(line: 0, scope: !2417, inlinedAt: !2989)
-!2989 = distinct !DILocation(line: 450, column: 40, scope: !2373, inlinedAt: !2981)
-!2990 = !DILocation(line: 874, column: 6, scope: !2428, inlinedAt: !2989)
-!2991 = !DILocation(line: 874, column: 6, scope: !2417, inlinedAt: !2989)
-!2992 = !DILocation(line: 876, column: 8, scope: !2417, inlinedAt: !2989)
-!2993 = !DILocation(line: 877, column: 15, scope: !2417, inlinedAt: !2989)
-!2994 = !DILocation(line: 240, column: 7, scope: !2615, inlinedAt: !2995)
-!2995 = distinct !DILocation(line: 140, column: 36, scope: !2963)
-!2996 = !DILocation(line: 877, column: 2, scope: !2417, inlinedAt: !2989)
-!2997 = !DILocation(line: 375, column: 19, scope: !2601, inlinedAt: !2977)
-!2998 = !DILocation(line: 376, column: 4, scope: !2601, inlinedAt: !2977)
-!2999 = !DILocation(line: 393, column: 2, scope: !2575, inlinedAt: !2975)
-!3000 = !DILocation(line: 393, column: 10, scope: !2575, inlinedAt: !2975)
-!3001 = !DILocation(line: 0, scope: !2615, inlinedAt: !2995)
-!3002 = !DILocation(line: 0, scope: !2633, inlinedAt: !3003)
-!3003 = distinct !DILocation(line: 240, column: 12, scope: !2615, inlinedAt: !2995)
-!3004 = !DILocation(line: 753, column: 26, scope: !2633, inlinedAt: !3003)
-!3005 = !DILocation(line: 754, column: 16, scope: !2633, inlinedAt: !3003)
-!3006 = !DILocation(line: 140, column: 55, scope: !2963)
-!3007 = !DILocation(line: 0, scope: !2829, inlinedAt: !3008)
-!3008 = distinct !DILocation(line: 140, column: 52, scope: !2963)
-!3009 = !DILocation(line: 171, column: 16, scope: !2829, inlinedAt: !3008)
-!3010 = !DILocation(line: 0, scope: !2281, inlinedAt: !3011)
-!3011 = distinct !DILocation(line: 140, column: 65, scope: !2963)
-!3012 = !DILocation(line: 611, column: 2, scope: !2345, inlinedAt: !3011)
-!3013 = !DILocation(line: 137, column: 37, scope: !2964)
-!3014 = !DILocation(line: 137, column: 21, scope: !2964)
-!3015 = distinct !{!3015, !2842, !3016, !2724}
-!3016 = !DILocation(line: 141, column: 3, scope: !2238)
-!3017 = !DILocation(line: 0, scope: !2246)
-!3018 = !DILocation(line: 175, column: 15, scope: !2254)
-!3019 = !DILocation(line: 175, column: 7, scope: !2246)
-!3020 = !DILocation(line: 176, column: 15, scope: !2257)
-!3021 = !DILocation(line: 176, column: 34, scope: !2257)
-!3022 = !DILocation(line: 0, scope: !2260, inlinedAt: !3023)
-!3023 = distinct !DILocation(line: 176, column: 45, scope: !2257)
-!3024 = !DILocation(line: 113, column: 9, scope: !2260, inlinedAt: !3023)
-!3025 = !DILocation(line: 177, column: 5, scope: !2257)
-!3026 = !DILocation(line: 179, column: 1, scope: !2246)
-!3027 = !DISubprogram(name: "hipGetDevice", scope: !90, file: !90, line: 1523, type: !3028, flags: DIFlagPrototyped, spFlags: DISPFlagOptimized, retainedNodes: !297)
-!3028 = !DISubroutineType(types: !3029)
-!3029 = !{!2249, !502}
-!3030 = !DISubprogram(name: "hipMemcpy", scope: !90, file: !90, line: 3408, type: !3031, flags: DIFlagPrototyped, spFlags: DISPFlagOptimized, retainedNodes: !297)
-!3031 = !DISubroutineType(types: !3032)
-!3032 = !{!2249, !278, !853, !827, !3033}
-!3033 = !DIDerivedType(tag: DW_TAG_typedef, name: "hipMemcpyKind", file: !171, line: 351, baseType: !170)
-!3034 = !DISubprogram(name: "hipFree", scope: !90, file: !90, line: 3353, type: !3035, flags: DIFlagPrototyped, spFlags: DISPFlagOptimized, retainedNodes: !297)
-!3035 = !DISubroutineType(types: !3036)
-!3036 = !{!2249, !278}
-!3037 = !DILocation(line: 163, column: 3, scope: !2119)
-!3038 = !DILocation(line: 163, column: 19, scope: !2119)
-!3039 = !DILocation(line: 164, column: 17, scope: !2119)
-!3040 = !DILocation(line: 0, scope: !2246, inlinedAt: !3041)
-!3041 = distinct !DILocation(line: 164, column: 3, scope: !2119)
-!3042 = !DILocation(line: 175, column: 15, scope: !2254, inlinedAt: !3041)
-!3043 = !DILocation(line: 175, column: 7, scope: !2246, inlinedAt: !3041)
-!3044 = !DILocation(line: 176, column: 15, scope: !2257, inlinedAt: !3041)
-!3045 = !DILocation(line: 176, column: 34, scope: !2257, inlinedAt: !3041)
-!3046 = !DILocation(line: 0, scope: !2260, inlinedAt: !3047)
-!3047 = distinct !DILocation(line: 176, column: 45, scope: !2257, inlinedAt: !3041)
-!3048 = !DILocation(line: 113, column: 9, scope: !2260, inlinedAt: !3047)
-!3049 = !DILocation(line: 177, column: 5, scope: !2257, inlinedAt: !3041)
-!3050 = !DILocation(line: 0, scope: !2281, inlinedAt: !3051)
-!3051 = distinct !DILocation(line: 165, column: 8, scope: !2119)
-!3052 = !DILocalVariable(name: "__s", arg: 1, scope: !3053, file: !2290, line: 365, type: !2306)
-!3053 = distinct !DISubprogram(name: "length", linkageName: "_ZNSt11char_traitsIcE6lengthEPKc", scope: !2289, file: !2290, line: 365, type: !2309, scopeLine: 366, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, declaration: !2308, retainedNodes: !3054)
-!3054 = !{!3052}
-!3055 = !DILocation(line: 0, scope: !3053, inlinedAt: !3056)
-!3056 = distinct !DILocation(line: 612, column: 29, scope: !2345, inlinedAt: !3051)
-!3057 = !DILocation(line: 611, column: 2, scope: !2345, inlinedAt: !3051)
-!3058 = !DILocation(line: 165, column: 39, scope: !2119)
-!3059 = !{!3060, !2243, i64 332}
-!3060 = !{!"_ZTS15hipDeviceProp_t", !2215, i64 0, !2392, i64 256, !2392, i64 264, !2243, i64 272, !2243, i64 276, !2243, i64 280, !2215, i64 284, !2215, i64 296, !2243, i64 308, !2243, i64 312, !2243, i64 316, !2392, i64 320, !2243, i64 328, !2243, i64 332, !2243, i64 336, !2243, i64 340, !2243, i64 344, !2243, i64 348, !2243, i64 352, !3061, i64 356, !2243, i64 360, !2243, i64 364, !2243, i64 368, !2243, i64 372, !2392, i64 376, !2243, i64 384, !2243, i64 388, !2243, i64 392, !2215, i64 396, !2243, i64 652, !2243, i64 656, !2243, i64 660, !2243, i64 664, !2243, i64 668, !2215, i64 672, !2215, i64 680, !2214, i64 696, !2214, i64 704, !2392, i64 712, !2392, i64 720, !2392, i64 728, !2243, i64 736, !2243, i64 740, !2243, i64 744, !2243, i64 748, !2243, i64 752, !2243, i64 756, !2243, i64 760, !2243, i64 764, !2243, i64 768, !2243, i64 772, !2243, i64 776, !2243, i64 780, !2243, i64 784, !2243, i64 788}
-!3061 = !{!"_ZTS15hipDeviceArch_t", !2243, i64 0, !2243, i64 0, !2243, i64 0, !2243, i64 0, !2243, i64 0, !2243, i64 0, !2243, i64 0, !2243, i64 0, !2243, i64 1, !2243, i64 1, !2243, i64 1, !2243, i64 1, !2243, i64 1, !2243, i64 1, !2243, i64 1, !2243, i64 1, !2243, i64 2}
-!3062 = !DILocation(line: 165, column: 28, scope: !2119)
-!3063 = !DILocation(line: 0, scope: !2260, inlinedAt: !3064)
-!3064 = distinct !DILocation(line: 165, column: 45, scope: !2119)
-!3065 = !DILocation(line: 0, scope: !2365, inlinedAt: !3066)
-!3066 = distinct !DILocation(line: 113, column: 9, scope: !2260, inlinedAt: !3064)
-!3067 = !DILocation(line: 682, column: 29, scope: !2365, inlinedAt: !3066)
-!3068 = !DILocation(line: 0, scope: !2373, inlinedAt: !3069)
-!3069 = distinct !DILocation(line: 682, column: 34, scope: !2365, inlinedAt: !3066)
-!3070 = !DILocation(line: 450, column: 30, scope: !2373, inlinedAt: !3069)
-!3071 = !DILocation(line: 0, scope: !2399, inlinedAt: !3072)
-!3072 = distinct !DILocation(line: 450, column: 16, scope: !2373, inlinedAt: !3069)
-!3073 = !DILocation(line: 49, column: 12, scope: !2413, inlinedAt: !3072)
-!3074 = !DILocation(line: 49, column: 11, scope: !2399, inlinedAt: !3072)
-!3075 = !DILocation(line: 50, column: 2, scope: !2413, inlinedAt: !3072)
-!3076 = !DILocation(line: 0, scope: !2417, inlinedAt: !3077)
-!3077 = distinct !DILocation(line: 450, column: 40, scope: !2373, inlinedAt: !3069)
-!3078 = !DILocation(line: 874, column: 6, scope: !2428, inlinedAt: !3077)
-!3079 = !DILocation(line: 874, column: 6, scope: !2417, inlinedAt: !3077)
-!3080 = !DILocation(line: 875, column: 11, scope: !2428, inlinedAt: !3077)
-!3081 = !DILocation(line: 875, column: 4, scope: !2428, inlinedAt: !3077)
-!3082 = !DILocation(line: 876, column: 8, scope: !2417, inlinedAt: !3077)
-!3083 = !DILocation(line: 877, column: 15, scope: !2417, inlinedAt: !3077)
-!3084 = !DILocation(line: 877, column: 2, scope: !2417, inlinedAt: !3077)
-!3085 = !DILocation(line: 682, column: 25, scope: !2365, inlinedAt: !3066)
-!3086 = !DILocation(line: 0, scope: !2349, inlinedAt: !3087)
-!3087 = distinct !DILocation(line: 682, column: 14, scope: !2365, inlinedAt: !3066)
-!3088 = !DILocation(line: 704, column: 19, scope: !2349, inlinedAt: !3087)
-!3089 = !DILocation(line: 0, scope: !2281, inlinedAt: !3090)
-!3090 = distinct !DILocation(line: 166, column: 8, scope: !2119)
-!3091 = !DILocation(line: 0, scope: !3053, inlinedAt: !3092)
-!3092 = distinct !DILocation(line: 612, column: 29, scope: !2345, inlinedAt: !3090)
-!3093 = !DILocation(line: 611, column: 2, scope: !2345, inlinedAt: !3090)
-!3094 = !DILocation(line: 166, column: 39, scope: !2119)
-!3095 = !{!3060, !2243, i64 328}
-!3096 = !DILocation(line: 166, column: 28, scope: !2119)
-!3097 = !DILocation(line: 0, scope: !2260, inlinedAt: !3098)
-!3098 = distinct !DILocation(line: 166, column: 45, scope: !2119)
-!3099 = !DILocation(line: 0, scope: !2365, inlinedAt: !3100)
-!3100 = distinct !DILocation(line: 113, column: 9, scope: !2260, inlinedAt: !3098)
-!3101 = !DILocation(line: 682, column: 29, scope: !2365, inlinedAt: !3100)
-!3102 = !DILocation(line: 0, scope: !2373, inlinedAt: !3103)
-!3103 = distinct !DILocation(line: 682, column: 34, scope: !2365, inlinedAt: !3100)
-!3104 = !DILocation(line: 450, column: 30, scope: !2373, inlinedAt: !3103)
-!3105 = !DILocation(line: 0, scope: !2399, inlinedAt: !3106)
-!3106 = distinct !DILocation(line: 450, column: 16, scope: !2373, inlinedAt: !3103)
-!3107 = !DILocation(line: 49, column: 12, scope: !2413, inlinedAt: !3106)
-!3108 = !DILocation(line: 49, column: 11, scope: !2399, inlinedAt: !3106)
-!3109 = !DILocation(line: 50, column: 2, scope: !2413, inlinedAt: !3106)
-!3110 = !DILocation(line: 0, scope: !2417, inlinedAt: !3111)
-!3111 = distinct !DILocation(line: 450, column: 40, scope: !2373, inlinedAt: !3103)
-!3112 = !DILocation(line: 874, column: 6, scope: !2428, inlinedAt: !3111)
-!3113 = !DILocation(line: 874, column: 6, scope: !2417, inlinedAt: !3111)
-!3114 = !DILocation(line: 875, column: 11, scope: !2428, inlinedAt: !3111)
-!3115 = !DILocation(line: 875, column: 4, scope: !2428, inlinedAt: !3111)
-!3116 = !DILocation(line: 876, column: 8, scope: !2417, inlinedAt: !3111)
-!3117 = !DILocation(line: 877, column: 15, scope: !2417, inlinedAt: !3111)
-!3118 = !DILocation(line: 877, column: 2, scope: !2417, inlinedAt: !3111)
-!3119 = !DILocation(line: 682, column: 25, scope: !2365, inlinedAt: !3100)
-!3120 = !DILocation(line: 0, scope: !2349, inlinedAt: !3121)
-!3121 = distinct !DILocation(line: 682, column: 14, scope: !2365, inlinedAt: !3100)
-!3122 = !DILocation(line: 704, column: 19, scope: !2349, inlinedAt: !3121)
-!3123 = !DILocation(line: 0, scope: !2281, inlinedAt: !3124)
-!3124 = distinct !DILocation(line: 167, column: 8, scope: !2119)
-!3125 = !DILocation(line: 0, scope: !3053, inlinedAt: !3126)
-!3126 = distinct !DILocation(line: 612, column: 29, scope: !2345, inlinedAt: !3124)
-!3127 = !DILocation(line: 611, column: 2, scope: !2345, inlinedAt: !3124)
-!3128 = !DILocation(line: 0, scope: !2281, inlinedAt: !3129)
-!3129 = distinct !DILocation(line: 167, column: 31, scope: !2119)
-!3130 = !DILocation(line: 0, scope: !3053, inlinedAt: !3131)
-!3131 = distinct !DILocation(line: 612, column: 29, scope: !2345, inlinedAt: !3129)
-!3132 = !DILocation(line: 371, column: 9, scope: !3053, inlinedAt: !3131)
-!3133 = !DILocation(line: 611, column: 2, scope: !2345, inlinedAt: !3129)
-!3134 = !DILocation(line: 0, scope: !2260, inlinedAt: !3135)
-!3135 = distinct !DILocation(line: 167, column: 47, scope: !2119)
-!3136 = !DILocation(line: 0, scope: !2365, inlinedAt: !3137)
-!3137 = distinct !DILocation(line: 113, column: 9, scope: !2260, inlinedAt: !3135)
-!3138 = !DILocation(line: 682, column: 29, scope: !2365, inlinedAt: !3137)
-!3139 = !DILocation(line: 0, scope: !2373, inlinedAt: !3140)
-!3140 = distinct !DILocation(line: 682, column: 34, scope: !2365, inlinedAt: !3137)
-!3141 = !DILocation(line: 450, column: 30, scope: !2373, inlinedAt: !3140)
-!3142 = !DILocation(line: 0, scope: !2399, inlinedAt: !3143)
-!3143 = distinct !DILocation(line: 450, column: 16, scope: !2373, inlinedAt: !3140)
-!3144 = !DILocation(line: 49, column: 12, scope: !2413, inlinedAt: !3143)
-!3145 = !DILocation(line: 49, column: 11, scope: !2399, inlinedAt: !3143)
-!3146 = !DILocation(line: 50, column: 2, scope: !2413, inlinedAt: !3143)
-!3147 = !DILocation(line: 0, scope: !2417, inlinedAt: !3148)
-!3148 = distinct !DILocation(line: 450, column: 40, scope: !2373, inlinedAt: !3140)
-!3149 = !DILocation(line: 874, column: 6, scope: !2428, inlinedAt: !3148)
-!3150 = !DILocation(line: 874, column: 6, scope: !2417, inlinedAt: !3148)
-!3151 = !DILocation(line: 875, column: 11, scope: !2428, inlinedAt: !3148)
-!3152 = !DILocation(line: 875, column: 4, scope: !2428, inlinedAt: !3148)
-!3153 = !DILocation(line: 876, column: 8, scope: !2417, inlinedAt: !3148)
-!3154 = !DILocation(line: 877, column: 15, scope: !2417, inlinedAt: !3148)
-!3155 = !DILocation(line: 877, column: 2, scope: !2417, inlinedAt: !3148)
-!3156 = !DILocation(line: 682, column: 25, scope: !2365, inlinedAt: !3137)
-!3157 = !DILocation(line: 0, scope: !2349, inlinedAt: !3158)
-!3158 = distinct !DILocation(line: 682, column: 14, scope: !2365, inlinedAt: !3137)
-!3159 = !DILocation(line: 704, column: 19, scope: !2349, inlinedAt: !3158)
-!3160 = !DILocation(line: 169, column: 3, scope: !2119)
-!3161 = !DILocation(line: 171, column: 1, scope: !2119)
-!3162 = !DILocation(line: 170, column: 3, scope: !2119)
-!3163 = !DISubprogram(name: "hipGetDeviceProperties", scope: !90, file: !90, line: 1617, type: !3164, flags: DIFlagPrototyped, spFlags: DISPFlagOptimized, retainedNodes: !297)
-!3164 = !DISubroutineType(types: !3165)
-!3165 = !{!2249, !3166, !179}
-!3166 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2122, size: 64)
-!3167 = !DISubprogram(name: "hipMallocManaged", scope: !90, file: !90, line: 2731, type: !3168, flags: DIFlagPrototyped, spFlags: DISPFlagOptimized, retainedNodes: !297)
-!3168 = !DISubroutineType(types: !3169)
-!3169 = !{!2249, !277, !827, !84}
-!3170 = !DISubprogram(name: "hipMalloc", scope: !90, file: !90, line: 2654, type: !3171, flags: DIFlagPrototyped, spFlags: DISPFlagOptimized, retainedNodes: !297)
-!3171 = !DISubroutineType(types: !3172)
-!3172 = !{!2249, !277, !827}
-!3173 = !DISubprogram(name: "nanosleep", scope: !1988, file: !1988, line: 211, type: !3174, flags: DIFlagPrototyped, spFlags: DISPFlagOptimized, retainedNodes: !297)
-!3174 = !DISubroutineType(types: !3175)
-!3175 = !{!179, !3176, !2036}
-!3176 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !3177, size: 64)
-!3177 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !2026)
-!3178 = distinct !DISubprogram(linkageName: "_GLOBAL__sub_I_managed_clock_test.cpp", scope: !1464, file: !1464, type: !3179, flags: DIFlagArtificial | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !79, retainedNodes: !297)
-!3179 = !DISubroutineType(types: !297)
-!3180 = !DILocation(line: 74, column: 25, scope: !3181, inlinedAt: !3183)
-!3181 = !DILexicalBlockFile(scope: !3182, file: !3, discriminator: 0)
-!3182 = distinct !DISubprogram(name: "__cxx_global_var_init", scope: !1464, file: !1464, type: !821, flags: DIFlagArtificial | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !79, retainedNodes: !297)
-!3183 = distinct !DILocation(line: 0, scope: !3178)
-!3184 = !DILocation(line: 0, scope: !3182, inlinedAt: !3183)
+!2321 = !{!2322, !2322, !2311, !2312}
+!2322 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2301, size: 64)
+!2323 = !DISubprogram(name: "copy", linkageName: "_ZNSt11char_traitsIcE4copyEPcPKcm", scope: !2294, file: !2295, line: 401, type: !2320, scopeLine: 401, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!2324 = !DISubprogram(name: "assign", linkageName: "_ZNSt11char_traitsIcE6assignEPcmc", scope: !2294, file: !2295, line: 413, type: !2325, scopeLine: 413, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!2325 = !DISubroutineType(types: !2326)
+!2326 = !{!2322, !2322, !2312, !2301}
+!2327 = !DISubprogram(name: "to_char_type", linkageName: "_ZNSt11char_traitsIcE12to_char_typeERKi", scope: !2294, file: !2295, line: 425, type: !2328, scopeLine: 425, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!2328 = !DISubroutineType(types: !2329)
+!2329 = !{!2301, !2330}
+!2330 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !2331, size: 64)
+!2331 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !2332)
+!2332 = !DIDerivedType(tag: DW_TAG_typedef, name: "int_type", scope: !2294, file: !2295, line: 319, baseType: !179)
+!2333 = !DISubprogram(name: "to_int_type", linkageName: "_ZNSt11char_traitsIcE11to_int_typeERKc", scope: !2294, file: !2295, line: 431, type: !2334, scopeLine: 431, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!2334 = !DISubroutineType(types: !2335)
+!2335 = !{!2332, !2302}
+!2336 = !DISubprogram(name: "eq_int_type", linkageName: "_ZNSt11char_traitsIcE11eq_int_typeERKiS2_", scope: !2294, file: !2295, line: 435, type: !2337, scopeLine: 435, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!2337 = !DISubroutineType(types: !2338)
+!2338 = !{!286, !2330, !2330}
+!2339 = !DISubprogram(name: "eof", linkageName: "_ZNSt11char_traitsIcE3eofEv", scope: !2294, file: !2295, line: 439, type: !2340, scopeLine: 439, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!2340 = !DISubroutineType(types: !2341)
+!2341 = !{!2332}
+!2342 = !DISubprogram(name: "not_eof", linkageName: "_ZNSt11char_traitsIcE7not_eofERKi", scope: !2294, file: !2295, line: 443, type: !2343, scopeLine: 443, flags: DIFlagPrototyped | DIFlagStaticMember, spFlags: DISPFlagOptimized)
+!2343 = !DISubroutineType(types: !2344)
+!2344 = !{!2332, !2330}
+!2345 = !{!2346}
+!2346 = !DITemplateTypeParameter(name: "_CharT", type: !12)
+!2347 = !DILocation(line: 0, scope: !2286, inlinedAt: !2348)
+!2348 = distinct !DILocation(line: 70, column: 13, scope: !2223)
+!2349 = !DILocation(line: 611, column: 2, scope: !2350, inlinedAt: !2348)
+!2350 = distinct !DILexicalBlock(scope: !2286, file: !2266, line: 608, column: 11)
+!2351 = !DILocation(line: 0, scope: !2265, inlinedAt: !2352)
+!2352 = distinct !DILocation(line: 70, column: 58, scope: !2223)
+!2353 = !DILocalVariable(name: "__os", arg: 1, scope: !2354, file: !2266, line: 703, type: !2289)
+!2354 = distinct !DISubprogram(name: "flush<char, std::char_traits<char> >", linkageName: "_ZSt5flushIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_", scope: !2, file: !2266, line: 703, type: !2355, scopeLine: 704, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, templateParams: !2358, retainedNodes: !2357)
+!2355 = !DISubroutineType(types: !2356)
+!2356 = !{!2289, !2289}
+!2357 = !{!2353}
+!2358 = !{!2346, !2293}
+!2359 = !DILocation(line: 0, scope: !2354, inlinedAt: !2360)
+!2360 = distinct !DILocation(line: 113, column: 9, scope: !2265, inlinedAt: !2352)
+!2361 = !DILocation(line: 704, column: 19, scope: !2354, inlinedAt: !2360)
+!2362 = !DILocation(line: 0, scope: !2286, inlinedAt: !2363)
+!2363 = distinct !DILocation(line: 71, column: 13, scope: !2223)
+!2364 = !DILocation(line: 611, column: 2, scope: !2350, inlinedAt: !2363)
+!2365 = !DILocation(line: 71, column: 48, scope: !2223)
+!2366 = !DILocation(line: 71, column: 45, scope: !2223)
+!2367 = !DILocation(line: 0, scope: !2265, inlinedAt: !2368)
+!2368 = distinct !DILocation(line: 71, column: 55, scope: !2223)
+!2369 = !DILocalVariable(name: "__os", arg: 1, scope: !2370, file: !2266, line: 681, type: !2289)
+!2370 = distinct !DISubprogram(name: "endl<char, std::char_traits<char> >", linkageName: "_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_", scope: !2, file: !2266, line: 681, type: !2355, scopeLine: 682, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, templateParams: !2358, retainedNodes: !2371)
+!2371 = !{!2369}
+!2372 = !DILocation(line: 0, scope: !2370, inlinedAt: !2373)
+!2373 = distinct !DILocation(line: 113, column: 9, scope: !2265, inlinedAt: !2368)
+!2374 = !DILocation(line: 682, column: 29, scope: !2370, inlinedAt: !2373)
+!2375 = !{!2376, !2376, i64 0}
+!2376 = !{!"vtable pointer", !2220, i64 0}
+!2377 = !DILocalVariable(name: "this", arg: 1, scope: !2378, type: !2390, flags: DIFlagArtificial | DIFlagObjectPointer)
+!2378 = distinct !DISubprogram(name: "widen", linkageName: "_ZNKSt9basic_iosIcSt11char_traitsIcEE5widenEc", scope: !2380, file: !2379, line: 449, type: !2382, scopeLine: 450, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, declaration: !2387, retainedNodes: !2388)
+!2379 = !DIFile(filename: "/opt/rh/gcc-toolset-10/root/usr/lib/gcc/x86_64-redhat-linux/10/../../../../include/c++/10/bits/basic_ios.h", directory: "")
+!2380 = !DICompositeType(tag: DW_TAG_class_type, name: "basic_ios<char, std::char_traits<char> >", scope: !2, file: !2381, line: 178, size: 2112, flags: DIFlagFwdDecl | DIFlagNonTrivial)
+!2381 = !DIFile(filename: "/opt/rh/gcc-toolset-10/root/usr/lib/gcc/x86_64-redhat-linux/10/../../../../include/c++/10/bits/basic_ios.tcc", directory: "")
+!2382 = !DISubroutineType(types: !2383)
+!2383 = !{!2384, !2385, !12}
+!2384 = !DIDerivedType(tag: DW_TAG_typedef, name: "char_type", scope: !2380, file: !2379, line: 76, baseType: !12)
+!2385 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2386, size: 64, flags: DIFlagArtificial | DIFlagObjectPointer)
+!2386 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !2380)
+!2387 = !DISubprogram(name: "widen", linkageName: "_ZNKSt9basic_iosIcSt11char_traitsIcEE5widenEc", scope: !2380, file: !2379, line: 449, type: !2382, scopeLine: 449, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!2388 = !{!2377, !2389}
+!2389 = !DILocalVariable(name: "__c", arg: 2, scope: !2378, file: !2379, line: 449, type: !12)
+!2390 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2386, size: 64)
+!2391 = !DILocation(line: 0, scope: !2378, inlinedAt: !2392)
+!2392 = distinct !DILocation(line: 682, column: 34, scope: !2370, inlinedAt: !2373)
+!2393 = !DILocation(line: 450, column: 30, scope: !2378, inlinedAt: !2392)
+!2394 = !{!2395, !2218, i64 240}
+!2395 = !{!"_ZTSSt9basic_iosIcSt11char_traitsIcEE", !2396, i64 0, !2218, i64 216, !2219, i64 224, !2402, i64 225, !2218, i64 232, !2218, i64 240, !2218, i64 248, !2218, i64 256}
+!2396 = !{!"_ZTSSt8ios_base", !2397, i64 8, !2397, i64 16, !2398, i64 24, !2399, i64 28, !2399, i64 32, !2218, i64 40, !2400, i64 48, !2219, i64 64, !2222, i64 192, !2218, i64 200, !2401, i64 208}
+!2397 = !{!"long", !2219, i64 0}
+!2398 = !{!"_ZTSSt13_Ios_Fmtflags", !2219, i64 0}
+!2399 = !{!"_ZTSSt12_Ios_Iostate", !2219, i64 0}
+!2400 = !{!"_ZTSNSt8ios_base6_WordsE", !2218, i64 0, !2397, i64 8}
+!2401 = !{!"_ZTSSt6locale", !2218, i64 0}
+!2402 = !{!"bool", !2219, i64 0}
+!2403 = !DILocalVariable(name: "__f", arg: 1, scope: !2404, file: !2379, line: 47, type: !2411)
+!2404 = distinct !DISubprogram(name: "__check_facet<std::ctype<char> >", linkageName: "_ZSt13__check_facetISt5ctypeIcEERKT_PS3_", scope: !2, file: !2379, line: 47, type: !2405, scopeLine: 48, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, templateParams: !2413, retainedNodes: !2412)
+!2405 = !DISubroutineType(types: !2406)
+!2406 = !{!2407, !2411}
+!2407 = !DIDerivedType(tag: DW_TAG_reference_type, baseType: !2408, size: 64)
+!2408 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !2409)
+!2409 = !DICompositeType(tag: DW_TAG_class_type, name: "ctype<char>", scope: !2, file: !2410, line: 681, size: 4608, flags: DIFlagFwdDecl | DIFlagNonTrivial, identifier: "_ZTSSt5ctypeIcE")
+!2410 = !DIFile(filename: "/opt/rh/gcc-toolset-10/root/usr/lib/gcc/x86_64-redhat-linux/10/../../../../include/c++/10/bits/locale_facets.h", directory: "")
+!2411 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2408, size: 64)
+!2412 = !{!2403}
+!2413 = !{!2414}
+!2414 = !DITemplateTypeParameter(name: "_Facet", type: !2409)
+!2415 = !DILocation(line: 0, scope: !2404, inlinedAt: !2416)
+!2416 = distinct !DILocation(line: 450, column: 16, scope: !2378, inlinedAt: !2392)
+!2417 = !DILocation(line: 49, column: 12, scope: !2418, inlinedAt: !2416)
+!2418 = distinct !DILexicalBlock(scope: !2404, file: !2379, line: 49, column: 11)
+!2419 = !DILocation(line: 49, column: 11, scope: !2404, inlinedAt: !2416)
+!2420 = !DILocation(line: 50, column: 2, scope: !2418, inlinedAt: !2416)
+!2421 = !DILocalVariable(name: "this", arg: 1, scope: !2422, type: !2411, flags: DIFlagArtificial | DIFlagObjectPointer)
+!2422 = distinct !DISubprogram(name: "widen", linkageName: "_ZNKSt5ctypeIcE5widenEc", scope: !2409, file: !2410, line: 872, type: !2423, scopeLine: 873, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, declaration: !2427, retainedNodes: !2428)
+!2423 = !DISubroutineType(types: !2424)
+!2424 = !{!2425, !2426, !12}
+!2425 = !DIDerivedType(tag: DW_TAG_typedef, name: "char_type", scope: !2409, file: !2410, line: 686, baseType: !12)
+!2426 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2408, size: 64, flags: DIFlagArtificial | DIFlagObjectPointer)
+!2427 = !DISubprogram(name: "widen", linkageName: "_ZNKSt5ctypeIcE5widenEc", scope: !2409, file: !2410, line: 872, type: !2423, scopeLine: 872, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!2428 = !{!2421, !2429}
+!2429 = !DILocalVariable(name: "__c", arg: 2, scope: !2422, file: !2410, line: 872, type: !12)
+!2430 = !DILocation(line: 0, scope: !2422, inlinedAt: !2431)
+!2431 = distinct !DILocation(line: 450, column: 40, scope: !2378, inlinedAt: !2392)
+!2432 = !DILocation(line: 874, column: 6, scope: !2433, inlinedAt: !2431)
+!2433 = distinct !DILexicalBlock(scope: !2422, file: !2410, line: 874, column: 6)
+!2434 = !{!2435, !2219, i64 56}
+!2435 = !{!"_ZTSSt5ctypeIcE", !2436, i64 0, !2218, i64 16, !2402, i64 24, !2218, i64 32, !2218, i64 40, !2218, i64 48, !2219, i64 56, !2219, i64 57, !2219, i64 313, !2219, i64 569}
+!2436 = !{!"_ZTSNSt6locale5facetE", !2222, i64 8}
+!2437 = !DILocation(line: 874, column: 6, scope: !2422, inlinedAt: !2431)
+!2438 = !DILocation(line: 875, column: 11, scope: !2433, inlinedAt: !2431)
+!2439 = !{!2219, !2219, i64 0}
+!2440 = !DILocation(line: 875, column: 4, scope: !2433, inlinedAt: !2431)
+!2441 = !DILocation(line: 876, column: 8, scope: !2422, inlinedAt: !2431)
+!2442 = !DILocation(line: 877, column: 15, scope: !2422, inlinedAt: !2431)
+!2443 = !DILocation(line: 877, column: 2, scope: !2422, inlinedAt: !2431)
+!2444 = !DILocation(line: 682, column: 25, scope: !2370, inlinedAt: !2373)
+!2445 = !DILocation(line: 0, scope: !2354, inlinedAt: !2446)
+!2446 = distinct !DILocation(line: 682, column: 14, scope: !2370, inlinedAt: !2373)
+!2447 = !DILocation(line: 704, column: 19, scope: !2354, inlinedAt: !2446)
+!2448 = !DILocation(line: 79, column: 3, scope: !2223)
+!2449 = !DILocalVariable(name: "devPtr", arg: 1, scope: !2450, file: !90, line: 6957, type: !2453)
+!2450 = distinct !DISubprogram(name: "hipMallocManaged<_Atomic(unsigned long)>", linkageName: "_ZL16hipMallocManagedIU7_AtomicmE10hipError_tPPT_mj", scope: !90, file: !90, line: 6957, type: !2451, scopeLine: 6958, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !79, templateParams: !2459, retainedNodes: !2456)
+!2451 = !DISubroutineType(cc: DW_CC_nocall, types: !2452)
+!2452 = !{!2254, !2453, !827, !84}
+!2453 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2454, size: 64)
+!2454 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2455, size: 64)
+!2455 = !DIDerivedType(tag: DW_TAG_atomic_type, baseType: !829)
+!2456 = !{!2449, !2457, !2458}
+!2457 = !DILocalVariable(name: "size", arg: 2, scope: !2450, file: !90, line: 6957, type: !827)
+!2458 = !DILocalVariable(name: "flags", arg: 3, scope: !2450, file: !90, line: 6958, type: !84)
+!2459 = !{!2460}
+!2460 = !DITemplateTypeParameter(name: "T", type: !2455)
+!2461 = !DILocation(line: 0, scope: !2450, inlinedAt: !2462)
+!2462 = distinct !DILocation(line: 80, column: 17, scope: !2223)
+!2463 = !DILocation(line: 6959, column: 29, scope: !2450, inlinedAt: !2462)
+!2464 = !DILocation(line: 6959, column: 12, scope: !2450, inlinedAt: !2462)
+!2465 = !DILocation(line: 0, scope: !2251, inlinedAt: !2466)
+!2466 = distinct !DILocation(line: 80, column: 3, scope: !2223)
+!2467 = !DILocation(line: 181, column: 15, scope: !2259, inlinedAt: !2466)
+!2468 = !DILocation(line: 181, column: 7, scope: !2251, inlinedAt: !2466)
+!2469 = !DILocation(line: 182, column: 15, scope: !2262, inlinedAt: !2466)
+!2470 = !DILocation(line: 182, column: 34, scope: !2262, inlinedAt: !2466)
+!2471 = !DILocation(line: 0, scope: !2265, inlinedAt: !2472)
+!2472 = distinct !DILocation(line: 182, column: 45, scope: !2262, inlinedAt: !2466)
+!2473 = !DILocation(line: 113, column: 9, scope: !2265, inlinedAt: !2472)
+!2474 = !DILocation(line: 183, column: 5, scope: !2262, inlinedAt: !2466)
+!2475 = !DILocation(line: 82, column: 4, scope: !2223)
+!2476 = !DILocation(line: 82, column: 8, scope: !2223)
+!2477 = !DILocation(line: 85, column: 22, scope: !2223)
+!2478 = !DILocation(line: 86, column: 3, scope: !2223)
+!2479 = !DILocation(line: 87, column: 3, scope: !2223)
+!2480 = !DILocalVariable(name: "devPtr", arg: 1, scope: !2481, file: !90, line: 6944, type: !2484)
+!2481 = distinct !DISubprogram(name: "hipMalloc<unsigned long>", linkageName: "_ZL9hipMallocImE10hipError_tPPT_m", scope: !90, file: !90, line: 6944, type: !2482, scopeLine: 6944, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !79, templateParams: !2488, retainedNodes: !2486)
+!2482 = !DISubroutineType(cc: DW_CC_nocall, types: !2483)
+!2483 = !{!2254, !2484, !827}
+!2484 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2485, size: 64)
+!2485 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !829, size: 64)
+!2486 = !{!2480, !2487}
+!2487 = !DILocalVariable(name: "size", arg: 2, scope: !2481, file: !90, line: 6944, type: !827)
+!2488 = !{!2489}
+!2489 = !DITemplateTypeParameter(name: "T", type: !829)
+!2490 = !DILocation(line: 0, scope: !2481, inlinedAt: !2491)
+!2491 = distinct !DILocation(line: 88, column: 17, scope: !2223)
+!2492 = !DILocation(line: 6945, column: 22, scope: !2481, inlinedAt: !2491)
+!2493 = !DILocation(line: 6945, column: 12, scope: !2481, inlinedAt: !2491)
+!2494 = !DILocation(line: 0, scope: !2251, inlinedAt: !2495)
+!2495 = distinct !DILocation(line: 88, column: 3, scope: !2223)
+!2496 = !DILocation(line: 181, column: 15, scope: !2259, inlinedAt: !2495)
+!2497 = !DILocation(line: 181, column: 7, scope: !2251, inlinedAt: !2495)
+!2498 = !DILocation(line: 182, column: 15, scope: !2262, inlinedAt: !2495)
+!2499 = !DILocation(line: 182, column: 34, scope: !2262, inlinedAt: !2495)
+!2500 = !DILocation(line: 0, scope: !2265, inlinedAt: !2501)
+!2501 = distinct !DILocation(line: 182, column: 45, scope: !2262, inlinedAt: !2495)
+!2502 = !DILocation(line: 113, column: 9, scope: !2265, inlinedAt: !2501)
+!2503 = !DILocation(line: 183, column: 5, scope: !2262, inlinedAt: !2495)
+!2504 = !DILocation(line: 89, column: 27, scope: !2223)
+!2505 = !DILocation(line: 89, column: 17, scope: !2223)
+!2506 = !DILocation(line: 0, scope: !2251, inlinedAt: !2507)
+!2507 = distinct !DILocation(line: 89, column: 3, scope: !2223)
+!2508 = !DILocation(line: 181, column: 15, scope: !2259, inlinedAt: !2507)
+!2509 = !DILocation(line: 181, column: 7, scope: !2251, inlinedAt: !2507)
+!2510 = !DILocation(line: 182, column: 15, scope: !2262, inlinedAt: !2507)
+!2511 = !DILocation(line: 182, column: 34, scope: !2262, inlinedAt: !2507)
+!2512 = !DILocation(line: 0, scope: !2265, inlinedAt: !2513)
+!2513 = distinct !DILocation(line: 182, column: 45, scope: !2262, inlinedAt: !2507)
+!2514 = !DILocation(line: 113, column: 9, scope: !2265, inlinedAt: !2513)
+!2515 = !DILocation(line: 183, column: 5, scope: !2262, inlinedAt: !2507)
+!2516 = !DILocation(line: 92, column: 3, scope: !2223)
+!2517 = !DILocalVariable(name: "devPtr", arg: 1, scope: !2518, file: !90, line: 6944, type: !2521)
+!2518 = distinct !DISubprogram(name: "hipMalloc<long>", linkageName: "_ZL9hipMallocIlE10hipError_tPPT_m", scope: !90, file: !90, line: 6944, type: !2519, scopeLine: 6944, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !79, templateParams: !2525, retainedNodes: !2523)
+!2519 = !DISubroutineType(cc: DW_CC_nocall, types: !2520)
+!2520 = !{!2254, !2521, !827}
+!2521 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2522, size: 64)
+!2522 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !210, size: 64)
+!2523 = !{!2517, !2524}
+!2524 = !DILocalVariable(name: "size", arg: 2, scope: !2518, file: !90, line: 6944, type: !827)
+!2525 = !{!2526}
+!2526 = !DITemplateTypeParameter(name: "T", type: !210)
+!2527 = !DILocation(line: 0, scope: !2518, inlinedAt: !2528)
+!2528 = distinct !DILocation(line: 93, column: 17, scope: !2223)
+!2529 = !DILocation(line: 6945, column: 22, scope: !2518, inlinedAt: !2528)
+!2530 = !DILocation(line: 6945, column: 12, scope: !2518, inlinedAt: !2528)
+!2531 = !DILocation(line: 0, scope: !2251, inlinedAt: !2532)
+!2532 = distinct !DILocation(line: 93, column: 3, scope: !2223)
+!2533 = !DILocation(line: 181, column: 15, scope: !2259, inlinedAt: !2532)
+!2534 = !DILocation(line: 181, column: 7, scope: !2251, inlinedAt: !2532)
+!2535 = !DILocation(line: 182, column: 15, scope: !2262, inlinedAt: !2532)
+!2536 = !DILocation(line: 182, column: 34, scope: !2262, inlinedAt: !2532)
+!2537 = !DILocation(line: 0, scope: !2265, inlinedAt: !2538)
+!2538 = distinct !DILocation(line: 182, column: 45, scope: !2262, inlinedAt: !2532)
+!2539 = !DILocation(line: 113, column: 9, scope: !2265, inlinedAt: !2538)
+!2540 = !DILocation(line: 183, column: 5, scope: !2262, inlinedAt: !2532)
+!2541 = !DILocation(line: 95, column: 2, scope: !2542)
+!2542 = distinct !DILexicalBlock(scope: !2223, file: !9, line: 95, column: 2)
+!2543 = !DILocation(line: 98, column: 27, scope: !2223)
+!2544 = !DILocation(line: 99, column: 3, scope: !2223)
+!2545 = !DILocation(line: 100, column: 41, scope: !2223)
+!2546 = !DILocation(line: 100, column: 17, scope: !2223)
+!2547 = !DILocation(line: 0, scope: !2251, inlinedAt: !2548)
+!2548 = distinct !DILocation(line: 100, column: 3, scope: !2223)
+!2549 = !DILocation(line: 181, column: 15, scope: !2259, inlinedAt: !2548)
+!2550 = !DILocation(line: 181, column: 7, scope: !2251, inlinedAt: !2548)
+!2551 = !DILocation(line: 182, column: 15, scope: !2262, inlinedAt: !2548)
+!2552 = !DILocation(line: 182, column: 34, scope: !2262, inlinedAt: !2548)
+!2553 = !DILocation(line: 0, scope: !2265, inlinedAt: !2554)
+!2554 = distinct !DILocation(line: 182, column: 45, scope: !2262, inlinedAt: !2548)
+!2555 = !DILocation(line: 113, column: 9, scope: !2265, inlinedAt: !2554)
+!2556 = !DILocation(line: 183, column: 5, scope: !2262, inlinedAt: !2548)
+!2557 = !DILocation(line: 0, scope: !2286, inlinedAt: !2558)
+!2558 = distinct !DILocation(line: 101, column: 13, scope: !2223)
+!2559 = !DILocation(line: 611, column: 2, scope: !2350, inlinedAt: !2558)
+!2560 = !DILocation(line: 0, scope: !2243)
+!2561 = !DILocation(line: 102, column: 3, scope: !2243)
+!2562 = !DILocation(line: 0, scope: !2286, inlinedAt: !2563)
+!2563 = distinct !DILocation(line: 108, column: 15, scope: !2564)
+!2564 = distinct !DILexicalBlock(scope: !2223, file: !9, line: 107, column: 7)
+!2565 = !DILocation(line: 611, column: 2, scope: !2350, inlinedAt: !2563)
+!2566 = !DILocalVariable(name: "__f", arg: 2, scope: !2567, file: !2568, line: 178, type: !2571)
+!2567 = distinct !DISubprogram(name: "operator<<<char, std::char_traits<char> >", linkageName: "_ZStlsIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_St8_SetfillIS3_E", scope: !2, file: !2568, line: 178, type: !2569, scopeLine: 179, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, templateParams: !2358, retainedNodes: !2574)
+!2568 = !DIFile(filename: "/opt/rh/gcc-toolset-10/root/usr/lib/gcc/x86_64-redhat-linux/10/../../../../include/c++/10/iomanip", directory: "")
+!2569 = !DISubroutineType(types: !2570)
+!2570 = !{!2289, !2289, !2571}
+!2571 = distinct !DICompositeType(tag: DW_TAG_structure_type, name: "_Setfill<char>", scope: !2, file: !2568, line: 154, size: 8, flags: DIFlagTypePassByValue, elements: !2572, templateParams: !2345, identifier: "_ZTSSt8_SetfillIcE")
+!2572 = !{!2573}
+!2573 = !DIDerivedType(tag: DW_TAG_member, name: "_M_c", scope: !2571, file: !2568, line: 154, baseType: !12, size: 8)
+!2574 = !{!2575, !2566}
+!2575 = !DILocalVariable(name: "__os", arg: 1, scope: !2567, file: !2568, line: 178, type: !2289)
+!2576 = !DILocation(line: 0, scope: !2567, inlinedAt: !2577)
+!2577 = distinct !DILocation(line: 108, column: 27, scope: !2564)
+!2578 = !DILocation(line: 180, column: 7, scope: !2567, inlinedAt: !2577)
+!2579 = !DILocalVariable(name: "this", arg: 1, scope: !2580, type: !2588, flags: DIFlagArtificial | DIFlagObjectPointer)
+!2580 = distinct !DISubprogram(name: "fill", linkageName: "_ZNSt9basic_iosIcSt11char_traitsIcEE4fillEc", scope: !2380, file: !2379, line: 390, type: !2581, scopeLine: 391, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, declaration: !2584, retainedNodes: !2585)
+!2581 = !DISubroutineType(types: !2582)
+!2582 = !{!2384, !2583, !2384}
+!2583 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2380, size: 64, flags: DIFlagArtificial | DIFlagObjectPointer)
+!2584 = !DISubprogram(name: "fill", linkageName: "_ZNSt9basic_iosIcSt11char_traitsIcEE4fillEc", scope: !2380, file: !2379, line: 390, type: !2581, scopeLine: 390, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!2585 = !{!2579, !2586, !2587}
+!2586 = !DILocalVariable(name: "__ch", arg: 2, scope: !2580, file: !2379, line: 390, type: !2384)
+!2587 = !DILocalVariable(name: "__old", scope: !2580, file: !2379, line: 392, type: !2384)
+!2588 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2380, size: 64)
+!2589 = !DILocation(line: 0, scope: !2580, inlinedAt: !2590)
+!2590 = distinct !DILocation(line: 180, column: 12, scope: !2567, inlinedAt: !2577)
+!2591 = !DILocalVariable(name: "this", arg: 1, scope: !2592, type: !2390, flags: DIFlagArtificial | DIFlagObjectPointer)
+!2592 = distinct !DISubprogram(name: "fill", linkageName: "_ZNKSt9basic_iosIcSt11char_traitsIcEE4fillEv", scope: !2380, file: !2379, line: 370, type: !2593, scopeLine: 371, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, declaration: !2595, retainedNodes: !2596)
+!2593 = !DISubroutineType(types: !2594)
+!2594 = !{!2384, !2385}
+!2595 = !DISubprogram(name: "fill", linkageName: "_ZNKSt9basic_iosIcSt11char_traitsIcEE4fillEv", scope: !2380, file: !2379, line: 370, type: !2593, scopeLine: 370, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!2596 = !{!2591}
+!2597 = !DILocation(line: 0, scope: !2592, inlinedAt: !2598)
+!2598 = distinct !DILocation(line: 392, column: 26, scope: !2580, inlinedAt: !2590)
+!2599 = !DILocation(line: 372, column: 7, scope: !2600, inlinedAt: !2598)
+!2600 = distinct !DILexicalBlock(scope: !2592, file: !2379, line: 372, column: 6)
+!2601 = !{!2395, !2402, i64 225}
+!2602 = !{i8 0, i8 2}
+!2603 = !DILocation(line: 372, column: 6, scope: !2592, inlinedAt: !2598)
+!2604 = !DILocation(line: 0, scope: !2378, inlinedAt: !2605)
+!2605 = distinct !DILocation(line: 374, column: 22, scope: !2606, inlinedAt: !2598)
+!2606 = distinct !DILexicalBlock(scope: !2600, file: !2379, line: 373, column: 4)
+!2607 = !DILocation(line: 450, column: 30, scope: !2378, inlinedAt: !2605)
+!2608 = !DILocation(line: 0, scope: !2404, inlinedAt: !2609)
+!2609 = distinct !DILocation(line: 450, column: 16, scope: !2378, inlinedAt: !2605)
+!2610 = !DILocation(line: 49, column: 12, scope: !2418, inlinedAt: !2609)
+!2611 = !DILocation(line: 49, column: 11, scope: !2404, inlinedAt: !2609)
+!2612 = !DILocation(line: 50, column: 2, scope: !2418, inlinedAt: !2609)
+!2613 = !DILocation(line: 0, scope: !2422, inlinedAt: !2614)
+!2614 = distinct !DILocation(line: 450, column: 40, scope: !2378, inlinedAt: !2605)
+!2615 = !DILocation(line: 874, column: 6, scope: !2433, inlinedAt: !2614)
+!2616 = !DILocation(line: 874, column: 6, scope: !2422, inlinedAt: !2614)
+!2617 = !DILocation(line: 876, column: 8, scope: !2422, inlinedAt: !2614)
+!2618 = !DILocation(line: 877, column: 15, scope: !2422, inlinedAt: !2614)
+!2619 = !DILocation(line: 240, column: 7, scope: !2620, inlinedAt: !2629)
+!2620 = distinct !DISubprogram(name: "operator<<<char, std::char_traits<char> >", linkageName: "_ZStlsIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_St5_Setw", scope: !2, file: !2568, line: 238, type: !2621, scopeLine: 239, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, templateParams: !2358, retainedNodes: !2626)
+!2621 = !DISubroutineType(types: !2622)
+!2622 = !{!2289, !2289, !2623}
+!2623 = distinct !DICompositeType(tag: DW_TAG_structure_type, name: "_Setw", scope: !2, file: !2568, line: 215, size: 32, flags: DIFlagTypePassByValue, elements: !2624, identifier: "_ZTSSt5_Setw")
+!2624 = !{!2625}
+!2625 = !DIDerivedType(tag: DW_TAG_member, name: "_M_n", scope: !2623, file: !2568, line: 215, baseType: !179, size: 32)
+!2626 = !{!2627, !2628}
+!2627 = !DILocalVariable(name: "__os", arg: 1, scope: !2620, file: !2568, line: 238, type: !2289)
+!2628 = !DILocalVariable(name: "__f", arg: 2, scope: !2620, file: !2568, line: 238, type: !2623)
+!2629 = distinct !DILocation(line: 108, column: 48, scope: !2564)
+!2630 = !DILocation(line: 877, column: 2, scope: !2422, inlinedAt: !2614)
+!2631 = !DILocation(line: 375, column: 19, scope: !2606, inlinedAt: !2598)
+!2632 = !DILocation(line: 376, column: 4, scope: !2606, inlinedAt: !2598)
+!2633 = !DILocation(line: 393, column: 2, scope: !2580, inlinedAt: !2590)
+!2634 = !DILocation(line: 393, column: 10, scope: !2580, inlinedAt: !2590)
+!2635 = !{!2395, !2219, i64 224}
+!2636 = !DILocation(line: 0, scope: !2620, inlinedAt: !2629)
+!2637 = !DILocalVariable(name: "this", arg: 1, scope: !2638, type: !2646, flags: DIFlagArtificial | DIFlagObjectPointer)
+!2638 = distinct !DISubprogram(name: "width", linkageName: "_ZNSt8ios_base5widthEl", scope: !6, file: !5, line: 751, type: !2639, scopeLine: 752, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, declaration: !2642, retainedNodes: !2643)
+!2639 = !DISubroutineType(types: !2640)
+!2640 = !{!272, !2641, !272}
+!2641 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !6, size: 64, flags: DIFlagArtificial | DIFlagObjectPointer)
+!2642 = !DISubprogram(name: "width", linkageName: "_ZNSt8ios_base5widthEl", scope: !6, file: !5, line: 751, type: !2639, scopeLine: 751, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!2643 = !{!2637, !2644, !2645}
+!2644 = !DILocalVariable(name: "__wide", arg: 2, scope: !2638, file: !5, line: 751, type: !272)
+!2645 = !DILocalVariable(name: "__old", scope: !2638, file: !5, line: 753, type: !272)
+!2646 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !6, size: 64)
+!2647 = !DILocation(line: 0, scope: !2638, inlinedAt: !2648)
+!2648 = distinct !DILocation(line: 240, column: 12, scope: !2620, inlinedAt: !2629)
+!2649 = !DILocation(line: 753, column: 26, scope: !2638, inlinedAt: !2648)
+!2650 = !DILocation(line: 754, column: 16, scope: !2638, inlinedAt: !2648)
+!2651 = !{!2396, !2397, i64 16}
+!2652 = !DILocation(line: 0, scope: !2286, inlinedAt: !2653)
+!2653 = distinct !DILocation(line: 108, column: 64, scope: !2564)
+!2654 = !DILocation(line: 611, column: 2, scope: !2350, inlinedAt: !2653)
+!2655 = !DILocation(line: 0, scope: !2286, inlinedAt: !2656)
+!2656 = distinct !DILocation(line: 109, column: 13, scope: !2223)
+!2657 = !DILocation(line: 611, column: 2, scope: !2350, inlinedAt: !2656)
+!2658 = !DILocation(line: 0, scope: !2265, inlinedAt: !2659)
+!2659 = distinct !DILocation(line: 109, column: 26, scope: !2223)
+!2660 = !DILocation(line: 0, scope: !2354, inlinedAt: !2661)
+!2661 = distinct !DILocation(line: 113, column: 9, scope: !2265, inlinedAt: !2659)
+!2662 = !DILocation(line: 704, column: 19, scope: !2354, inlinedAt: !2661)
+!2663 = !DILocation(line: 113, column: 18, scope: !2223)
+!2664 = !DILocation(line: 113, column: 3, scope: !2223)
+!2665 = !DILocation(line: 103, column: 11, scope: !2666)
+!2666 = distinct !DILexicalBlock(scope: !2667, file: !9, line: 103, column: 9)
+!2667 = distinct !DILexicalBlock(scope: !2668, file: !9, line: 102, column: 42)
+!2668 = distinct !DILexicalBlock(scope: !2243, file: !9, line: 102, column: 3)
+!2669 = !DILocation(line: 103, column: 32, scope: !2666)
+!2670 = !DILocation(line: 103, column: 9, scope: !2667)
+!2671 = !DILocation(line: 0, scope: !2286, inlinedAt: !2672)
+!2672 = distinct !DILocation(line: 104, column: 17, scope: !2666)
+!2673 = !DILocation(line: 611, column: 2, scope: !2350, inlinedAt: !2672)
+!2674 = !DILocation(line: 104, column: 7, scope: !2666)
+!2675 = !DILocation(line: 0, scope: !2567, inlinedAt: !2676)
+!2676 = distinct !DILocation(line: 105, column: 15, scope: !2667)
+!2677 = !DILocation(line: 180, column: 7, scope: !2567, inlinedAt: !2676)
+!2678 = !DILocation(line: 0, scope: !2580, inlinedAt: !2679)
+!2679 = distinct !DILocation(line: 180, column: 12, scope: !2567, inlinedAt: !2676)
+!2680 = !DILocation(line: 0, scope: !2592, inlinedAt: !2681)
+!2681 = distinct !DILocation(line: 392, column: 26, scope: !2580, inlinedAt: !2679)
+!2682 = !DILocation(line: 372, column: 7, scope: !2600, inlinedAt: !2681)
+!2683 = !DILocation(line: 372, column: 6, scope: !2592, inlinedAt: !2681)
+!2684 = !DILocation(line: 0, scope: !2378, inlinedAt: !2685)
+!2685 = distinct !DILocation(line: 374, column: 22, scope: !2606, inlinedAt: !2681)
+!2686 = !DILocation(line: 450, column: 30, scope: !2378, inlinedAt: !2685)
+!2687 = !DILocation(line: 0, scope: !2404, inlinedAt: !2688)
+!2688 = distinct !DILocation(line: 450, column: 16, scope: !2378, inlinedAt: !2685)
+!2689 = !DILocation(line: 49, column: 12, scope: !2418, inlinedAt: !2688)
+!2690 = !DILocation(line: 49, column: 11, scope: !2404, inlinedAt: !2688)
+!2691 = !DILocation(line: 50, column: 2, scope: !2418, inlinedAt: !2688)
+!2692 = !DILocation(line: 0, scope: !2422, inlinedAt: !2693)
+!2693 = distinct !DILocation(line: 450, column: 40, scope: !2378, inlinedAt: !2685)
+!2694 = !DILocation(line: 874, column: 6, scope: !2433, inlinedAt: !2693)
+!2695 = !DILocation(line: 874, column: 6, scope: !2422, inlinedAt: !2693)
+!2696 = !DILocation(line: 876, column: 8, scope: !2422, inlinedAt: !2693)
+!2697 = !DILocation(line: 877, column: 15, scope: !2422, inlinedAt: !2693)
+!2698 = !DILocation(line: 240, column: 7, scope: !2620, inlinedAt: !2699)
+!2699 = distinct !DILocation(line: 105, column: 36, scope: !2667)
+!2700 = !DILocation(line: 877, column: 2, scope: !2422, inlinedAt: !2693)
+!2701 = !DILocation(line: 375, column: 19, scope: !2606, inlinedAt: !2681)
+!2702 = !DILocation(line: 376, column: 4, scope: !2606, inlinedAt: !2681)
+!2703 = !DILocation(line: 393, column: 2, scope: !2580, inlinedAt: !2679)
+!2704 = !DILocation(line: 393, column: 10, scope: !2580, inlinedAt: !2679)
+!2705 = !DILocation(line: 0, scope: !2620, inlinedAt: !2699)
+!2706 = !DILocation(line: 0, scope: !2638, inlinedAt: !2707)
+!2707 = distinct !DILocation(line: 240, column: 12, scope: !2620, inlinedAt: !2699)
+!2708 = !DILocation(line: 753, column: 26, scope: !2638, inlinedAt: !2707)
+!2709 = !DILocation(line: 754, column: 16, scope: !2638, inlinedAt: !2707)
+!2710 = !DILocation(line: 105, column: 55, scope: !2667)
+!2711 = !{!2397, !2397, i64 0}
+!2712 = !DILocalVariable(name: "this", arg: 1, scope: !2713, type: !2280, flags: DIFlagArtificial | DIFlagObjectPointer)
+!2713 = distinct !DISubprogram(name: "operator<<", linkageName: "_ZNSolsEl", scope: !2267, file: !2266, line: 166, type: !2714, scopeLine: 167, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, declaration: !2716, retainedNodes: !2717)
+!2714 = !DISubroutineType(types: !2715)
+!2715 = !{!2271, !2273, !210}
+!2716 = !DISubprogram(name: "operator<<", linkageName: "_ZNSolsEl", scope: !2267, file: !2266, line: 166, type: !2714, scopeLine: 166, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!2717 = !{!2712, !2718}
+!2718 = !DILocalVariable(name: "__n", arg: 2, scope: !2713, file: !2266, line: 166, type: !210)
+!2719 = !DILocation(line: 0, scope: !2713, inlinedAt: !2720)
+!2720 = distinct !DILocation(line: 105, column: 52, scope: !2667)
+!2721 = !DILocation(line: 167, column: 16, scope: !2713, inlinedAt: !2720)
+!2722 = !DILocation(line: 0, scope: !2286, inlinedAt: !2723)
+!2723 = distinct !DILocation(line: 105, column: 71, scope: !2667)
+!2724 = !DILocation(line: 611, column: 2, scope: !2350, inlinedAt: !2723)
+!2725 = !DILocation(line: 102, column: 37, scope: !2668)
+!2726 = !DILocation(line: 102, column: 21, scope: !2668)
+!2727 = distinct !{!2727, !2561, !2728, !2729}
+!2728 = !DILocation(line: 106, column: 3, scope: !2243)
+!2729 = !{!"llvm.loop.mustprogress"}
+!2730 = !DILocation(line: 113, column: 49, scope: !2223)
+!2731 = !DILocation(line: 113, column: 54, scope: !2223)
+!2732 = !DILocation(line: 113, column: 62, scope: !2223)
+!2733 = !DILocation(line: 117, column: 3, scope: !2223)
+!2734 = !DILocation(line: 401, column: 2, scope: !2735, inlinedAt: !2758)
+!2735 = distinct !DISubprogram(name: "sleep_for<long, std::ratio<1L, 1000L> >", linkageName: "_ZNSt11this_thread9sleep_forIlSt5ratioILl1ELl1000EEEEvRKNSt6chrono8durationIT_T0_EE", scope: !2737, file: !2736, line: 389, type: !2738, scopeLine: 390, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, templateParams: !260, retainedNodes: !2740)
+!2736 = !DIFile(filename: "/opt/rh/gcc-toolset-10/root/usr/lib/gcc/x86_64-redhat-linux/10/../../../../include/c++/10/thread", directory: "")
+!2737 = !DINamespace(name: "this_thread", scope: !2)
+!2738 = !DISubroutineType(types: !2739)
+!2739 = !{null, !224}
+!2740 = !{!2741, !2742, !2749, !2755}
+!2741 = !DILocalVariable(name: "__rtime", arg: 1, scope: !2735, file: !2736, line: 389, type: !224)
+!2742 = !DILocalVariable(name: "__s", scope: !2735, file: !2736, line: 393, type: !2743)
+!2743 = !DIDerivedType(tag: DW_TAG_typedef, name: "__enable_if_is_duration<std::chrono::duration<long, std::ratio<1L, 1L> > >", scope: !205, file: !204, line: 242, baseType: !2744)
+!2744 = !DIDerivedType(tag: DW_TAG_typedef, name: "type", scope: !2745, file: !423, line: 2188, baseType: !302)
+!2745 = distinct !DICompositeType(tag: DW_TAG_structure_type, name: "enable_if<true, std::chrono::duration<long, std::ratio<1L, 1L> > >", scope: !2, file: !423, line: 2187, size: 8, flags: DIFlagTypePassByValue, elements: !297, templateParams: !2746, identifier: "_ZTSSt9enable_ifILb1ENSt6chrono8durationIlSt5ratioILl1ELl1EEEEE")
+!2746 = !{!2747, !2748}
+!2747 = !DITemplateValueParameter(type: !286, value: i1 true)
+!2748 = !DITemplateTypeParameter(name: "_Tp", type: !302)
+!2749 = !DILocalVariable(name: "__ns", scope: !2735, file: !2736, line: 394, type: !2750)
+!2750 = !DIDerivedType(tag: DW_TAG_typedef, name: "__enable_if_is_duration<std::chrono::duration<long, std::ratio<1L, 1000000000L> > >", scope: !205, file: !204, line: 242, baseType: !2751)
+!2751 = !DIDerivedType(tag: DW_TAG_typedef, name: "type", scope: !2752, file: !423, line: 2188, baseType: !358)
+!2752 = distinct !DICompositeType(tag: DW_TAG_structure_type, name: "enable_if<true, std::chrono::duration<long, std::ratio<1L, 1000000000L> > >", scope: !2, file: !423, line: 2187, size: 8, flags: DIFlagTypePassByValue, elements: !297, templateParams: !2753, identifier: "_ZTSSt9enable_ifILb1ENSt6chrono8durationIlSt5ratioILl1ELl1000000000EEEEE")
+!2753 = !{!2747, !2754}
+!2754 = !DITemplateTypeParameter(name: "_Tp", type: !358)
+!2755 = !DILocalVariable(name: "__ts", scope: !2735, file: !2736, line: 396, type: !2756)
+!2756 = !DIDerivedType(tag: DW_TAG_typedef, name: "__gthread_time_t", file: !2757, line: 53, baseType: !2026)
+!2757 = !DIFile(filename: "/opt/rh/gcc-toolset-10/root/usr/lib/gcc/x86_64-redhat-linux/10/../../../../include/c++/10/x86_64-redhat-linux/bits/gthr-default.h", directory: "", checksumkind: CSK_MD5, checksum: "67de20ea417b349191308ef2cace4b80")
+!2758 = distinct !DILocation(line: 118, column: 5, scope: !2759)
+!2759 = distinct !DILexicalBlock(scope: !2223, file: !9, line: 117, column: 6)
+!2760 = !DILocation(line: 0, scope: !2735, inlinedAt: !2758)
+!2761 = !DILocation(line: 396, column: 2, scope: !2735, inlinedAt: !2758)
+!2762 = !DILocation(line: 396, column: 19, scope: !2735, inlinedAt: !2758)
+!2763 = !DILocation(line: 397, column: 4, scope: !2735, inlinedAt: !2758)
+!2764 = !DILocation(line: 401, column: 9, scope: !2735, inlinedAt: !2758)
+!2765 = !DILocation(line: 401, column: 35, scope: !2735, inlinedAt: !2758)
+!2766 = !DILocation(line: 401, column: 41, scope: !2735, inlinedAt: !2758)
+!2767 = !DILocation(line: 401, column: 44, scope: !2735, inlinedAt: !2758)
+!2768 = !DILocation(line: 401, column: 50, scope: !2735, inlinedAt: !2758)
+!2769 = distinct !{!2769, !2734, !2770, !2729}
+!2770 = !DILocation(line: 402, column: 6, scope: !2735, inlinedAt: !2758)
+!2771 = !DILocation(line: 406, column: 7, scope: !2735, inlinedAt: !2758)
+!2772 = !DILocation(line: 119, column: 13, scope: !2223)
+!2773 = !DILocation(line: 119, column: 12, scope: !2223)
+!2774 = !DILocation(line: 119, column: 17, scope: !2223)
+!2775 = !DILocation(line: 119, column: 22, scope: !2223)
+!2776 = !DILocation(line: 119, column: 26, scope: !2223)
+!2777 = !DILocation(line: 119, column: 39, scope: !2223)
+!2778 = !DILocation(line: 119, column: 3, scope: !2759)
+!2779 = distinct !{!2779, !2733, !2780, !2729}
+!2780 = !DILocation(line: 119, column: 43, scope: !2223)
+!2781 = !DILocation(line: 121, column: 8, scope: !2782)
+!2782 = distinct !DILexicalBlock(scope: !2223, file: !9, line: 121, column: 7)
+!2783 = !DILocation(line: 121, column: 7, scope: !2782)
+!2784 = !DILocation(line: 121, column: 12, scope: !2782)
+!2785 = !DILocation(line: 121, column: 7, scope: !2223)
+!2786 = !DILocation(line: 0, scope: !2286, inlinedAt: !2787)
+!2787 = distinct !DILocation(line: 122, column: 15, scope: !2782)
+!2788 = !DILocation(line: 611, column: 2, scope: !2350, inlinedAt: !2787)
+!2789 = !DILocation(line: 0, scope: !2265, inlinedAt: !2790)
+!2790 = distinct !DILocation(line: 122, column: 81, scope: !2782)
+!2791 = !DILocation(line: 0, scope: !2370, inlinedAt: !2792)
+!2792 = distinct !DILocation(line: 113, column: 9, scope: !2265, inlinedAt: !2790)
+!2793 = !DILocation(line: 682, column: 29, scope: !2370, inlinedAt: !2792)
+!2794 = !DILocation(line: 0, scope: !2378, inlinedAt: !2795)
+!2795 = distinct !DILocation(line: 682, column: 34, scope: !2370, inlinedAt: !2792)
+!2796 = !DILocation(line: 450, column: 30, scope: !2378, inlinedAt: !2795)
+!2797 = !DILocation(line: 0, scope: !2404, inlinedAt: !2798)
+!2798 = distinct !DILocation(line: 450, column: 16, scope: !2378, inlinedAt: !2795)
+!2799 = !DILocation(line: 49, column: 12, scope: !2418, inlinedAt: !2798)
+!2800 = !DILocation(line: 49, column: 11, scope: !2404, inlinedAt: !2798)
+!2801 = !DILocation(line: 50, column: 2, scope: !2418, inlinedAt: !2798)
+!2802 = !DILocation(line: 0, scope: !2422, inlinedAt: !2803)
+!2803 = distinct !DILocation(line: 450, column: 40, scope: !2378, inlinedAt: !2795)
+!2804 = !DILocation(line: 874, column: 6, scope: !2433, inlinedAt: !2803)
+!2805 = !DILocation(line: 874, column: 6, scope: !2422, inlinedAt: !2803)
+!2806 = !DILocation(line: 875, column: 11, scope: !2433, inlinedAt: !2803)
+!2807 = !DILocation(line: 875, column: 4, scope: !2433, inlinedAt: !2803)
+!2808 = !DILocation(line: 876, column: 8, scope: !2422, inlinedAt: !2803)
+!2809 = !DILocation(line: 877, column: 15, scope: !2422, inlinedAt: !2803)
+!2810 = !DILocation(line: 877, column: 2, scope: !2422, inlinedAt: !2803)
+!2811 = !DILocation(line: 682, column: 25, scope: !2370, inlinedAt: !2792)
+!2812 = !DILocation(line: 0, scope: !2354, inlinedAt: !2813)
+!2813 = distinct !DILocation(line: 682, column: 14, scope: !2370, inlinedAt: !2792)
+!2814 = !DILocation(line: 704, column: 19, scope: !2354, inlinedAt: !2813)
+!2815 = !DILocation(line: 122, column: 5, scope: !2782)
+!2816 = !DILocation(line: 130, column: 35, scope: !2223)
+!2817 = !DILocation(line: 130, column: 17, scope: !2223)
+!2818 = !DILocation(line: 0, scope: !2251, inlinedAt: !2819)
+!2819 = distinct !DILocation(line: 130, column: 3, scope: !2223)
+!2820 = !DILocation(line: 181, column: 15, scope: !2259, inlinedAt: !2819)
+!2821 = !DILocation(line: 181, column: 7, scope: !2251, inlinedAt: !2819)
+!2822 = !DILocation(line: 182, column: 15, scope: !2262, inlinedAt: !2819)
+!2823 = !DILocation(line: 182, column: 34, scope: !2262, inlinedAt: !2819)
+!2824 = !DILocation(line: 0, scope: !2265, inlinedAt: !2825)
+!2825 = distinct !DILocation(line: 182, column: 45, scope: !2262, inlinedAt: !2819)
+!2826 = !DILocation(line: 113, column: 9, scope: !2265, inlinedAt: !2825)
+!2827 = !DILocation(line: 183, column: 5, scope: !2262, inlinedAt: !2819)
+!2828 = !DILocation(line: 0, scope: !2286, inlinedAt: !2829)
+!2829 = distinct !DILocation(line: 134, column: 13, scope: !2223)
+!2830 = !DILocation(line: 611, column: 2, scope: !2350, inlinedAt: !2829)
+!2831 = !DILocation(line: 134, column: 47, scope: !2223)
+!2832 = !DILocation(line: 134, column: 46, scope: !2223)
+!2833 = !DILocalVariable(name: "this", arg: 1, scope: !2834, type: !2280, flags: DIFlagArtificial | DIFlagObjectPointer)
+!2834 = distinct !DISubprogram(name: "operator<<", linkageName: "_ZNSolsEm", scope: !2267, file: !2266, line: 170, type: !2835, scopeLine: 171, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, declaration: !2837, retainedNodes: !2838)
+!2835 = !DISubroutineType(types: !2836)
+!2836 = !{!2271, !2273, !829}
+!2837 = !DISubprogram(name: "operator<<", linkageName: "_ZNSolsEm", scope: !2267, file: !2266, line: 170, type: !2835, scopeLine: 170, flags: DIFlagPublic | DIFlagPrototyped, spFlags: DISPFlagOptimized)
+!2838 = !{!2833, !2839}
+!2839 = !DILocalVariable(name: "__n", arg: 2, scope: !2834, file: !2266, line: 170, type: !829)
+!2840 = !DILocation(line: 0, scope: !2834, inlinedAt: !2841)
+!2841 = distinct !DILocation(line: 134, column: 43, scope: !2223)
+!2842 = !DILocation(line: 171, column: 16, scope: !2834, inlinedAt: !2841)
+!2843 = !DILocation(line: 0, scope: !2286, inlinedAt: !2844)
+!2844 = distinct !DILocation(line: 135, column: 13, scope: !2223)
+!2845 = !DILocation(line: 611, column: 2, scope: !2350, inlinedAt: !2844)
+!2846 = !DILocation(line: 0, scope: !2245)
+!2847 = !DILocation(line: 137, column: 3, scope: !2245)
+!2848 = !DILocation(line: 0, scope: !2286, inlinedAt: !2849)
+!2849 = distinct !DILocation(line: 143, column: 15, scope: !2850)
+!2850 = distinct !DILexicalBlock(scope: !2223, file: !9, line: 142, column: 7)
+!2851 = !DILocation(line: 611, column: 2, scope: !2350, inlinedAt: !2849)
+!2852 = !DILocation(line: 0, scope: !2567, inlinedAt: !2853)
+!2853 = distinct !DILocation(line: 143, column: 27, scope: !2850)
+!2854 = !DILocation(line: 180, column: 7, scope: !2567, inlinedAt: !2853)
+!2855 = !DILocation(line: 0, scope: !2580, inlinedAt: !2856)
+!2856 = distinct !DILocation(line: 180, column: 12, scope: !2567, inlinedAt: !2853)
+!2857 = !DILocation(line: 0, scope: !2592, inlinedAt: !2858)
+!2858 = distinct !DILocation(line: 392, column: 26, scope: !2580, inlinedAt: !2856)
+!2859 = !DILocation(line: 372, column: 7, scope: !2600, inlinedAt: !2858)
+!2860 = !DILocation(line: 372, column: 6, scope: !2592, inlinedAt: !2858)
+!2861 = !DILocation(line: 0, scope: !2378, inlinedAt: !2862)
+!2862 = distinct !DILocation(line: 374, column: 22, scope: !2606, inlinedAt: !2858)
+!2863 = !DILocation(line: 450, column: 30, scope: !2378, inlinedAt: !2862)
+!2864 = !DILocation(line: 0, scope: !2404, inlinedAt: !2865)
+!2865 = distinct !DILocation(line: 450, column: 16, scope: !2378, inlinedAt: !2862)
+!2866 = !DILocation(line: 49, column: 12, scope: !2418, inlinedAt: !2865)
+!2867 = !DILocation(line: 49, column: 11, scope: !2404, inlinedAt: !2865)
+!2868 = !DILocation(line: 50, column: 2, scope: !2418, inlinedAt: !2865)
+!2869 = !DILocation(line: 0, scope: !2422, inlinedAt: !2870)
+!2870 = distinct !DILocation(line: 450, column: 40, scope: !2378, inlinedAt: !2862)
+!2871 = !DILocation(line: 874, column: 6, scope: !2433, inlinedAt: !2870)
+!2872 = !DILocation(line: 874, column: 6, scope: !2422, inlinedAt: !2870)
+!2873 = !DILocation(line: 876, column: 8, scope: !2422, inlinedAt: !2870)
+!2874 = !DILocation(line: 877, column: 15, scope: !2422, inlinedAt: !2870)
+!2875 = !DILocation(line: 240, column: 7, scope: !2620, inlinedAt: !2876)
+!2876 = distinct !DILocation(line: 143, column: 48, scope: !2850)
+!2877 = !DILocation(line: 877, column: 2, scope: !2422, inlinedAt: !2870)
+!2878 = !DILocation(line: 375, column: 19, scope: !2606, inlinedAt: !2858)
+!2879 = !DILocation(line: 376, column: 4, scope: !2606, inlinedAt: !2858)
+!2880 = !DILocation(line: 393, column: 2, scope: !2580, inlinedAt: !2856)
+!2881 = !DILocation(line: 393, column: 10, scope: !2580, inlinedAt: !2856)
+!2882 = !DILocation(line: 0, scope: !2620, inlinedAt: !2876)
+!2883 = !DILocation(line: 0, scope: !2638, inlinedAt: !2884)
+!2884 = distinct !DILocation(line: 240, column: 12, scope: !2620, inlinedAt: !2876)
+!2885 = !DILocation(line: 753, column: 26, scope: !2638, inlinedAt: !2884)
+!2886 = !DILocation(line: 754, column: 16, scope: !2638, inlinedAt: !2884)
+!2887 = !DILocation(line: 0, scope: !2286, inlinedAt: !2888)
+!2888 = distinct !DILocation(line: 143, column: 64, scope: !2850)
+!2889 = !DILocation(line: 611, column: 2, scope: !2350, inlinedAt: !2888)
+!2890 = !DILocation(line: 0, scope: !2286, inlinedAt: !2891)
+!2891 = distinct !DILocation(line: 144, column: 13, scope: !2223)
+!2892 = !DILocation(line: 611, column: 2, scope: !2350, inlinedAt: !2891)
+!2893 = !DILocation(line: 0, scope: !2265, inlinedAt: !2894)
+!2894 = distinct !DILocation(line: 144, column: 26, scope: !2223)
+!2895 = !DILocation(line: 0, scope: !2370, inlinedAt: !2896)
+!2896 = distinct !DILocation(line: 113, column: 9, scope: !2265, inlinedAt: !2894)
+!2897 = !DILocation(line: 682, column: 29, scope: !2370, inlinedAt: !2896)
+!2898 = !DILocation(line: 0, scope: !2378, inlinedAt: !2899)
+!2899 = distinct !DILocation(line: 682, column: 34, scope: !2370, inlinedAt: !2896)
+!2900 = !DILocation(line: 450, column: 30, scope: !2378, inlinedAt: !2899)
+!2901 = !DILocation(line: 0, scope: !2404, inlinedAt: !2902)
+!2902 = distinct !DILocation(line: 450, column: 16, scope: !2378, inlinedAt: !2899)
+!2903 = !DILocation(line: 49, column: 12, scope: !2418, inlinedAt: !2902)
+!2904 = !DILocation(line: 49, column: 11, scope: !2404, inlinedAt: !2902)
+!2905 = !DILocation(line: 50, column: 2, scope: !2418, inlinedAt: !2902)
+!2906 = !DILocation(line: 0, scope: !2422, inlinedAt: !2907)
+!2907 = distinct !DILocation(line: 450, column: 40, scope: !2378, inlinedAt: !2899)
+!2908 = !DILocation(line: 874, column: 6, scope: !2433, inlinedAt: !2907)
+!2909 = !DILocation(line: 874, column: 6, scope: !2422, inlinedAt: !2907)
+!2910 = !DILocation(line: 875, column: 11, scope: !2433, inlinedAt: !2907)
+!2911 = !DILocation(line: 875, column: 4, scope: !2433, inlinedAt: !2907)
+!2912 = !DILocation(line: 876, column: 8, scope: !2422, inlinedAt: !2907)
+!2913 = !DILocation(line: 877, column: 15, scope: !2422, inlinedAt: !2907)
+!2914 = !DILocation(line: 877, column: 2, scope: !2422, inlinedAt: !2907)
+!2915 = !DILocation(line: 682, column: 25, scope: !2370, inlinedAt: !2896)
+!2916 = !DILocation(line: 0, scope: !2354, inlinedAt: !2917)
+!2917 = distinct !DILocation(line: 682, column: 14, scope: !2370, inlinedAt: !2896)
+!2918 = !DILocation(line: 704, column: 19, scope: !2354, inlinedAt: !2917)
+!2919 = !DILocation(line: 148, column: 25, scope: !2223)
+!2920 = !DILocation(line: 148, column: 17, scope: !2223)
+!2921 = !DILocation(line: 0, scope: !2251, inlinedAt: !2922)
+!2922 = distinct !DILocation(line: 148, column: 3, scope: !2223)
+!2923 = !DILocation(line: 181, column: 15, scope: !2259, inlinedAt: !2922)
+!2924 = !DILocation(line: 181, column: 7, scope: !2251, inlinedAt: !2922)
+!2925 = !DILocation(line: 182, column: 15, scope: !2262, inlinedAt: !2922)
+!2926 = !DILocation(line: 182, column: 34, scope: !2262, inlinedAt: !2922)
+!2927 = !DILocation(line: 0, scope: !2265, inlinedAt: !2928)
+!2928 = distinct !DILocation(line: 182, column: 45, scope: !2262, inlinedAt: !2922)
+!2929 = !DILocation(line: 113, column: 9, scope: !2265, inlinedAt: !2928)
+!2930 = !DILocation(line: 183, column: 5, scope: !2262, inlinedAt: !2922)
+!2931 = !DILocation(line: 149, column: 25, scope: !2223)
+!2932 = !DILocation(line: 149, column: 17, scope: !2223)
+!2933 = !DILocation(line: 0, scope: !2251, inlinedAt: !2934)
+!2934 = distinct !DILocation(line: 149, column: 3, scope: !2223)
+!2935 = !DILocation(line: 181, column: 15, scope: !2259, inlinedAt: !2934)
+!2936 = !DILocation(line: 181, column: 7, scope: !2251, inlinedAt: !2934)
+!2937 = !DILocation(line: 182, column: 15, scope: !2262, inlinedAt: !2934)
+!2938 = !DILocation(line: 182, column: 34, scope: !2262, inlinedAt: !2934)
+!2939 = !DILocation(line: 0, scope: !2265, inlinedAt: !2940)
+!2940 = distinct !DILocation(line: 182, column: 45, scope: !2262, inlinedAt: !2934)
+!2941 = !DILocation(line: 113, column: 9, scope: !2265, inlinedAt: !2940)
+!2942 = !DILocation(line: 183, column: 5, scope: !2262, inlinedAt: !2934)
+!2943 = !DILocation(line: 150, column: 25, scope: !2223)
+!2944 = !DILocation(line: 150, column: 17, scope: !2223)
+!2945 = !DILocation(line: 0, scope: !2251, inlinedAt: !2946)
+!2946 = distinct !DILocation(line: 150, column: 3, scope: !2223)
+!2947 = !DILocation(line: 181, column: 15, scope: !2259, inlinedAt: !2946)
+!2948 = !DILocation(line: 181, column: 7, scope: !2251, inlinedAt: !2946)
+!2949 = !DILocation(line: 182, column: 15, scope: !2262, inlinedAt: !2946)
+!2950 = !DILocation(line: 182, column: 34, scope: !2262, inlinedAt: !2946)
+!2951 = !DILocation(line: 0, scope: !2265, inlinedAt: !2952)
+!2952 = distinct !DILocation(line: 182, column: 45, scope: !2262, inlinedAt: !2946)
+!2953 = !DILocation(line: 113, column: 9, scope: !2265, inlinedAt: !2952)
+!2954 = !DILocation(line: 183, column: 5, scope: !2262, inlinedAt: !2946)
+!2955 = !DILocation(line: 151, column: 3, scope: !2223)
+!2956 = !DILocation(line: 151, column: 20, scope: !2223)
+!2957 = !DILocation(line: 0, scope: !2286, inlinedAt: !2958)
+!2958 = distinct !DILocation(line: 152, column: 13, scope: !2223)
+!2959 = !DILocation(line: 611, column: 2, scope: !2350, inlinedAt: !2958)
+!2960 = !DILocation(line: 0, scope: !2265, inlinedAt: !2961)
+!2961 = distinct !DILocation(line: 152, column: 56, scope: !2223)
+!2962 = !DILocation(line: 0, scope: !2354, inlinedAt: !2963)
+!2963 = distinct !DILocation(line: 113, column: 9, scope: !2265, inlinedAt: !2961)
+!2964 = !DILocation(line: 704, column: 19, scope: !2354, inlinedAt: !2963)
+!2965 = !DILocation(line: 153, column: 1, scope: !2223)
+!2966 = !DILocation(line: 138, column: 11, scope: !2967)
+!2967 = distinct !DILexicalBlock(scope: !2968, file: !9, line: 138, column: 9)
+!2968 = distinct !DILexicalBlock(scope: !2969, file: !9, line: 137, column: 42)
+!2969 = distinct !DILexicalBlock(scope: !2245, file: !9, line: 137, column: 3)
+!2970 = !DILocation(line: 138, column: 32, scope: !2967)
+!2971 = !DILocation(line: 138, column: 9, scope: !2968)
+!2972 = !DILocation(line: 0, scope: !2286, inlinedAt: !2973)
+!2973 = distinct !DILocation(line: 139, column: 17, scope: !2967)
+!2974 = !DILocation(line: 611, column: 2, scope: !2350, inlinedAt: !2973)
+!2975 = !DILocation(line: 139, column: 7, scope: !2967)
+!2976 = !DILocation(line: 0, scope: !2567, inlinedAt: !2977)
+!2977 = distinct !DILocation(line: 140, column: 15, scope: !2968)
+!2978 = !DILocation(line: 180, column: 7, scope: !2567, inlinedAt: !2977)
+!2979 = !DILocation(line: 0, scope: !2580, inlinedAt: !2980)
+!2980 = distinct !DILocation(line: 180, column: 12, scope: !2567, inlinedAt: !2977)
+!2981 = !DILocation(line: 0, scope: !2592, inlinedAt: !2982)
+!2982 = distinct !DILocation(line: 392, column: 26, scope: !2580, inlinedAt: !2980)
+!2983 = !DILocation(line: 372, column: 7, scope: !2600, inlinedAt: !2982)
+!2984 = !DILocation(line: 372, column: 6, scope: !2592, inlinedAt: !2982)
+!2985 = !DILocation(line: 0, scope: !2378, inlinedAt: !2986)
+!2986 = distinct !DILocation(line: 374, column: 22, scope: !2606, inlinedAt: !2982)
+!2987 = !DILocation(line: 450, column: 30, scope: !2378, inlinedAt: !2986)
+!2988 = !DILocation(line: 0, scope: !2404, inlinedAt: !2989)
+!2989 = distinct !DILocation(line: 450, column: 16, scope: !2378, inlinedAt: !2986)
+!2990 = !DILocation(line: 49, column: 12, scope: !2418, inlinedAt: !2989)
+!2991 = !DILocation(line: 49, column: 11, scope: !2404, inlinedAt: !2989)
+!2992 = !DILocation(line: 50, column: 2, scope: !2418, inlinedAt: !2989)
+!2993 = !DILocation(line: 0, scope: !2422, inlinedAt: !2994)
+!2994 = distinct !DILocation(line: 450, column: 40, scope: !2378, inlinedAt: !2986)
+!2995 = !DILocation(line: 874, column: 6, scope: !2433, inlinedAt: !2994)
+!2996 = !DILocation(line: 874, column: 6, scope: !2422, inlinedAt: !2994)
+!2997 = !DILocation(line: 876, column: 8, scope: !2422, inlinedAt: !2994)
+!2998 = !DILocation(line: 877, column: 15, scope: !2422, inlinedAt: !2994)
+!2999 = !DILocation(line: 240, column: 7, scope: !2620, inlinedAt: !3000)
+!3000 = distinct !DILocation(line: 140, column: 36, scope: !2968)
+!3001 = !DILocation(line: 877, column: 2, scope: !2422, inlinedAt: !2994)
+!3002 = !DILocation(line: 375, column: 19, scope: !2606, inlinedAt: !2982)
+!3003 = !DILocation(line: 376, column: 4, scope: !2606, inlinedAt: !2982)
+!3004 = !DILocation(line: 393, column: 2, scope: !2580, inlinedAt: !2980)
+!3005 = !DILocation(line: 393, column: 10, scope: !2580, inlinedAt: !2980)
+!3006 = !DILocation(line: 0, scope: !2620, inlinedAt: !3000)
+!3007 = !DILocation(line: 0, scope: !2638, inlinedAt: !3008)
+!3008 = distinct !DILocation(line: 240, column: 12, scope: !2620, inlinedAt: !3000)
+!3009 = !DILocation(line: 753, column: 26, scope: !2638, inlinedAt: !3008)
+!3010 = !DILocation(line: 754, column: 16, scope: !2638, inlinedAt: !3008)
+!3011 = !DILocation(line: 140, column: 55, scope: !2968)
+!3012 = !DILocation(line: 0, scope: !2834, inlinedAt: !3013)
+!3013 = distinct !DILocation(line: 140, column: 52, scope: !2968)
+!3014 = !DILocation(line: 171, column: 16, scope: !2834, inlinedAt: !3013)
+!3015 = !DILocation(line: 0, scope: !2286, inlinedAt: !3016)
+!3016 = distinct !DILocation(line: 140, column: 65, scope: !2968)
+!3017 = !DILocation(line: 611, column: 2, scope: !2350, inlinedAt: !3016)
+!3018 = !DILocation(line: 137, column: 37, scope: !2969)
+!3019 = !DILocation(line: 137, column: 21, scope: !2969)
+!3020 = distinct !{!3020, !2847, !3021, !2729}
+!3021 = !DILocation(line: 141, column: 3, scope: !2245)
+!3022 = !DILocation(line: 0, scope: !2251)
+!3023 = !DILocation(line: 181, column: 15, scope: !2259)
+!3024 = !DILocation(line: 181, column: 7, scope: !2251)
+!3025 = !DILocation(line: 182, column: 15, scope: !2262)
+!3026 = !DILocation(line: 182, column: 34, scope: !2262)
+!3027 = !DILocation(line: 0, scope: !2265, inlinedAt: !3028)
+!3028 = distinct !DILocation(line: 182, column: 45, scope: !2262)
+!3029 = !DILocation(line: 113, column: 9, scope: !2265, inlinedAt: !3028)
+!3030 = !DILocation(line: 183, column: 5, scope: !2262)
+!3031 = !DILocation(line: 185, column: 1, scope: !2251)
+!3032 = !DISubprogram(name: "hipGetDevice", scope: !90, file: !90, line: 1523, type: !3033, flags: DIFlagPrototyped, spFlags: DISPFlagOptimized, retainedNodes: !297)
+!3033 = !DISubroutineType(types: !3034)
+!3034 = !{!2254, !502}
+!3035 = !DISubprogram(name: "hipMemcpy", scope: !90, file: !90, line: 3408, type: !3036, flags: DIFlagPrototyped, spFlags: DISPFlagOptimized, retainedNodes: !297)
+!3036 = !DISubroutineType(types: !3037)
+!3037 = !{!2254, !278, !853, !827, !3038}
+!3038 = !DIDerivedType(tag: DW_TAG_typedef, name: "hipMemcpyKind", file: !171, line: 351, baseType: !170)
+!3039 = !DISubprogram(name: "hipFree", scope: !90, file: !90, line: 3353, type: !3040, flags: DIFlagPrototyped, spFlags: DISPFlagOptimized, retainedNodes: !297)
+!3040 = !DISubroutineType(types: !3041)
+!3041 = !{!2254, !278}
+!3042 = !DILocation(line: 0, scope: !2119)
+!3043 = !DILocation(line: 168, column: 3, scope: !2119)
+!3044 = !DILocation(line: 168, column: 19, scope: !2119)
+!3045 = !DILocation(line: 169, column: 17, scope: !2119)
+!3046 = !DILocation(line: 0, scope: !2251, inlinedAt: !3047)
+!3047 = distinct !DILocation(line: 169, column: 3, scope: !2119)
+!3048 = !DILocation(line: 181, column: 15, scope: !2259, inlinedAt: !3047)
+!3049 = !DILocation(line: 181, column: 7, scope: !2251, inlinedAt: !3047)
+!3050 = !DILocation(line: 182, column: 15, scope: !2262, inlinedAt: !3047)
+!3051 = !DILocation(line: 182, column: 34, scope: !2262, inlinedAt: !3047)
+!3052 = !DILocation(line: 0, scope: !2265, inlinedAt: !3053)
+!3053 = distinct !DILocation(line: 182, column: 45, scope: !2262, inlinedAt: !3047)
+!3054 = !DILocation(line: 113, column: 9, scope: !2265, inlinedAt: !3053)
+!3055 = !DILocation(line: 183, column: 5, scope: !2262, inlinedAt: !3047)
+!3056 = !DILocation(line: 0, scope: !2286, inlinedAt: !3057)
+!3057 = distinct !DILocation(line: 170, column: 8, scope: !2119)
+!3058 = !DILocalVariable(name: "__s", arg: 1, scope: !3059, file: !2295, line: 365, type: !2311)
+!3059 = distinct !DISubprogram(name: "length", linkageName: "_ZNSt11char_traitsIcE6lengthEPKc", scope: !2294, file: !2295, line: 365, type: !2314, scopeLine: 366, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !79, declaration: !2313, retainedNodes: !3060)
+!3060 = !{!3058}
+!3061 = !DILocation(line: 0, scope: !3059, inlinedAt: !3062)
+!3062 = distinct !DILocation(line: 612, column: 29, scope: !2350, inlinedAt: !3057)
+!3063 = !DILocation(line: 611, column: 2, scope: !2350, inlinedAt: !3057)
+!3064 = !DILocation(line: 170, column: 39, scope: !2119)
+!3065 = !{!3066, !2222, i64 332}
+!3066 = !{!"_ZTS15hipDeviceProp_t", !2219, i64 0, !2397, i64 256, !2397, i64 264, !2222, i64 272, !2222, i64 276, !2222, i64 280, !2219, i64 284, !2219, i64 296, !2222, i64 308, !2222, i64 312, !2222, i64 316, !2397, i64 320, !2222, i64 328, !2222, i64 332, !2222, i64 336, !2222, i64 340, !2222, i64 344, !2222, i64 348, !2222, i64 352, !3067, i64 356, !2222, i64 360, !2222, i64 364, !2222, i64 368, !2222, i64 372, !2397, i64 376, !2222, i64 384, !2222, i64 388, !2222, i64 392, !2219, i64 396, !2222, i64 652, !2222, i64 656, !2222, i64 660, !2222, i64 664, !2222, i64 668, !2219, i64 672, !2219, i64 680, !2218, i64 696, !2218, i64 704, !2397, i64 712, !2397, i64 720, !2397, i64 728, !2222, i64 736, !2222, i64 740, !2222, i64 744, !2222, i64 748, !2222, i64 752, !2222, i64 756, !2222, i64 760, !2222, i64 764, !2222, i64 768, !2222, i64 772, !2222, i64 776, !2222, i64 780, !2222, i64 784, !2222, i64 788}
+!3067 = !{!"_ZTS15hipDeviceArch_t", !2222, i64 0, !2222, i64 0, !2222, i64 0, !2222, i64 0, !2222, i64 0, !2222, i64 0, !2222, i64 0, !2222, i64 0, !2222, i64 1, !2222, i64 1, !2222, i64 1, !2222, i64 1, !2222, i64 1, !2222, i64 1, !2222, i64 1, !2222, i64 1, !2222, i64 2}
+!3068 = !DILocation(line: 170, column: 28, scope: !2119)
+!3069 = !DILocation(line: 0, scope: !2265, inlinedAt: !3070)
+!3070 = distinct !DILocation(line: 170, column: 45, scope: !2119)
+!3071 = !DILocation(line: 0, scope: !2370, inlinedAt: !3072)
+!3072 = distinct !DILocation(line: 113, column: 9, scope: !2265, inlinedAt: !3070)
+!3073 = !DILocation(line: 682, column: 29, scope: !2370, inlinedAt: !3072)
+!3074 = !DILocation(line: 0, scope: !2378, inlinedAt: !3075)
+!3075 = distinct !DILocation(line: 682, column: 34, scope: !2370, inlinedAt: !3072)
+!3076 = !DILocation(line: 450, column: 30, scope: !2378, inlinedAt: !3075)
+!3077 = !DILocation(line: 0, scope: !2404, inlinedAt: !3078)
+!3078 = distinct !DILocation(line: 450, column: 16, scope: !2378, inlinedAt: !3075)
+!3079 = !DILocation(line: 49, column: 12, scope: !2418, inlinedAt: !3078)
+!3080 = !DILocation(line: 49, column: 11, scope: !2404, inlinedAt: !3078)
+!3081 = !DILocation(line: 50, column: 2, scope: !2418, inlinedAt: !3078)
+!3082 = !DILocation(line: 0, scope: !2422, inlinedAt: !3083)
+!3083 = distinct !DILocation(line: 450, column: 40, scope: !2378, inlinedAt: !3075)
+!3084 = !DILocation(line: 874, column: 6, scope: !2433, inlinedAt: !3083)
+!3085 = !DILocation(line: 874, column: 6, scope: !2422, inlinedAt: !3083)
+!3086 = !DILocation(line: 875, column: 11, scope: !2433, inlinedAt: !3083)
+!3087 = !DILocation(line: 875, column: 4, scope: !2433, inlinedAt: !3083)
+!3088 = !DILocation(line: 876, column: 8, scope: !2422, inlinedAt: !3083)
+!3089 = !DILocation(line: 877, column: 15, scope: !2422, inlinedAt: !3083)
+!3090 = !DILocation(line: 877, column: 2, scope: !2422, inlinedAt: !3083)
+!3091 = !DILocation(line: 682, column: 25, scope: !2370, inlinedAt: !3072)
+!3092 = !DILocation(line: 0, scope: !2354, inlinedAt: !3093)
+!3093 = distinct !DILocation(line: 682, column: 14, scope: !2370, inlinedAt: !3072)
+!3094 = !DILocation(line: 704, column: 19, scope: !2354, inlinedAt: !3093)
+!3095 = !DILocation(line: 0, scope: !2286, inlinedAt: !3096)
+!3096 = distinct !DILocation(line: 171, column: 8, scope: !2119)
+!3097 = !DILocation(line: 0, scope: !3059, inlinedAt: !3098)
+!3098 = distinct !DILocation(line: 612, column: 29, scope: !2350, inlinedAt: !3096)
+!3099 = !DILocation(line: 611, column: 2, scope: !2350, inlinedAt: !3096)
+!3100 = !DILocation(line: 171, column: 39, scope: !2119)
+!3101 = !{!3066, !2222, i64 328}
+!3102 = !DILocation(line: 171, column: 28, scope: !2119)
+!3103 = !DILocation(line: 0, scope: !2265, inlinedAt: !3104)
+!3104 = distinct !DILocation(line: 171, column: 45, scope: !2119)
+!3105 = !DILocation(line: 0, scope: !2370, inlinedAt: !3106)
+!3106 = distinct !DILocation(line: 113, column: 9, scope: !2265, inlinedAt: !3104)
+!3107 = !DILocation(line: 682, column: 29, scope: !2370, inlinedAt: !3106)
+!3108 = !DILocation(line: 0, scope: !2378, inlinedAt: !3109)
+!3109 = distinct !DILocation(line: 682, column: 34, scope: !2370, inlinedAt: !3106)
+!3110 = !DILocation(line: 450, column: 30, scope: !2378, inlinedAt: !3109)
+!3111 = !DILocation(line: 0, scope: !2404, inlinedAt: !3112)
+!3112 = distinct !DILocation(line: 450, column: 16, scope: !2378, inlinedAt: !3109)
+!3113 = !DILocation(line: 49, column: 12, scope: !2418, inlinedAt: !3112)
+!3114 = !DILocation(line: 49, column: 11, scope: !2404, inlinedAt: !3112)
+!3115 = !DILocation(line: 50, column: 2, scope: !2418, inlinedAt: !3112)
+!3116 = !DILocation(line: 0, scope: !2422, inlinedAt: !3117)
+!3117 = distinct !DILocation(line: 450, column: 40, scope: !2378, inlinedAt: !3109)
+!3118 = !DILocation(line: 874, column: 6, scope: !2433, inlinedAt: !3117)
+!3119 = !DILocation(line: 874, column: 6, scope: !2422, inlinedAt: !3117)
+!3120 = !DILocation(line: 875, column: 11, scope: !2433, inlinedAt: !3117)
+!3121 = !DILocation(line: 875, column: 4, scope: !2433, inlinedAt: !3117)
+!3122 = !DILocation(line: 876, column: 8, scope: !2422, inlinedAt: !3117)
+!3123 = !DILocation(line: 877, column: 15, scope: !2422, inlinedAt: !3117)
+!3124 = !DILocation(line: 877, column: 2, scope: !2422, inlinedAt: !3117)
+!3125 = !DILocation(line: 682, column: 25, scope: !2370, inlinedAt: !3106)
+!3126 = !DILocation(line: 0, scope: !2354, inlinedAt: !3127)
+!3127 = distinct !DILocation(line: 682, column: 14, scope: !2370, inlinedAt: !3106)
+!3128 = !DILocation(line: 704, column: 19, scope: !2354, inlinedAt: !3127)
+!3129 = !DILocation(line: 0, scope: !2286, inlinedAt: !3130)
+!3130 = distinct !DILocation(line: 172, column: 8, scope: !2119)
+!3131 = !DILocation(line: 0, scope: !3059, inlinedAt: !3132)
+!3132 = distinct !DILocation(line: 612, column: 29, scope: !2350, inlinedAt: !3130)
+!3133 = !DILocation(line: 611, column: 2, scope: !2350, inlinedAt: !3130)
+!3134 = !DILocation(line: 0, scope: !2286, inlinedAt: !3135)
+!3135 = distinct !DILocation(line: 172, column: 31, scope: !2119)
+!3136 = !DILocation(line: 0, scope: !3059, inlinedAt: !3137)
+!3137 = distinct !DILocation(line: 612, column: 29, scope: !2350, inlinedAt: !3135)
+!3138 = !DILocation(line: 371, column: 9, scope: !3059, inlinedAt: !3137)
+!3139 = !DILocation(line: 611, column: 2, scope: !2350, inlinedAt: !3135)
+!3140 = !DILocation(line: 0, scope: !2265, inlinedAt: !3141)
+!3141 = distinct !DILocation(line: 172, column: 47, scope: !2119)
+!3142 = !DILocation(line: 0, scope: !2370, inlinedAt: !3143)
+!3143 = distinct !DILocation(line: 113, column: 9, scope: !2265, inlinedAt: !3141)
+!3144 = !DILocation(line: 682, column: 29, scope: !2370, inlinedAt: !3143)
+!3145 = !DILocation(line: 0, scope: !2378, inlinedAt: !3146)
+!3146 = distinct !DILocation(line: 682, column: 34, scope: !2370, inlinedAt: !3143)
+!3147 = !DILocation(line: 450, column: 30, scope: !2378, inlinedAt: !3146)
+!3148 = !DILocation(line: 0, scope: !2404, inlinedAt: !3149)
+!3149 = distinct !DILocation(line: 450, column: 16, scope: !2378, inlinedAt: !3146)
+!3150 = !DILocation(line: 49, column: 12, scope: !2418, inlinedAt: !3149)
+!3151 = !DILocation(line: 49, column: 11, scope: !2404, inlinedAt: !3149)
+!3152 = !DILocation(line: 50, column: 2, scope: !2418, inlinedAt: !3149)
+!3153 = !DILocation(line: 0, scope: !2422, inlinedAt: !3154)
+!3154 = distinct !DILocation(line: 450, column: 40, scope: !2378, inlinedAt: !3146)
+!3155 = !DILocation(line: 874, column: 6, scope: !2433, inlinedAt: !3154)
+!3156 = !DILocation(line: 874, column: 6, scope: !2422, inlinedAt: !3154)
+!3157 = !DILocation(line: 875, column: 11, scope: !2433, inlinedAt: !3154)
+!3158 = !DILocation(line: 875, column: 4, scope: !2433, inlinedAt: !3154)
+!3159 = !DILocation(line: 876, column: 8, scope: !2422, inlinedAt: !3154)
+!3160 = !DILocation(line: 877, column: 15, scope: !2422, inlinedAt: !3154)
+!3161 = !DILocation(line: 877, column: 2, scope: !2422, inlinedAt: !3154)
+!3162 = !DILocation(line: 682, column: 25, scope: !2370, inlinedAt: !3143)
+!3163 = !DILocation(line: 0, scope: !2354, inlinedAt: !3164)
+!3164 = distinct !DILocation(line: 682, column: 14, scope: !2370, inlinedAt: !3143)
+!3165 = !DILocation(line: 704, column: 19, scope: !2354, inlinedAt: !3164)
+!3166 = !DILocation(line: 174, column: 3, scope: !2119)
+!3167 = !DILocation(line: 175, column: 15, scope: !2119)
+!3168 = !DILocation(line: 175, column: 3, scope: !2119)
+!3169 = !DILocation(line: 177, column: 1, scope: !2119)
+!3170 = !DILocation(line: 176, column: 3, scope: !2119)
+!3171 = !DISubprogram(name: "hipGetDeviceProperties", scope: !90, file: !90, line: 1617, type: !3172, flags: DIFlagPrototyped, spFlags: DISPFlagOptimized, retainedNodes: !297)
+!3172 = !DISubroutineType(types: !3173)
+!3173 = !{!2254, !3174, !179}
+!3174 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !2126, size: 64)
+!3175 = !DISubprogram(name: "hipMallocManaged", scope: !90, file: !90, line: 2731, type: !3176, flags: DIFlagPrototyped, spFlags: DISPFlagOptimized, retainedNodes: !297)
+!3176 = !DISubroutineType(types: !3177)
+!3177 = !{!2254, !277, !827, !84}
+!3178 = !DISubprogram(name: "hipMalloc", scope: !90, file: !90, line: 2654, type: !3179, flags: DIFlagPrototyped, spFlags: DISPFlagOptimized, retainedNodes: !297)
+!3179 = !DISubroutineType(types: !3180)
+!3180 = !{!2254, !277, !827}
+!3181 = !DISubprogram(name: "nanosleep", scope: !1988, file: !1988, line: 211, type: !3182, flags: DIFlagPrototyped, spFlags: DISPFlagOptimized, retainedNodes: !297)
+!3182 = !DISubroutineType(types: !3183)
+!3183 = !{!179, !3184, !2036}
+!3184 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !3185, size: 64)
+!3185 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !2026)
+!3186 = distinct !DISubprogram(linkageName: "_GLOBAL__sub_I_managed_clock_test.cpp", scope: !1464, file: !1464, type: !3187, flags: DIFlagArtificial | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !79, retainedNodes: !297)
+!3187 = !DISubroutineType(types: !297)
+!3188 = !DILocation(line: 74, column: 25, scope: !3189, inlinedAt: !3191)
+!3189 = !DILexicalBlockFile(scope: !3190, file: !3, discriminator: 0)
+!3190 = distinct !DISubprogram(name: "__cxx_global_var_init", scope: !1464, file: !1464, type: !821, flags: DIFlagArtificial | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !79, retainedNodes: !297)
+!3191 = distinct !DILocation(line: 0, scope: !3186)
+!3192 = !DILocation(line: 0, scope: !3190, inlinedAt: !3191)
 
 ; __CLANG_OFFLOAD_BUNDLE____END__ host-x86_64-unknown-linux-gnu

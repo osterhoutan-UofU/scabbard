@@ -390,9 +390,9 @@ namespace scabbard {
       for (size_t i=0; i<F.arg_size(); ++i)
         vMap[F.getArg(i)] = fn->getArg(i);
       llvm::SmallVector<llvm::ReturnInst*,8> rets;
-      //?NOTE: this might be used wrong double check results in testing to make sure it works correctly
+      //?NOTE: this might be used wrong.  Double check results in testing to make sure it works correctly
       //?     if wrong likely due to not creating vMap properly
-      llvm::CloneFunctionInto(fn, &F, vMap, llvm::CloneFunctionChangeType::LocalChangesOnly, rets, "si");
+      llvm::CloneFunctionInto(fn, &F, vMap, llvm::CloneFunctionChangeType::LocalChangesOnly, rets);
       to_replace.push_back(std::make_pair(&F,fn));
       return fn;
     }
@@ -405,18 +405,18 @@ namespace scabbard {
         auto NewFn = tr.second;
         for (auto& u : OldFn->uses()) {
           if (auto CI = llvm::dyn_cast<llvm::CallInst>(u.get())) {
-//             llvm::Function* pFn = CI->getFunction();
-// #           if __clang_major__ <= 16
-//               if (not pFn->getName().endswith("__old__scabbard_instr_replaced__old__"))
-//                 continue;
-// #           else
-//               if (not pFn->getName().ends_with("__old__scabbard_instr_replaced__old__"))
-//                 continue;
-// #           endif
+            llvm::Function* pFn = CI->getFunction();
+#           if __clang_major__ <= 16
+              if (pFn->getName().endswith("__old__scabbard_instr_replaced__old__"))
+                continue;
+#           else
+              if (pFn->getName().ends_with("__old__scabbard_instr_replaced__old__"))
+                continue;
+#           endif
             llvm::SmallVector<llvm::Value*,4u> operands;
             for (auto& op : CI->args())
               operands.push_back(op.get());
-            operands.push_back(NewFn->getArg(NewFn->arg_size()-1));
+            operands.push_back(pFn->getArg(pFn->arg_size()-1));
             auto ci = llvm::CallInst::Create(
                           NewFn->getFunctionType(),
                           NewFn,
@@ -674,10 +674,14 @@ namespace scabbard {
         old_size = 1;
       }
       auto plainPtrTy = llvm::PointerType::get(alloc.getContext(),0ul);
-      auto newAllocTy = llvm::ArrayType::get(plainPtrTy, old_size+1);
+      // auto newAllocTy = llvm::ArrayType::get(plainPtrTy, old_size+1);
       auto newAlloc = new llvm::AllocaInst(
-                              newAllocTy,
+                              plainPtrTy,
                               0u,
+                              llvm::ConstantInt::get(
+                                  llvm::IntegerType::get(alloc.getContext(), 32u),
+                                  llvm::APInt(32u, old_size+1)
+                                ),
                               "instrParamAlloc",
                               &alloc
                             );
@@ -692,7 +696,7 @@ namespace scabbard {
                         })
                       );
       memLoc->insertAfter(newAlloc);
-      alloc.replaceAllUsesWith(memLoc);
+      alloc.replaceAllUsesWith(memLoc); //DBG: does not seem to be working
       alloc.eraseFromParent();
       return llvm::GetElementPtrInst::Create(
                 plainPtrTy,
@@ -723,7 +727,7 @@ namespace scabbard {
           host.register_job_callback.getCallee(),
           llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,2>{
               regFn,
-              CI.getArgOperand(5)
+              CI.getArgOperand(7)
             })
         );
       regCbFn->insertAfter(&CI);
@@ -731,17 +735,19 @@ namespace scabbard {
       // trace back args var and expand it to include the pointer to the DeviceTracker that is returned as the result of `scabbard.trace.register_job` as the last parameter
       auto plainPtrTy = llvm::PointerType::get(F.getContext(),0ul);
       llvm::GetElementPtrInst* paramPtr = nullptr;
-      if (auto argElmPtr = llvm::dyn_cast<llvm::GetElementPtrInst>(CI.getArgOperand(3))) { // case: >=2 function parameter length
+      if (auto argElmPtr = llvm::dyn_cast<llvm::GetElementPtrInst>(CI.getArgOperand(5))) { // case: >=2 function parameter length
         if (auto argAlloc = llvm::dyn_cast<llvm::AllocaInst>(argElmPtr->getPointerOperand())) {
           paramPtr = expand_param_args_alloc(*argAlloc);
+          if (paramPtr != nullptr)
+            argElmPtr->replaceAllUsesWith(paramPtr);
         } else {
           llvm::errs() << "\n[scabbard.instr.host:ERROR] kernel launch user args could not be traced to param args construct allocation\n";
         }
-      } else if (auto argAlloc = llvm::dyn_cast<llvm::AllocaInst>(CI.getArgOperand(3))) { // case: single or zero function parameter length
+      } else if (auto argAlloc = llvm::dyn_cast<llvm::AllocaInst>(CI.getArgOperand(5))) { // case: single or zero function parameter length
         paramPtr = expand_param_args_alloc(*argAlloc);
       } else {
         llvm::errs() << "\n[scabbard.instr.host:DBG] kernel launch user args are not loaded from local frame\n```\n";
-        CI.getArgOperand(3)->print(llvm::errs());
+        CI.getArgOperand(5)->print(llvm::errs());
         llvm::errs() << "\n```\n\n";
       }
       if (paramPtr == nullptr) {

@@ -2161,24 +2161,29 @@ define dso_local void @_Z28__device_stub____d_incrementPi(i32* noundef %0) #3 {
   %5 = alloca i64, align 8
   %6 = alloca i8*, align 8
   store i32* %0, i32** %2, align 8, !tbaa !2053
-  %7 = alloca i8*, align 16
-  %8 = bitcast i8** %7 to i32***
-  store i32** %2, i32*** %8, align 16
-  %9 = call i32 @__hipPopCallConfiguration(%struct.dim3* nonnull %3, %struct.dim3* nonnull %4, i64* nonnull %5, i8** nonnull %6)
-  %10 = load i64, i64* %5, align 8
-  %11 = bitcast i8** %6 to %struct.ihipStream_t**
-  %12 = load %struct.ihipStream_t*, %struct.ihipStream_t** %11, align 8
-  %13 = bitcast %struct.dim3* %3 to i64*
-  %14 = load i64, i64* %13, align 8
-  %15 = getelementptr inbounds %struct.dim3, %struct.dim3* %3, i64 0, i32 2
-  %16 = load i32, i32* %15, align 8
-  %17 = bitcast %struct.dim3* %4 to i64*
-  %18 = load i64, i64* %17, align 8
-  %19 = getelementptr inbounds %struct.dim3, %struct.dim3* %4, i64 0, i32 2
-  %20 = load i32, i32* %19, align 8
-  %21 = call ptr @scabbard.trace.register_job(%struct.ihipStream_t* %12)
-  %22 = call noundef i32 @hipLaunchKernel(i8* noundef bitcast (void (i32*)** @_Z13__d_incrementPi to i8*), i64 %14, i32 %16, i64 %18, i32 %20, i8** noundef nonnull %7, i64 noundef %10, %struct.ihipStream_t* noundef %12)
-  call void @scabbard.trace.register_job_callback(ptr %21, i8** nonnull %7)
+  %7 = alloca [2 x ptr], align 8
+  %8 = getelementptr inbounds [2 x ptr], [2 x ptr]* %7, i64 0, i64 0
+  %9 = bitcast [2 x ptr]* %7 to i32***
+  store i32** %2, i32*** %9, align 16
+  %10 = call i32 @__hipPopCallConfiguration(%struct.dim3* nonnull %3, %struct.dim3* nonnull %4, i64* nonnull %5, i8** nonnull %6)
+  %11 = load i64, i64* %5, align 8
+  %12 = bitcast i8** %6 to %struct.ihipStream_t**
+  %13 = load %struct.ihipStream_t*, %struct.ihipStream_t** %12, align 8
+  %14 = bitcast %struct.dim3* %3 to i64*
+  %15 = load i64, i64* %14, align 8
+  %16 = getelementptr inbounds %struct.dim3, %struct.dim3* %3, i64 0, i32 2
+  %17 = load i32, i32* %16, align 8
+  %18 = bitcast %struct.dim3* %4 to i64*
+  %19 = load i64, i64* %18, align 8
+  %20 = getelementptr inbounds %struct.dim3, %struct.dim3* %4, i64 0, i32 2
+  %21 = load i32, i32* %20, align 8
+  %22 = alloca ptr, align 8
+  %23 = call ptr @scabbard.trace.register_job(%struct.ihipStream_t* %13)
+  store ptr %23, ptr* %22, align 8
+  %24 = getelementptr inbounds [2 x ptr], [2 x ptr]* %7, i64 0, i64 1
+  store ptr* %22, ptr* %24, align 8
+  %25 = call noundef i32 @hipLaunchKernel(i8* noundef bitcast (void (i32*)** @_Z13__d_incrementPi to i8*), i64 %15, i32 %17, i64 %19, i32 %21, ptr* noundef nonnull %8, i64 noundef %11, %struct.ihipStream_t* noundef %13)
+  call void @scabbard.trace.register_job_callback(ptr %23, %struct.ihipStream_t* %13)
   ret void
 }
 
@@ -2193,7 +2198,7 @@ define dso_local void @_Z13hip_incrementPiS_m(i32* noundef %0, i32* noundef %1, 
   %6 = alloca %struct.dim3, align 8
   %7 = alloca i64, align 8
   %8 = alloca i8*, align 8
-  %9 = alloca i8*, align 16
+  %9 = alloca [2 x ptr], align 8
   %10 = alloca i32*, align 8
   call void @llvm.dbg.value(metadata i32* %0, metadata !2062, metadata !DIExpression()), !dbg !2067
   call void @llvm.dbg.value(metadata i32* %1, metadata !2063, metadata !DIExpression()), !dbg !2067
@@ -2215,62 +2220,67 @@ define dso_local void @_Z13hip_incrementPiS_m(i32* noundef %0, i32* noundef %1, 
   %19 = or i64 %18, 4294967296, !dbg !2075
   %20 = call i32 @__hipPushCallConfiguration(i64 4294967297, i32 1, i64 %19, i32 1, i64 noundef 0, %struct.ihipStream_t* noundef null), !dbg !2075
   %21 = icmp eq i32 %20, 0, !dbg !2075
-  br i1 %21, label %22, label %45, !dbg !2075
+  br i1 %21, label %22, label %48, !dbg !2075
 
 22:                                               ; preds = %3
-  %23 = load i32*, i32** %10, align 8, !dbg !2075, !tbaa !2053
-  call void @llvm.dbg.value(metadata i32* %23, metadata !2066, metadata !DIExpression()), !dbg !2067
-  %24 = bitcast i32** %4 to i8*, !dbg !2075
-  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %24), !dbg !2075
-  %25 = bitcast %struct.dim3* %5 to i8*, !dbg !2075
-  call void @llvm.lifetime.start.p0i8(i64 12, i8* nonnull %25), !dbg !2075
-  %26 = bitcast %struct.dim3* %6 to i8*, !dbg !2075
+  %23 = getelementptr inbounds [2 x ptr], [2 x ptr]* %9, i64 0, i64 0
+  %24 = load i32*, i32** %10, align 8, !dbg !2075, !tbaa !2053
+  call void @llvm.dbg.value(metadata i32* %24, metadata !2066, metadata !DIExpression()), !dbg !2067
+  %25 = bitcast i32** %4 to i8*, !dbg !2075
+  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %25), !dbg !2075
+  %26 = bitcast %struct.dim3* %5 to i8*, !dbg !2075
   call void @llvm.lifetime.start.p0i8(i64 12, i8* nonnull %26), !dbg !2075
-  %27 = bitcast i64* %7 to i8*, !dbg !2075
-  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %27), !dbg !2075
-  %28 = bitcast i8** %8 to i8*, !dbg !2075
+  %27 = bitcast %struct.dim3* %6 to i8*, !dbg !2075
+  call void @llvm.lifetime.start.p0i8(i64 12, i8* nonnull %27), !dbg !2075
+  %28 = bitcast i64* %7 to i8*, !dbg !2075
   call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %28), !dbg !2075
-  %29 = bitcast i8** %9 to i8*, !dbg !2075
+  %29 = bitcast i8** %8 to i8*, !dbg !2075
   call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %29), !dbg !2075
-  store i32* %23, i32** %4, align 8, !dbg !2075, !tbaa !2053
-  %30 = bitcast i8** %9 to i32***, !dbg !2075
-  store i32** %4, i32*** %30, align 16, !dbg !2075
-  %31 = call i32 @__hipPopCallConfiguration(%struct.dim3* nonnull %5, %struct.dim3* nonnull %6, i64* nonnull %7, i8** nonnull %8), !dbg !2075
-  %32 = load i64, i64* %7, align 8, !dbg !2075
-  %33 = bitcast i8** %8 to %struct.ihipStream_t**, !dbg !2075
-  %34 = load %struct.ihipStream_t*, %struct.ihipStream_t** %33, align 8, !dbg !2075
-  %35 = bitcast %struct.dim3* %5 to i64*, !dbg !2075
-  %36 = load i64, i64* %35, align 8, !dbg !2075
-  %37 = getelementptr inbounds %struct.dim3, %struct.dim3* %5, i64 0, i32 2, !dbg !2075
-  %38 = load i32, i32* %37, align 8, !dbg !2075
-  %39 = bitcast %struct.dim3* %6 to i64*, !dbg !2075
-  %40 = load i64, i64* %39, align 8, !dbg !2075
-  %41 = getelementptr inbounds %struct.dim3, %struct.dim3* %6, i64 0, i32 2, !dbg !2075
-  %42 = load i32, i32* %41, align 8, !dbg !2075
-  %43 = call ptr @scabbard.trace.register_job(%struct.ihipStream_t* %34)
-  %44 = call noundef i32 @hipLaunchKernel(i8* noundef bitcast (void (i32*)** @_Z13__d_incrementPi to i8*), i64 %36, i32 %38, i64 %40, i32 %42, i8** noundef nonnull %9, i64 noundef %32, %struct.ihipStream_t* noundef %34), !dbg !2075
-  call void @scabbard.trace.register_job_callback(ptr %43, i8** nonnull %9)
-  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %24), !dbg !2075
-  call void @llvm.lifetime.end.p0i8(i64 12, i8* nonnull %25), !dbg !2075
+  %30 = bitcast [2 x ptr]* %9 to i8*, !dbg !2075
+  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %30), !dbg !2075
+  store i32* %24, i32** %4, align 8, !dbg !2075, !tbaa !2053
+  %31 = bitcast [2 x ptr]* %9 to i32***, !dbg !2075
+  store i32** %4, i32*** %31, align 16, !dbg !2075
+  %32 = call i32 @__hipPopCallConfiguration(%struct.dim3* nonnull %5, %struct.dim3* nonnull %6, i64* nonnull %7, i8** nonnull %8), !dbg !2075
+  %33 = load i64, i64* %7, align 8, !dbg !2075
+  %34 = bitcast i8** %8 to %struct.ihipStream_t**, !dbg !2075
+  %35 = load %struct.ihipStream_t*, %struct.ihipStream_t** %34, align 8, !dbg !2075
+  %36 = bitcast %struct.dim3* %5 to i64*, !dbg !2075
+  %37 = load i64, i64* %36, align 8, !dbg !2075
+  %38 = getelementptr inbounds %struct.dim3, %struct.dim3* %5, i64 0, i32 2, !dbg !2075
+  %39 = load i32, i32* %38, align 8, !dbg !2075
+  %40 = bitcast %struct.dim3* %6 to i64*, !dbg !2075
+  %41 = load i64, i64* %40, align 8, !dbg !2075
+  %42 = getelementptr inbounds %struct.dim3, %struct.dim3* %6, i64 0, i32 2, !dbg !2075
+  %43 = load i32, i32* %42, align 8, !dbg !2075
+  %44 = alloca ptr, align 8
+  %45 = call ptr @scabbard.trace.register_job(%struct.ihipStream_t* %35)
+  store ptr %45, ptr* %44, align 8
+  %46 = getelementptr inbounds [2 x ptr], [2 x ptr]* %9, i64 0, i64 1
+  store ptr* %44, ptr* %46, align 8
+  %47 = call noundef i32 @hipLaunchKernel(i8* noundef bitcast (void (i32*)** @_Z13__d_incrementPi to i8*), i64 %37, i32 %39, i64 %41, i32 %43, ptr* noundef nonnull %23, i64 noundef %33, %struct.ihipStream_t* noundef %35), !dbg !2075
+  call void @scabbard.trace.register_job_callback(ptr %45, %struct.ihipStream_t* %35)
+  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %25), !dbg !2075
   call void @llvm.lifetime.end.p0i8(i64 12, i8* nonnull %26), !dbg !2075
-  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %27), !dbg !2075
+  call void @llvm.lifetime.end.p0i8(i64 12, i8* nonnull %27), !dbg !2075
   call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %28), !dbg !2075
   call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %29), !dbg !2075
-  br label %45, !dbg !2075
+  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %30), !dbg !2075
+  br label %48, !dbg !2075
 
-45:                                               ; preds = %22, %3
-  %46 = call i32 @hipDeviceSynchronize(), !dbg !2077
+48:                                               ; preds = %22, %3
+  %49 = call i32 @hipDeviceSynchronize(), !dbg !2077
   call void @"scabbard.trace.host.trace_append$mem"(i16 -32768, ptr null, i64* nonnull @"scabbard.metadata.host.srcId$0x0000", i32 55, i32 5)
-  %47 = bitcast i32* %0 to i8*, !dbg !2078
-  %48 = load i8*, i8** %13, align 8, !dbg !2079, !tbaa !2053
+  %50 = bitcast i32* %0 to i8*, !dbg !2078
+  %51 = load i8*, i8** %13, align 8, !dbg !2079, !tbaa !2053
   call void @llvm.dbg.value(metadata i32* undef, metadata !2066, metadata !DIExpression()), !dbg !2067
   call void @"scabbard.trace.host.trace_append$mem"(i16 -32768, ptr null, i64* nonnull @"scabbard.metadata.host.srcId$0x0000", i32 57, i32 5)
-  call void @"scabbard.trace.host.trace_append$alloc"(i16 4138, i8* %47, i64* nonnull @"scabbard.metadata.host.srcId$0x0000", i32 57, i32 5, i64 %11)
-  %49 = call i32 @hipMemcpy(i8* noundef %47, i8* noundef %48, i64 noundef %11, i32 noundef 2), !dbg !2080
-  %50 = load i8*, i8** %13, align 8, !dbg !2081, !tbaa !2053
+  call void @"scabbard.trace.host.trace_append$alloc"(i16 4138, i8* %50, i64* nonnull @"scabbard.metadata.host.srcId$0x0000", i32 57, i32 5, i64 %11)
+  %52 = call i32 @hipMemcpy(i8* noundef %50, i8* noundef %51, i64 noundef %11, i32 noundef 2), !dbg !2080
+  %53 = load i8*, i8** %13, align 8, !dbg !2081, !tbaa !2053
   call void @llvm.dbg.value(metadata i32* undef, metadata !2066, metadata !DIExpression()), !dbg !2067
   call void @"scabbard.trace.host.trace_append$alloc"(i16 4160, ptr null, i64* nonnull @"scabbard.metadata.host.srcId$0x0000", i32 59, i32 5, i64 0)
-  %51 = call i32 @hipFree(i8* noundef %50), !dbg !2082
+  %54 = call i32 @hipFree(i8* noundef %53), !dbg !2082
   call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %12) #12, !dbg !2083
   ret void, !dbg !2083
 }
