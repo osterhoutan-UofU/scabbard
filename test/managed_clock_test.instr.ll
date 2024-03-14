@@ -10,109 +10,24 @@ target triple = "amdgcn-amd-amdhsa"
 %"class.std::thread::id" = type { i64 }
 %"struct.scabbard::LocationMetadata" = type { i64, i32, i32 }
 
-$scabbard.trace.device.dummyFunc = comdat any
-
 @_ZN8scabbard5trace12_GLOBAL__N_114src_id_reg_tmpE = internal addrspace(1) global i64 84, align 8
 @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp2E = internal addrspace(1) global i64 84, align 8
 @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp3E = internal addrspace(1) global i64 84, align 8
 
-; Function Attrs: convergent mustprogress norecurse nounwind willreturn
-define protected amdgpu_kernel void @_Z15tick_all_kernelPU7_AtomicmPmPli__old__scabbard_instr_replaced__old__(i64 addrspace(1)* nocapture %0, i64 addrspace(1)* nocapture writeonly %1, i64 addrspace(1)* nocapture %2, i32 %3) local_unnamed_addr #0 !dbg !1763 {
-  %5 = tail call i32 @llvm.amdgcn.workitem.id.x(), !dbg !1775, !range !1783
-  %6 = zext i32 %5 to i64, !dbg !1775
-  %7 = tail call align 4 dereferenceable(64) i8 addrspace(4)* @llvm.amdgcn.dispatch.ptr(), !dbg !1784
-  %8 = tail call i32 @llvm.amdgcn.workgroup.id.x(), !dbg !1784
-  %9 = getelementptr i8, i8 addrspace(4)* %7, i64 4, !dbg !1784
-  %10 = bitcast i8 addrspace(4)* %9 to i16 addrspace(4)*, !dbg !1784
-  %11 = load i16, i16 addrspace(4)* %10, align 4, !dbg !1784, !range !1785, !invariant.load !1786
-  %12 = zext i16 %11 to i64, !dbg !1784
-  %13 = zext i32 %8 to i64, !dbg !1787
-  %14 = mul nuw nsw i64 %12, %13, !dbg !1788
-  %15 = add nuw nsw i64 %14, %6, !dbg !1789
-  %16 = shl i64 %15, 32, !dbg !1790
-  %17 = ashr exact i64 %16, 32, !dbg !1790
-  %18 = getelementptr inbounds i64, i64 addrspace(1)* %2, i64 %17
-  %19 = load i64, i64 addrspace(1)* %18, align 8, !dbg !1791, !tbaa !1792, !amdgpu.noclobber !1786
-  %20 = add nsw i64 %17, %19, !dbg !1791
-  store i64 %20, i64 addrspace(1)* %18, align 8, !dbg !1791, !tbaa !1792
-  %21 = atomicrmw add i64 addrspace(1)* %0, i64 1 seq_cst, align 8, !dbg !1796
-  %22 = add i64 %21, 1, !dbg !1796
-  %23 = add i32 %5, %3, !dbg !1797
-  %24 = zext i32 %23 to i64, !dbg !1798
-  %25 = getelementptr inbounds i64, i64 addrspace(1)* %1, i64 %24, !dbg !1798
-  store i64 %22, i64 addrspace(1)* %25, align 8, !dbg !1799, !tbaa !1792
-  fence syncscope("workgroup") release, !dbg !1800
-  tail call void @llvm.amdgcn.s.barrier(), !dbg !1818
-  fence syncscope("workgroup") acquire, !dbg !1819
-  %26 = load i64, i64 addrspace(1)* %18, align 8, !dbg !1820, !tbaa !1792
-  %27 = add nsw i64 %26, %17, !dbg !1820
-  store i64 %27, i64 addrspace(1)* %18, align 8, !dbg !1820, !tbaa !1792
-  ret void, !dbg !1822
-}
-
-; Function Attrs: convergent mustprogress norecurse nounwind willreturn
-define protected amdgpu_kernel void @_Z12dummy_kernelv__old__scabbard_instr_replaced__old__() local_unnamed_addr #0 !dbg !1823 {
-  fence syncscope("workgroup") release, !dbg !1824
-  tail call void @llvm.amdgcn.s.barrier(), !dbg !1828
-  fence syncscope("workgroup") acquire, !dbg !1829
-  ret void, !dbg !1830
-}
-
-; Function Attrs: argmemonly mustprogress nofree norecurse nosync nounwind willreturn writeonly
-define protected amdgpu_kernel void @_Z10dummy_initPl__old__scabbard_instr_replaced__old__(i64 addrspace(1)* nocapture writeonly %0) local_unnamed_addr #1 !dbg !1831 {
-  %2 = tail call i32 @llvm.amdgcn.workitem.id.x(), !dbg !1835, !range !1783
-  %3 = zext i32 %2 to i64, !dbg !1835
-  %4 = tail call align 4 dereferenceable(64) i8 addrspace(4)* @llvm.amdgcn.dispatch.ptr(), !dbg !1836
-  %5 = tail call i32 @llvm.amdgcn.workgroup.id.x(), !dbg !1836
-  %6 = getelementptr i8, i8 addrspace(4)* %4, i64 4, !dbg !1836
-  %7 = bitcast i8 addrspace(4)* %6 to i16 addrspace(4)*, !dbg !1836
-  %8 = load i16, i16 addrspace(4)* %7, align 4, !dbg !1836, !range !1785, !invariant.load !1786
-  %9 = zext i16 %8 to i64, !dbg !1836
-  %10 = zext i32 %5 to i64, !dbg !1837
-  %11 = mul nuw nsw i64 %9, %10, !dbg !1838
-  %12 = add nuw nsw i64 %11, %3, !dbg !1839
-  %13 = shl i64 %12, 32, !dbg !1840
-  %14 = ashr exact i64 %13, 32, !dbg !1840
-  %15 = getelementptr inbounds i64, i64 addrspace(1)* %0, i64 %14, !dbg !1840
-  store i64 0, i64 addrspace(1)* %15, align 8, !dbg !1841, !tbaa !1792
-  ret void, !dbg !1842
-}
-
 ; Function Attrs: convergent mustprogress nounwind willreturn
-declare void @llvm.amdgcn.s.barrier() #2
+declare void @llvm.amdgcn.s.barrier() #0
 
 ; Function Attrs: mustprogress nofree nosync nounwind readnone speculatable willreturn
-declare i32 @llvm.amdgcn.workitem.id.x() #3
+declare i32 @llvm.amdgcn.workitem.id.x() #1
 
 ; Function Attrs: mustprogress nofree nosync nounwind readnone speculatable willreturn
-declare align 4 i8 addrspace(4)* @llvm.amdgcn.dispatch.ptr() #3
-
-; Function Attrs: mustprogress nofree nosync nounwind readnone speculatable willreturn
-declare i32 @llvm.amdgcn.workgroup.id.x() #3
-
-; Function Attrs: convergent mustprogress nofree norecurse nounwind willreturn
-define amdgpu_kernel void @scabbard.trace.device.dummyFunc__old__scabbard_instr_replaced__old__(i16 %0, i8 addrspace(1)* %1, i8 addrspace(1)* nocapture readnone %2, i64 addrspace(1)* nocapture readonly %3) local_unnamed_addr #4 comdat($scabbard.trace.device.dummyFunc) {
-  %5 = alloca i64, align 8, addrspace(5)
-  %6 = addrspacecast i8 addrspace(1)* %1 to i8*
-  %7 = addrspacecast i64 addrspace(1)* %3 to i64*
-  %8 = bitcast i64 addrspace(5)* %5 to i8 addrspace(5)*
-  call void @llvm.lifetime.start.p5i8(i64 8, i8 addrspace(5)* %8) #9
-  %9 = addrspacecast i8 addrspace(5)* %8 to i8*
-  call fastcc void @"scabbard.trace.device.trace_append$mem"(i8* %9, i16 zeroext %0, i8* %6, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_114src_id_reg_tmpE to i64*), i32 19, i32 9) #9
-  call fastcc void @"scabbard.trace.device.trace_append$mem"(i8* %9, i16 zeroext %0, i8* %6, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp2E to i64*), i32 1024, i32 4) #9
-  call fastcc void @"scabbard.trace.device.trace_append$mem"(i8* %9, i16 zeroext %0, i8* %6, i64* %7, i32 10240, i32 40) #9
-  call fastcc void @"scabbard.trace.device.trace_append$alloc"(i8* %9, i16 zeroext %0, i8* %6, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp2E to i64*), i32 88, i32 256, i64 7) #9
-  call fastcc void @"scabbard.trace.device.trace_append$alloc"(i8* %9, i16 zeroext %0, i8* %6, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp3E to i64*), i32 98, i32 6, i64 23) #9
-  call fastcc void @"scabbard.trace.device.trace_append$alloc"(i8* %9, i16 zeroext %0, i8* %6, i64* %7, i32 980, i32 60, i64 230) #9
-  call void @llvm.lifetime.end.p5i8(i64 8, i8 addrspace(5)* %8) #9
-  ret void
-}
+declare i32 @llvm.amdgcn.workgroup.id.x() #1
 
 ; Function Attrs: argmemonly nocallback nofree nosync nounwind willreturn
-declare void @llvm.lifetime.start.p5i8(i64 immarg, i8 addrspace(5)* nocapture) #5
+declare void @llvm.lifetime.start.p5i8(i64 immarg, i8 addrspace(5)* nocapture) #2
 
 ; Function Attrs: mustprogress nofree noinline norecurse nounwind willreturn
-define internal fastcc void @"scabbard.trace.device.trace_append$mem"(i8* nocapture %0, i16 zeroext %1, i8* %2, i64* nocapture readonly %3, i32 %4, i32 %5) unnamed_addr #6 {
+define internal fastcc void @"scabbard.trace.device.trace_append$mem"(i8* nocapture %0, i16 zeroext %1, i8* %2, i64* nocapture readonly %3, i32 %4, i32 %5) unnamed_addr #3 {
   %7 = alloca [6 x i8], align 2, addrspace(5)
   %8 = alloca [7 x i8], align 1, addrspace(5)
   %9 = getelementptr inbounds [6 x i8], [6 x i8] addrspace(5)* %7, i32 0, i32 0
@@ -125,10 +40,10 @@ define internal fastcc void @"scabbard.trace.device.trace_append$mem"(i8* nocapt
   %14 = tail call i32 @llvm.amdgcn.workgroup.id.x()
   %15 = tail call i32 @llvm.amdgcn.workgroup.id.y()
   %16 = tail call i32 @llvm.amdgcn.workgroup.id.z()
-  %17 = tail call i32 @llvm.amdgcn.workitem.id.x(), !range !1783
-  %18 = tail call i32 @llvm.amdgcn.workitem.id.y(), !range !1783
-  %19 = tail call i32 @llvm.amdgcn.workitem.id.z(), !range !1783
-  %20 = load i64, i64* %3, align 8, !tbaa !1792
+  %17 = tail call i32 @llvm.amdgcn.workitem.id.x(), !range !1763
+  %18 = tail call i32 @llvm.amdgcn.workitem.id.y(), !range !1763
+  %19 = tail call i32 @llvm.amdgcn.workitem.id.z(), !range !1763
+  %20 = load i64, i64* %3, align 8, !tbaa !1764
   %21 = bitcast i8* %0 to i32*
   %22 = load i32, i32* %21, align 1
   %23 = trunc i32 %19 to i8
@@ -141,17 +56,17 @@ define internal fastcc void @"scabbard.trace.device.trace_append$mem"(i8* nocapt
   %30 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29
   %31 = bitcast %"struct.scabbard::TraceData"* %30 to i8*
   %32 = getelementptr inbounds %"struct.scabbard::TraceData", %"struct.scabbard::TraceData"* %30, i64 0, i32 0
-  store i64 %13, i64* %32, align 8, !tbaa.struct !1843
+  store i64 %13, i64* %32, align 8, !tbaa.struct !1768
   %33 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29, i32 1
-  store i16 %1, i16* %33, align 8, !tbaa.struct !1853
+  store i16 %1, i16* %33, align 8, !tbaa.struct !1778
   %34 = getelementptr inbounds i8, i8* %31, i64 10
-  call void @llvm.memcpy.p0i8.p5i8.i64(i8* noundef nonnull align 2 dereferenceable(6) %34, i8 addrspace(5)* noundef align 2 dereferenceable(6) %9, i64 6, i1 false), !tbaa.struct !1854
+  call void @llvm.memcpy.p0i8.p5i8.i64(i8* noundef nonnull align 2 dereferenceable(6) %34, i8 addrspace(5)* noundef align 2 dereferenceable(6) %9, i64 6, i1 false), !tbaa.struct !1779
   %35 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29, i32 2
   %36 = bitcast %"union.scabbard::ThreadId"* %35 to i32*
-  store i32 %22, i32* %36, align 8, !tbaa.struct !1855
+  store i32 %22, i32* %36, align 8, !tbaa.struct !1780
   %37 = getelementptr inbounds i8, i8* %31, i64 20
   %38 = bitcast i8* %37 to i32*
-  store i32 %14, i32* %38, align 4, !tbaa.struct !1856
+  store i32 %14, i32* %38, align 4, !tbaa.struct !1781
   %39 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29, i32 2, i32 1
   %40 = insertelement <4 x i32> poison, i32 %15, i64 0
   %41 = insertelement <4 x i32> %40, i32 %16, i64 1
@@ -161,26 +76,26 @@ define internal fastcc void @"scabbard.trace.device.trace_append$mem"(i8* nocapt
   %45 = bitcast [16 x i8]* %39 to <4 x i16>*
   store <4 x i16> %44, <4 x i16>* %45, align 8
   %46 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29, i32 2, i32 1, i64 8
-  store i8 %23, i8* %46, align 8, !tbaa.struct !1857
+  store i8 %23, i8* %46, align 8, !tbaa.struct !1782
   %47 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29, i32 2, i32 1, i64 9
-  call void @llvm.memcpy.p0i8.p5i8.i64(i8* noundef nonnull align 1 dereferenceable(7) %47, i8 addrspace(5)* noundef align 1 dereferenceable(7) %10, i64 7, i1 false), !tbaa.struct !1858
+  call void @llvm.memcpy.p0i8.p5i8.i64(i8* noundef nonnull align 1 dereferenceable(7) %47, i8 addrspace(5)* noundef align 1 dereferenceable(7) %10, i64 7, i1 false), !tbaa.struct !1783
   %48 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29, i32 3
-  store i8* %2, i8** %48, align 8, !tbaa.struct !1859
+  store i8* %2, i8** %48, align 8, !tbaa.struct !1784
   %49 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29, i32 4, i32 0
-  store i64 %20, i64* %49, align 8, !tbaa.struct !1860
+  store i64 %20, i64* %49, align 8, !tbaa.struct !1785
   %50 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29, i32 4, i32 1
-  store i32 %4, i32* %50, align 8, !tbaa.struct !1861
+  store i32 %4, i32* %50, align 8, !tbaa.struct !1786
   %51 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29, i32 4, i32 2
-  store i32 %5, i32* %51, align 4, !tbaa.struct !1862
+  store i32 %5, i32* %51, align 4, !tbaa.struct !1787
   %52 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %25, i64 0, i64 %29, i32 5
-  store i64 0, i64* %52, align 8, !tbaa.struct !1863
+  store i64 0, i64* %52, align 8, !tbaa.struct !1788
   call void @llvm.lifetime.end.p5i8(i64 6, i8 addrspace(5)* %9)
   call void @llvm.lifetime.end.p5i8(i64 7, i8 addrspace(5)* %10)
   ret void
 }
 
 ; Function Attrs: mustprogress nofree noinline norecurse nounwind willreturn
-define internal fastcc void @"scabbard.trace.device.trace_append$alloc"(i8* nocapture %0, i16 zeroext %1, i8* %2, i64* nocapture readonly %3, i32 %4, i32 %5, i64 %6) unnamed_addr #6 {
+define internal fastcc void @"scabbard.trace.device.trace_append$alloc"(i8* nocapture %0, i16 zeroext %1, i8* %2, i64* nocapture readonly %3, i32 %4, i32 %5, i64 %6) unnamed_addr #3 {
   %8 = alloca [6 x i8], align 2, addrspace(5)
   %9 = alloca [7 x i8], align 1, addrspace(5)
   %10 = getelementptr inbounds [6 x i8], [6 x i8] addrspace(5)* %8, i32 0, i32 0
@@ -193,10 +108,10 @@ define internal fastcc void @"scabbard.trace.device.trace_append$alloc"(i8* noca
   %15 = tail call i32 @llvm.amdgcn.workgroup.id.x()
   %16 = tail call i32 @llvm.amdgcn.workgroup.id.y()
   %17 = tail call i32 @llvm.amdgcn.workgroup.id.z()
-  %18 = tail call i32 @llvm.amdgcn.workitem.id.x(), !range !1783
-  %19 = tail call i32 @llvm.amdgcn.workitem.id.y(), !range !1783
-  %20 = tail call i32 @llvm.amdgcn.workitem.id.z(), !range !1783
-  %21 = load i64, i64* %3, align 8, !tbaa !1792
+  %18 = tail call i32 @llvm.amdgcn.workitem.id.x(), !range !1763
+  %19 = tail call i32 @llvm.amdgcn.workitem.id.y(), !range !1763
+  %20 = tail call i32 @llvm.amdgcn.workitem.id.z(), !range !1763
+  %21 = load i64, i64* %3, align 8, !tbaa !1764
   %22 = bitcast i8* %0 to i32*
   %23 = load i32, i32* %22, align 1
   %24 = trunc i32 %20 to i8
@@ -209,17 +124,17 @@ define internal fastcc void @"scabbard.trace.device.trace_append$alloc"(i8* noca
   %31 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30
   %32 = bitcast %"struct.scabbard::TraceData"* %31 to i8*
   %33 = getelementptr inbounds %"struct.scabbard::TraceData", %"struct.scabbard::TraceData"* %31, i64 0, i32 0
-  store i64 %14, i64* %33, align 8, !tbaa.struct !1843
+  store i64 %14, i64* %33, align 8, !tbaa.struct !1768
   %34 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30, i32 1
-  store i16 %1, i16* %34, align 8, !tbaa.struct !1853
+  store i16 %1, i16* %34, align 8, !tbaa.struct !1778
   %35 = getelementptr inbounds i8, i8* %32, i64 10
-  call void @llvm.memcpy.p0i8.p5i8.i64(i8* noundef nonnull align 2 dereferenceable(6) %35, i8 addrspace(5)* noundef align 2 dereferenceable(6) %10, i64 6, i1 false), !tbaa.struct !1854
+  call void @llvm.memcpy.p0i8.p5i8.i64(i8* noundef nonnull align 2 dereferenceable(6) %35, i8 addrspace(5)* noundef align 2 dereferenceable(6) %10, i64 6, i1 false), !tbaa.struct !1779
   %36 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30, i32 2
   %37 = bitcast %"union.scabbard::ThreadId"* %36 to i32*
-  store i32 %23, i32* %37, align 8, !tbaa.struct !1855
+  store i32 %23, i32* %37, align 8, !tbaa.struct !1780
   %38 = getelementptr inbounds i8, i8* %32, i64 20
   %39 = bitcast i8* %38 to i32*
-  store i32 %15, i32* %39, align 4, !tbaa.struct !1856
+  store i32 %15, i32* %39, align 4, !tbaa.struct !1781
   %40 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30, i32 2, i32 1
   %41 = insertelement <4 x i32> poison, i32 %16, i64 0
   %42 = insertelement <4 x i32> %41, i32 %17, i64 1
@@ -229,88 +144,94 @@ define internal fastcc void @"scabbard.trace.device.trace_append$alloc"(i8* noca
   %46 = bitcast [16 x i8]* %40 to <4 x i16>*
   store <4 x i16> %45, <4 x i16>* %46, align 8
   %47 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30, i32 2, i32 1, i64 8
-  store i8 %24, i8* %47, align 8, !tbaa.struct !1857
+  store i8 %24, i8* %47, align 8, !tbaa.struct !1782
   %48 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30, i32 2, i32 1, i64 9
-  call void @llvm.memcpy.p0i8.p5i8.i64(i8* noundef nonnull align 1 dereferenceable(7) %48, i8 addrspace(5)* noundef align 1 dereferenceable(7) %11, i64 7, i1 false), !tbaa.struct !1858
+  call void @llvm.memcpy.p0i8.p5i8.i64(i8* noundef nonnull align 1 dereferenceable(7) %48, i8 addrspace(5)* noundef align 1 dereferenceable(7) %11, i64 7, i1 false), !tbaa.struct !1783
   %49 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30, i32 3
-  store i8* %2, i8** %49, align 8, !tbaa.struct !1859
+  store i8* %2, i8** %49, align 8, !tbaa.struct !1784
   %50 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30, i32 4, i32 0
-  store i64 %21, i64* %50, align 8, !tbaa.struct !1860
+  store i64 %21, i64* %50, align 8, !tbaa.struct !1785
   %51 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30, i32 4, i32 1
-  store i32 %4, i32* %51, align 8, !tbaa.struct !1861
+  store i32 %4, i32* %51, align 8, !tbaa.struct !1786
   %52 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30, i32 4, i32 2
-  store i32 %5, i32* %52, align 4, !tbaa.struct !1862
+  store i32 %5, i32* %52, align 4, !tbaa.struct !1787
   %53 = getelementptr inbounds [128 x %"struct.scabbard::TraceData"], [128 x %"struct.scabbard::TraceData"]* %26, i64 0, i64 %30, i32 5
-  store i64 %6, i64* %53, align 8, !tbaa.struct !1863
+  store i64 %6, i64* %53, align 8, !tbaa.struct !1788
   call void @llvm.lifetime.end.p5i8(i64 6, i8 addrspace(5)* %10)
   call void @llvm.lifetime.end.p5i8(i64 7, i8 addrspace(5)* %11)
   ret void
 }
 
 ; Function Attrs: argmemonly nocallback nofree nosync nounwind willreturn
-declare void @llvm.lifetime.end.p5i8(i64 immarg, i8 addrspace(5)* nocapture) #5
+declare void @llvm.lifetime.end.p5i8(i64 immarg, i8 addrspace(5)* nocapture) #2
 
 ; Function Attrs: nounwind readnone speculatable willreturn
-declare i32 @llvm.amdgcn.workgroup.id.y() #7
+declare i32 @llvm.amdgcn.workgroup.id.y() #4
 
 ; Function Attrs: nounwind readnone speculatable willreturn
-declare i32 @llvm.amdgcn.workgroup.id.z() #7
+declare i32 @llvm.amdgcn.workgroup.id.z() #4
 
 ; Function Attrs: nounwind readnone speculatable willreturn
-declare i32 @llvm.amdgcn.workitem.id.y() #7
+declare i32 @llvm.amdgcn.workitem.id.y() #4
 
 ; Function Attrs: nounwind readnone speculatable willreturn
-declare i32 @llvm.amdgcn.workitem.id.z() #7
+declare i32 @llvm.amdgcn.workitem.id.z() #4
 
 ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
-declare void @llvm.memcpy.p0i8.p5i8.i64(i8* noalias nocapture writeonly, i8 addrspace(5)* noalias nocapture readonly, i64, i1 immarg) #8
+declare void @llvm.memcpy.p0i8.p5i8.i64(i8* noalias nocapture writeonly, i8 addrspace(5)* noalias nocapture readonly, i64, i1 immarg) #5
 
 ; Function Attrs: convergent mustprogress norecurse nounwind willreturn
-define protected amdgpu_kernel void @_Z15tick_all_kernelPU7_AtomicmPmPli(i64 addrspace(1)* nocapture %0, i64 addrspace(1)* nocapture writeonly %1, i64 addrspace(1)* nocapture %2, i32 %3, ptr %4) local_unnamed_addr #0 !dbg !1864 {
+define protected amdgpu_kernel void @_Z15tick_all_kernelPU7_AtomicmPmPli(i64 addrspace(1)* nocapture %0, i64 addrspace(1)* nocapture writeonly %1, i64 addrspace(1)* nocapture %2, i32 %3, ptr %4) local_unnamed_addr #6 !dbg !1789 {
+  unreachable
+}
+
+; Function Attrs: argmemonly mustprogress nofree noinline norecurse nosync nounwind willreturn
+define dso_local fastcc void @_Z10dummy_workPl(i64* nocapture %0, ptr %1) unnamed_addr #7 !dbg !1801 {
   unreachable
 }
 
 ; Function Attrs: convergent mustprogress norecurse nounwind willreturn
-define protected amdgpu_kernel void @_Z12dummy_kernelv(ptr %0) local_unnamed_addr #0 !dbg !1870 {
-  fence syncscope("workgroup") release, !dbg !1871
-  tail call void @llvm.amdgcn.s.barrier(), !dbg !1875
-  fence syncscope("workgroup") acquire, !dbg !1876
-  ret void, !dbg !1877
+define protected amdgpu_kernel void @_Z12dummy_kernelv(ptr %0) local_unnamed_addr #6 !dbg !1807 {
+  fence syncscope("workgroup") release, !dbg !1809
+  tail call void @llvm.amdgcn.s.barrier(), !dbg !1827
+  fence syncscope("workgroup") acquire, !dbg !1828
+  ret void, !dbg !1829
 }
 
 ; Function Attrs: argmemonly mustprogress nofree norecurse nosync nounwind willreturn writeonly
-define protected amdgpu_kernel void @_Z10dummy_initPl(i64 addrspace(1)* nocapture writeonly %0, ptr %1) local_unnamed_addr #1 !dbg !1878 {
+define protected amdgpu_kernel void @_Z10dummy_initPl(i64 addrspace(1)* nocapture writeonly %0, ptr %1) local_unnamed_addr #8 !dbg !1830 {
   unreachable
 }
 
 ; Function Attrs: convergent mustprogress nofree norecurse nounwind willreturn
-define amdgpu_kernel void @scabbard.trace.device.dummyFunc(i16 %0, i8 addrspace(1)* %1, i8 addrspace(1)* nocapture readnone %2, i64 addrspace(1)* nocapture readonly %3, ptr %4) local_unnamed_addr #4 {
+define amdgpu_kernel void @scabbard.trace.device.dummyFunc(i16 %0, i8 addrspace(1)* %1, i8 addrspace(1)* nocapture readnone %2, i64 addrspace(1)* nocapture readonly %3, ptr %4) local_unnamed_addr #9 {
   %6 = alloca i64, align 8, addrspace(5)
   %7 = addrspacecast i8 addrspace(1)* %1 to i8*
   %8 = addrspacecast i64 addrspace(1)* %3 to i64*
   %9 = bitcast i64 addrspace(5)* %6 to i8 addrspace(5)*
-  call void @llvm.lifetime.start.p5i8(i64 8, i8 addrspace(5)* %9) #9
+  call void @llvm.lifetime.start.p5i8(i64 8, i8 addrspace(5)* %9) #10
   %10 = addrspacecast i8 addrspace(5)* %9 to i8*
-  call fastcc void @"scabbard.trace.device.trace_append$mem"(i8* %10, i16 zeroext %0, i8* %7, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_114src_id_reg_tmpE to i64*), i32 19, i32 9) #9
-  call fastcc void @"scabbard.trace.device.trace_append$mem"(i8* %10, i16 zeroext %0, i8* %7, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp2E to i64*), i32 1024, i32 4) #9
-  call fastcc void @"scabbard.trace.device.trace_append$mem"(i8* %10, i16 zeroext %0, i8* %7, i64* %8, i32 10240, i32 40) #9
-  call fastcc void @"scabbard.trace.device.trace_append$alloc"(i8* %10, i16 zeroext %0, i8* %7, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp2E to i64*), i32 88, i32 256, i64 7) #9
-  call fastcc void @"scabbard.trace.device.trace_append$alloc"(i8* %10, i16 zeroext %0, i8* %7, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp3E to i64*), i32 98, i32 6, i64 23) #9
-  call fastcc void @"scabbard.trace.device.trace_append$alloc"(i8* %10, i16 zeroext %0, i8* %7, i64* %8, i32 980, i32 60, i64 230) #9
-  call void @llvm.lifetime.end.p5i8(i64 8, i8 addrspace(5)* %9) #9
+  call fastcc void @"scabbard.trace.device.trace_append$mem"(i8* %10, i16 zeroext %0, i8* %7, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_114src_id_reg_tmpE to i64*), i32 19, i32 9) #10
+  call fastcc void @"scabbard.trace.device.trace_append$mem"(i8* %10, i16 zeroext %0, i8* %7, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp2E to i64*), i32 1024, i32 4) #10
+  call fastcc void @"scabbard.trace.device.trace_append$mem"(i8* %10, i16 zeroext %0, i8* %7, i64* %8, i32 10240, i32 40) #10
+  call fastcc void @"scabbard.trace.device.trace_append$alloc"(i8* %10, i16 zeroext %0, i8* %7, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp2E to i64*), i32 88, i32 256, i64 7) #10
+  call fastcc void @"scabbard.trace.device.trace_append$alloc"(i8* %10, i16 zeroext %0, i8* %7, i64* addrspacecast (i64 addrspace(1)* @_ZN8scabbard5trace12_GLOBAL__N_115src_id_reg_tmp3E to i64*), i32 98, i32 6, i64 23) #10
+  call fastcc void @"scabbard.trace.device.trace_append$alloc"(i8* %10, i16 zeroext %0, i8* %7, i64* %8, i32 980, i32 60, i64 230) #10
+  call void @llvm.lifetime.end.p5i8(i64 8, i8 addrspace(5)* %9) #10
   ret void
 }
 
-attributes #0 = { convergent mustprogress norecurse nounwind willreturn "amdgpu-flat-work-group-size"="1,1024" "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="gfx90a" "target-features"="+16-bit-insts,+ci-insts,+dl-insts,+dot1-insts,+dot2-insts,+dot3-insts,+dot4-insts,+dot5-insts,+dot6-insts,+dot7-insts,+dpp,+flat-address-space,+gfx8-insts,+gfx9-insts,+gfx90a-insts,+mai-insts,+s-memrealtime,+s-memtime-inst" "uniform-work-group-size"="true" }
-attributes #1 = { argmemonly mustprogress nofree norecurse nosync nounwind willreturn writeonly "amdgpu-flat-work-group-size"="1,1024" "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="gfx90a" "target-features"="+16-bit-insts,+ci-insts,+dl-insts,+dot1-insts,+dot2-insts,+dot3-insts,+dot4-insts,+dot5-insts,+dot6-insts,+dot7-insts,+dpp,+flat-address-space,+gfx8-insts,+gfx9-insts,+gfx90a-insts,+mai-insts,+s-memrealtime,+s-memtime-inst" "uniform-work-group-size"="true" }
-attributes #2 = { convergent mustprogress nounwind willreturn }
-attributes #3 = { mustprogress nofree nosync nounwind readnone speculatable willreturn }
-attributes #4 = { convergent mustprogress nofree norecurse nounwind willreturn "amdgpu-flat-work-group-size"="1,1024" "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="gfx90a" "target-features"="+16-bit-insts,+ci-insts,+dl-insts,+dot1-insts,+dot2-insts,+dot3-insts,+dot4-insts,+dot5-insts,+dot6-insts,+dot7-insts,+dpp,+flat-address-space,+gfx8-insts,+gfx9-insts,+gfx90a-insts,+mai-insts,+s-memrealtime,+s-memtime-inst" "uniform-work-group-size"="true" }
-attributes #5 = { argmemonly nocallback nofree nosync nounwind willreturn }
-attributes #6 = { mustprogress nofree noinline norecurse nounwind willreturn "amdgpu-flat-work-group-size"="1,1024" "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="gfx90a" "target-features"="+16-bit-insts,+add-no-carry-insts,+aperture-regs,+atomic-fadd-no-rtn-insts,+atomic-fadd-rtn-insts,+atomic-pk-fadd-no-rtn-insts,+ci-insts,+dl-insts,+dot1-insts,+dot2-insts,+dot3-insts,+dot4-insts,+dot5-insts,+dot6-insts,+dot7-insts,+dpp,+dpp-64bit,+enable-ds128,+enable-prt-strict-null,+fast-denormal-f32,+fast-fmaf,+flat-address-space,+flat-for-global,+flat-global-insts,+flat-inst-offsets,+flat-scratch-insts,+fma-mix-insts,+fp64,+full-rate-64-ops,+gcn3-encoding,+gfx7-gfx8-gfx9-insts,+gfx8-insts,+gfx9,+gfx9-insts,+gfx90a-insts,+image-insts,+int-clamp-insts,+inv-2pi-inline-imm,+ldsbankcount32,+load-store-opt,+localmemorysize65536,+mad-mac-f32-insts,+mai-insts,+negative-scratch-offset-bug,+packed-fp32-ops,+packed-tid,+pk-fmac-f16-inst,+promote-alloca,+r128-a16,+s-memrealtime,+s-memtime-inst,+scalar-atomics,+scalar-flat-scratch-insts,+scalar-stores,+sdwa,+sdwa-omod,+sdwa-scalar,+sdwa-sdst,+sramecc-support,+trap-handler,+unaligned-access-mode,+unaligned-buffer-access,+unaligned-ds-access,+vgpr-index-mode,+vop3p,-wavefrontsize16,-wavefrontsize32,+wavefrontsize64,+xnack-support" }
-attributes #7 = { nounwind readnone speculatable willreturn }
-attributes #8 = { argmemonly nocallback nofree nounwind willreturn }
-attributes #9 = { nounwind }
+attributes #0 = { convergent mustprogress nounwind willreturn }
+attributes #1 = { mustprogress nofree nosync nounwind readnone speculatable willreturn }
+attributes #2 = { argmemonly nocallback nofree nosync nounwind willreturn }
+attributes #3 = { mustprogress nofree noinline norecurse nounwind willreturn "amdgpu-flat-work-group-size"="1,1024" "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="gfx90a" "target-features"="+16-bit-insts,+add-no-carry-insts,+aperture-regs,+atomic-fadd-no-rtn-insts,+atomic-fadd-rtn-insts,+atomic-pk-fadd-no-rtn-insts,+ci-insts,+dl-insts,+dot1-insts,+dot2-insts,+dot3-insts,+dot4-insts,+dot5-insts,+dot6-insts,+dot7-insts,+dpp,+dpp-64bit,+enable-ds128,+enable-prt-strict-null,+fast-denormal-f32,+fast-fmaf,+flat-address-space,+flat-for-global,+flat-global-insts,+flat-inst-offsets,+flat-scratch-insts,+fma-mix-insts,+fp64,+full-rate-64-ops,+gcn3-encoding,+gfx7-gfx8-gfx9-insts,+gfx8-insts,+gfx9,+gfx9-insts,+gfx90a-insts,+image-insts,+int-clamp-insts,+inv-2pi-inline-imm,+ldsbankcount32,+load-store-opt,+localmemorysize65536,+mad-mac-f32-insts,+mai-insts,+negative-scratch-offset-bug,+packed-fp32-ops,+packed-tid,+pk-fmac-f16-inst,+promote-alloca,+r128-a16,+s-memrealtime,+s-memtime-inst,+scalar-atomics,+scalar-flat-scratch-insts,+scalar-stores,+sdwa,+sdwa-omod,+sdwa-scalar,+sdwa-sdst,+sramecc-support,+trap-handler,+unaligned-access-mode,+unaligned-buffer-access,+unaligned-ds-access,+vgpr-index-mode,+vop3p,-wavefrontsize16,-wavefrontsize32,+wavefrontsize64,+xnack-support" }
+attributes #4 = { nounwind readnone speculatable willreturn }
+attributes #5 = { argmemonly nocallback nofree nounwind willreturn }
+attributes #6 = { convergent mustprogress norecurse nounwind willreturn "amdgpu-flat-work-group-size"="1,1024" "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="gfx90a" "target-features"="+16-bit-insts,+ci-insts,+dl-insts,+dot1-insts,+dot2-insts,+dot3-insts,+dot4-insts,+dot5-insts,+dot6-insts,+dot7-insts,+dpp,+flat-address-space,+gfx8-insts,+gfx9-insts,+gfx90a-insts,+mai-insts,+s-memrealtime,+s-memtime-inst" "uniform-work-group-size"="true" }
+attributes #7 = { argmemonly mustprogress nofree noinline norecurse nosync nounwind willreturn "amdgpu-flat-work-group-size"="1,1024" "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="gfx90a" "target-features"="+16-bit-insts,+add-no-carry-insts,+aperture-regs,+atomic-fadd-no-rtn-insts,+atomic-fadd-rtn-insts,+atomic-pk-fadd-no-rtn-insts,+ci-insts,+dl-insts,+dot1-insts,+dot2-insts,+dot3-insts,+dot4-insts,+dot5-insts,+dot6-insts,+dot7-insts,+dpp,+dpp-64bit,+enable-ds128,+enable-prt-strict-null,+fast-denormal-f32,+fast-fmaf,+flat-address-space,+flat-for-global,+flat-global-insts,+flat-inst-offsets,+flat-scratch-insts,+fma-mix-insts,+fp64,+full-rate-64-ops,+gcn3-encoding,+gfx7-gfx8-gfx9-insts,+gfx8-insts,+gfx9,+gfx9-insts,+gfx90a-insts,+image-insts,+int-clamp-insts,+inv-2pi-inline-imm,+ldsbankcount32,+load-store-opt,+localmemorysize65536,+mad-mac-f32-insts,+mai-insts,+negative-scratch-offset-bug,+packed-fp32-ops,+packed-tid,+pk-fmac-f16-inst,+promote-alloca,+r128-a16,+s-memrealtime,+s-memtime-inst,+scalar-atomics,+scalar-flat-scratch-insts,+scalar-stores,+sdwa,+sdwa-omod,+sdwa-scalar,+sdwa-sdst,+sramecc-support,+trap-handler,+unaligned-access-mode,+unaligned-buffer-access,+unaligned-ds-access,+vgpr-index-mode,+vop3p,-wavefrontsize16,-wavefrontsize32,+wavefrontsize64,+xnack-support" }
+attributes #8 = { argmemonly mustprogress nofree norecurse nosync nounwind willreturn writeonly "amdgpu-flat-work-group-size"="1,1024" "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="gfx90a" "target-features"="+16-bit-insts,+ci-insts,+dl-insts,+dot1-insts,+dot2-insts,+dot3-insts,+dot4-insts,+dot5-insts,+dot6-insts,+dot7-insts,+dpp,+flat-address-space,+gfx8-insts,+gfx9-insts,+gfx90a-insts,+mai-insts,+s-memrealtime,+s-memtime-inst" "uniform-work-group-size"="true" }
+attributes #9 = { convergent mustprogress nofree norecurse nounwind willreturn "amdgpu-flat-work-group-size"="1,1024" "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="gfx90a" "target-features"="+16-bit-insts,+ci-insts,+dl-insts,+dot1-insts,+dot2-insts,+dot3-insts,+dot4-insts,+dot5-insts,+dot6-insts,+dot7-insts,+dpp,+flat-address-space,+gfx8-insts,+gfx9-insts,+gfx90a-insts,+mai-insts,+s-memrealtime,+s-memtime-inst" "uniform-work-group-size"="true" }
+attributes #10 = { nounwind }
 
 !llvm.dbg.cu = !{!0}
 !llvm.dbg.retainedNodes = !{!1712, !1754}
@@ -319,7 +240,7 @@ attributes #9 = { nounwind }
 !llvm.ident = !{!1762, !1762}
 
 !0 = distinct !DICompileUnit(language: DW_LANG_C_plus_plus_14, file: !1, producer: "AMD clang version 15.0.0 (https://github.com/RadeonOpenCompute/llvm-project roc-5.4.3 23045 a29fe425c7b0e5aba97ed2f95f61fd5ecba68aed)", isOptimized: true, runtimeVersion: 0, emissionKind: FullDebug, enums: !2, retainedTypes: !26, imports: !42, splitDebugInlining: false, nameTableKind: None)
-!1 = !DIFile(filename: "test/managed_clock_test.cpp", directory: "/g/g11/osterhou/repos/scabbard", checksumkind: CSK_MD5, checksum: "f3b95071d78788dcbdfb6777dea84a9e")
+!1 = !DIFile(filename: "test/managed_clock_test.cpp", directory: "/g/g11/osterhou/repos/scabbard", checksumkind: CSK_MD5, checksum: "84927e4bf98b7e7efaf685dc29fe5570")
 !2 = !{!3, !11, !19}
 !3 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "_Lock_policy", scope: !5, file: !4, line: 49, baseType: !6, size: 32, elements: !7, identifier: "_ZTSN9__gnu_cxx12_Lock_policyE")
 !4 = !DIFile(filename: "/opt/rh/gcc-toolset-10/root/usr/lib/gcc/x86_64-redhat-linux/10/../../../../include/c++/10/ext/concurrence.h", directory: "")
@@ -2081,125 +2002,77 @@ attributes #9 = { nounwind }
 !1760 = !{i32 7, !"PIC Level", i32 1}
 !1761 = !{i32 2, i32 0}
 !1762 = !{!"AMD clang version 15.0.0 (https://github.com/RadeonOpenCompute/llvm-project roc-5.4.3 23045 a29fe425c7b0e5aba97ed2f95f61fd5ecba68aed)"}
-!1763 = distinct !DISubprogram(name: "tick_all_kernel", linkageName: "_Z15tick_all_kernelPU7_AtomicmPmPli", scope: !1, file: !1, line: 57, type: !1764, scopeLine: 58, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1770)
-!1764 = !DISubroutineType(types: !1765)
-!1765 = !{null, !1766, !1768, !1769, !49}
-!1766 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !1767, size: 64)
-!1767 = !DIDerivedType(tag: DW_TAG_atomic_type, baseType: !1270)
-!1768 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !1270, size: 64)
-!1769 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !1233, size: 64)
-!1770 = !{!1771, !1772, !1773, !1774}
-!1771 = !DILocalVariable(name: "clk", arg: 1, scope: !1763, file: !1, line: 57, type: !1766)
-!1772 = !DILocalVariable(name: "vals", arg: 2, scope: !1763, file: !1, line: 57, type: !1768)
-!1773 = !DILocalVariable(name: "dummy_data", arg: 3, scope: !1763, file: !1, line: 57, type: !1769)
-!1774 = !DILocalVariable(name: "test", arg: 4, scope: !1763, file: !1, line: 57, type: !49)
-!1775 = !DILocation(line: 197, column: 11, scope: !1776, inlinedAt: !1782)
-!1776 = distinct !DISubprogram(name: "dummy_work", linkageName: "_Z10dummy_workPl", scope: !1, file: !1, line: 195, type: !1777, scopeLine: 196, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1779)
-!1777 = !DISubroutineType(types: !1778)
-!1778 = !{null, !1769}
-!1779 = !{!1780, !1781}
-!1780 = !DILocalVariable(name: "dummy_data", arg: 1, scope: !1776, file: !1, line: 195, type: !1769)
-!1781 = !DILocalVariable(name: "i", scope: !1776, file: !1, line: 197, type: !49)
-!1782 = distinct !DILocation(line: 59, column: 3, scope: !1763)
-!1783 = !{i32 0, i32 1024}
-!1784 = !DILocation(line: 197, column: 28, scope: !1776, inlinedAt: !1782)
-!1785 = !{i16 1, i16 1025}
-!1786 = !{}
-!1787 = !DILocation(line: 197, column: 44, scope: !1776, inlinedAt: !1782)
-!1788 = !DILocation(line: 197, column: 42, scope: !1776, inlinedAt: !1782)
-!1789 = !DILocation(line: 197, column: 26, scope: !1776, inlinedAt: !1782)
-!1790 = !DILocation(line: 198, column: 20, scope: !1776, inlinedAt: !1782)
-!1791 = !DILocation(line: 198, column: 17, scope: !1776, inlinedAt: !1782)
-!1792 = !{!1793, !1793, i64 0}
-!1793 = !{!"long", !1794, i64 0}
-!1794 = !{!"omnipotent char", !1795, i64 0}
-!1795 = !{!"Simple C++ TBAA"}
-!1796 = !DILocation(line: 60, column: 34, scope: !1763)
-!1797 = !DILocation(line: 60, column: 19, scope: !1763)
-!1798 = !DILocation(line: 60, column: 3, scope: !1763)
-!1799 = !DILocation(line: 60, column: 26, scope: !1763)
-!1800 = !DILocation(line: 924, column: 9, scope: !1801, inlinedAt: !1810)
-!1801 = distinct !DILexicalBlock(scope: !1802, file: !1651, line: 923, column: 16)
-!1802 = distinct !DILexicalBlock(scope: !1803, file: !1651, line: 923, column: 9)
-!1803 = distinct !DISubprogram(name: "__work_group_barrier", linkageName: "_ZL20__work_group_barrierj14__memory_scope", scope: !1651, file: !1651, line: 921, type: !1804, scopeLine: 922, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1807)
-!1804 = !DISubroutineType(cc: DW_CC_nocall, types: !1805)
-!1805 = !{null, !27, !1806}
-!1806 = !DIDerivedType(tag: DW_TAG_typedef, name: "__memory_scope", file: !12, line: 137, baseType: !11)
-!1807 = !{!1808, !1809}
-!1808 = !DILocalVariable(name: "flags", arg: 1, scope: !1803, file: !1651, line: 921, type: !27)
-!1809 = !DILocalVariable(name: "scope", arg: 2, scope: !1803, file: !1651, line: 921, type: !1806)
-!1810 = distinct !DILocation(line: 936, column: 3, scope: !1811, inlinedAt: !1815)
-!1811 = distinct !DISubprogram(name: "__barrier", linkageName: "_ZL9__barrieri", scope: !1651, file: !1651, line: 934, type: !1812, scopeLine: 935, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1813)
-!1812 = !DISubroutineType(cc: DW_CC_nocall, types: !454)
-!1813 = !{!1814}
-!1814 = !DILocalVariable(name: "n", arg: 1, scope: !1811, file: !1651, line: 934, type: !49)
-!1815 = distinct !DILocation(line: 944, column: 3, scope: !1816, inlinedAt: !1817)
-!1816 = distinct !DISubprogram(name: "__syncthreads", linkageName: "_Z13__syncthreadsv", scope: !1651, file: !1651, line: 942, type: !406, scopeLine: 943, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1786)
-!1817 = distinct !DILocation(line: 61, column: 3, scope: !1763)
-!1818 = !DILocation(line: 925, column: 9, scope: !1801, inlinedAt: !1810)
-!1819 = !DILocation(line: 926, column: 9, scope: !1801, inlinedAt: !1810)
-!1820 = !DILocation(line: 198, column: 17, scope: !1776, inlinedAt: !1821)
-!1821 = distinct !DILocation(line: 62, column: 3, scope: !1763)
-!1822 = !DILocation(line: 63, column: 1, scope: !1763)
-!1823 = distinct !DISubprogram(name: "dummy_kernel", linkageName: "_Z12dummy_kernelv", scope: !1, file: !1, line: 155, type: !406, scopeLine: 156, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1786)
-!1824 = !DILocation(line: 924, column: 9, scope: !1801, inlinedAt: !1825)
-!1825 = distinct !DILocation(line: 936, column: 3, scope: !1811, inlinedAt: !1826)
-!1826 = distinct !DILocation(line: 944, column: 3, scope: !1816, inlinedAt: !1827)
-!1827 = distinct !DILocation(line: 157, column: 3, scope: !1823)
-!1828 = !DILocation(line: 925, column: 9, scope: !1801, inlinedAt: !1825)
-!1829 = !DILocation(line: 926, column: 9, scope: !1801, inlinedAt: !1825)
-!1830 = !DILocation(line: 158, column: 1, scope: !1823)
-!1831 = distinct !DISubprogram(name: "dummy_init", linkageName: "_Z10dummy_initPl", scope: !1, file: !1, line: 188, type: !1777, scopeLine: 189, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1832)
-!1832 = !{!1833, !1834}
-!1833 = !DILocalVariable(name: "dummy_data", arg: 1, scope: !1831, file: !1, line: 188, type: !1769)
-!1834 = !DILocalVariable(name: "i", scope: !1831, file: !1, line: 190, type: !49)
-!1835 = !DILocation(line: 190, column: 11, scope: !1831)
-!1836 = !DILocation(line: 190, column: 28, scope: !1831)
-!1837 = !DILocation(line: 190, column: 44, scope: !1831)
-!1838 = !DILocation(line: 190, column: 42, scope: !1831)
-!1839 = !DILocation(line: 190, column: 26, scope: !1831)
-!1840 = !DILocation(line: 191, column: 3, scope: !1831)
-!1841 = !DILocation(line: 191, column: 17, scope: !1831)
-!1842 = !DILocation(line: 192, column: 1, scope: !1831)
-!1843 = !{i64 0, i64 8, !1792, i64 8, i64 2, !1844, i64 16, i64 8, !1792, i64 16, i64 2, !1846, i64 18, i64 2, !1846, i64 20, i64 4, !1848, i64 24, i64 2, !1846, i64 26, i64 2, !1846, i64 28, i64 2, !1846, i64 30, i64 2, !1846, i64 32, i64 1, !1850, i64 16, i64 8, !1851, i64 40, i64 8, !1851, i64 48, i64 8, !1792, i64 56, i64 4, !1848, i64 60, i64 4, !1848, i64 64, i64 8, !1792}
-!1844 = !{!1845, !1845, i64 0}
-!1845 = !{!"_ZTSN8scabbard9InstrDataE", !1794, i64 0}
-!1846 = !{!1847, !1847, i64 0}
-!1847 = !{!"short", !1794, i64 0}
-!1848 = !{!1849, !1849, i64 0}
-!1849 = !{!"int", !1794, i64 0}
-!1850 = !{!1794, !1794, i64 0}
-!1851 = !{!1852, !1852, i64 0}
-!1852 = !{!"any pointer", !1794, i64 0}
-!1853 = !{i64 0, i64 2, !1844, i64 8, i64 8, !1792, i64 8, i64 2, !1846, i64 10, i64 2, !1846, i64 12, i64 4, !1848, i64 16, i64 2, !1846, i64 18, i64 2, !1846, i64 20, i64 2, !1846, i64 22, i64 2, !1846, i64 24, i64 1, !1850, i64 8, i64 8, !1851, i64 32, i64 8, !1851, i64 40, i64 8, !1792, i64 48, i64 4, !1848, i64 52, i64 4, !1848, i64 56, i64 8, !1792}
-!1854 = !{i64 6, i64 8, !1792, i64 6, i64 2, !1846, i64 8, i64 2, !1846, i64 10, i64 4, !1848, i64 14, i64 2, !1846, i64 16, i64 2, !1846, i64 18, i64 2, !1846, i64 20, i64 2, !1846, i64 22, i64 1, !1850, i64 6, i64 8, !1851, i64 30, i64 8, !1851, i64 38, i64 8, !1792, i64 46, i64 4, !1848, i64 50, i64 4, !1848, i64 54, i64 8, !1792}
-!1855 = !{i64 0, i64 8, !1792, i64 0, i64 2, !1846, i64 2, i64 2, !1846, i64 4, i64 4, !1848, i64 8, i64 2, !1846, i64 10, i64 2, !1846, i64 12, i64 2, !1846, i64 14, i64 2, !1846, i64 16, i64 1, !1850, i64 0, i64 8, !1851, i64 24, i64 8, !1851, i64 32, i64 8, !1792, i64 40, i64 4, !1848, i64 44, i64 4, !1848, i64 48, i64 8, !1792}
-!1856 = !{i64 0, i64 4, !1792, i64 0, i64 4, !1848, i64 4, i64 2, !1846, i64 6, i64 2, !1846, i64 8, i64 2, !1846, i64 10, i64 2, !1846, i64 12, i64 1, !1850, i64 0, i64 4, !1851, i64 20, i64 8, !1851, i64 28, i64 8, !1792, i64 36, i64 4, !1848, i64 40, i64 4, !1848, i64 44, i64 8, !1792}
-!1857 = !{i64 0, i64 1, !1850, i64 8, i64 8, !1851, i64 16, i64 8, !1792, i64 24, i64 4, !1848, i64 28, i64 4, !1848, i64 32, i64 8, !1792}
-!1858 = !{i64 7, i64 8, !1851, i64 15, i64 8, !1792, i64 23, i64 4, !1848, i64 27, i64 4, !1848, i64 31, i64 8, !1792}
-!1859 = !{i64 0, i64 8, !1851, i64 8, i64 8, !1792, i64 16, i64 4, !1848, i64 20, i64 4, !1848, i64 24, i64 8, !1792}
-!1860 = !{i64 0, i64 8, !1792, i64 8, i64 4, !1848, i64 12, i64 4, !1848, i64 16, i64 8, !1792}
-!1861 = !{i64 0, i64 4, !1848, i64 4, i64 4, !1848, i64 8, i64 8, !1792}
-!1862 = !{i64 0, i64 4, !1848, i64 4, i64 8, !1792}
-!1863 = !{i64 0, i64 8, !1792}
-!1864 = distinct !DISubprogram(name: "tick_all_kernel", linkageName: "_Z15tick_all_kernelPU7_AtomicmPmPli", scope: !1, file: !1, line: 57, type: !1764, scopeLine: 58, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1865)
-!1865 = !{!1866, !1867, !1868, !1869}
-!1866 = !DILocalVariable(name: "clk", arg: 1, scope: !1864, file: !1, line: 57, type: !1766)
-!1867 = !DILocalVariable(name: "vals", arg: 2, scope: !1864, file: !1, line: 57, type: !1768)
-!1868 = !DILocalVariable(name: "dummy_data", arg: 3, scope: !1864, file: !1, line: 57, type: !1769)
-!1869 = !DILocalVariable(name: "test", arg: 4, scope: !1864, file: !1, line: 57, type: !49)
-!1870 = distinct !DISubprogram(name: "dummy_kernel", linkageName: "_Z12dummy_kernelv", scope: !1, file: !1, line: 155, type: !406, scopeLine: 156, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1786)
-!1871 = !DILocation(line: 924, column: 9, scope: !1801, inlinedAt: !1872)
-!1872 = distinct !DILocation(line: 936, column: 3, scope: !1811, inlinedAt: !1873)
-!1873 = distinct !DILocation(line: 944, column: 3, scope: !1816, inlinedAt: !1874)
-!1874 = distinct !DILocation(line: 157, column: 3, scope: !1870)
-!1875 = !DILocation(line: 925, column: 9, scope: !1801, inlinedAt: !1872)
-!1876 = !DILocation(line: 926, column: 9, scope: !1801, inlinedAt: !1872)
-!1877 = !DILocation(line: 158, column: 1, scope: !1870)
-!1878 = distinct !DISubprogram(name: "dummy_init", linkageName: "_Z10dummy_initPl", scope: !1, file: !1, line: 188, type: !1777, scopeLine: 189, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1879)
-!1879 = !{!1880, !1881}
-!1880 = !DILocalVariable(name: "dummy_data", arg: 1, scope: !1878, file: !1, line: 188, type: !1769)
-!1881 = !DILocalVariable(name: "i", scope: !1878, file: !1, line: 190, type: !49)
+!1763 = !{i32 0, i32 1024}
+!1764 = !{!1765, !1765, i64 0}
+!1765 = !{!"long", !1766, i64 0}
+!1766 = !{!"omnipotent char", !1767, i64 0}
+!1767 = !{!"Simple C++ TBAA"}
+!1768 = !{i64 0, i64 8, !1764, i64 8, i64 2, !1769, i64 16, i64 8, !1764, i64 16, i64 2, !1771, i64 18, i64 2, !1771, i64 20, i64 4, !1773, i64 24, i64 2, !1771, i64 26, i64 2, !1771, i64 28, i64 2, !1771, i64 30, i64 2, !1771, i64 32, i64 1, !1775, i64 16, i64 8, !1776, i64 40, i64 8, !1776, i64 48, i64 8, !1764, i64 56, i64 4, !1773, i64 60, i64 4, !1773, i64 64, i64 8, !1764}
+!1769 = !{!1770, !1770, i64 0}
+!1770 = !{!"_ZTSN8scabbard9InstrDataE", !1766, i64 0}
+!1771 = !{!1772, !1772, i64 0}
+!1772 = !{!"short", !1766, i64 0}
+!1773 = !{!1774, !1774, i64 0}
+!1774 = !{!"int", !1766, i64 0}
+!1775 = !{!1766, !1766, i64 0}
+!1776 = !{!1777, !1777, i64 0}
+!1777 = !{!"any pointer", !1766, i64 0}
+!1778 = !{i64 0, i64 2, !1769, i64 8, i64 8, !1764, i64 8, i64 2, !1771, i64 10, i64 2, !1771, i64 12, i64 4, !1773, i64 16, i64 2, !1771, i64 18, i64 2, !1771, i64 20, i64 2, !1771, i64 22, i64 2, !1771, i64 24, i64 1, !1775, i64 8, i64 8, !1776, i64 32, i64 8, !1776, i64 40, i64 8, !1764, i64 48, i64 4, !1773, i64 52, i64 4, !1773, i64 56, i64 8, !1764}
+!1779 = !{i64 6, i64 8, !1764, i64 6, i64 2, !1771, i64 8, i64 2, !1771, i64 10, i64 4, !1773, i64 14, i64 2, !1771, i64 16, i64 2, !1771, i64 18, i64 2, !1771, i64 20, i64 2, !1771, i64 22, i64 1, !1775, i64 6, i64 8, !1776, i64 30, i64 8, !1776, i64 38, i64 8, !1764, i64 46, i64 4, !1773, i64 50, i64 4, !1773, i64 54, i64 8, !1764}
+!1780 = !{i64 0, i64 8, !1764, i64 0, i64 2, !1771, i64 2, i64 2, !1771, i64 4, i64 4, !1773, i64 8, i64 2, !1771, i64 10, i64 2, !1771, i64 12, i64 2, !1771, i64 14, i64 2, !1771, i64 16, i64 1, !1775, i64 0, i64 8, !1776, i64 24, i64 8, !1776, i64 32, i64 8, !1764, i64 40, i64 4, !1773, i64 44, i64 4, !1773, i64 48, i64 8, !1764}
+!1781 = !{i64 0, i64 4, !1764, i64 0, i64 4, !1773, i64 4, i64 2, !1771, i64 6, i64 2, !1771, i64 8, i64 2, !1771, i64 10, i64 2, !1771, i64 12, i64 1, !1775, i64 0, i64 4, !1776, i64 20, i64 8, !1776, i64 28, i64 8, !1764, i64 36, i64 4, !1773, i64 40, i64 4, !1773, i64 44, i64 8, !1764}
+!1782 = !{i64 0, i64 1, !1775, i64 8, i64 8, !1776, i64 16, i64 8, !1764, i64 24, i64 4, !1773, i64 28, i64 4, !1773, i64 32, i64 8, !1764}
+!1783 = !{i64 7, i64 8, !1776, i64 15, i64 8, !1764, i64 23, i64 4, !1773, i64 27, i64 4, !1773, i64 31, i64 8, !1764}
+!1784 = !{i64 0, i64 8, !1776, i64 8, i64 8, !1764, i64 16, i64 4, !1773, i64 20, i64 4, !1773, i64 24, i64 8, !1764}
+!1785 = !{i64 0, i64 8, !1764, i64 8, i64 4, !1773, i64 12, i64 4, !1773, i64 16, i64 8, !1764}
+!1786 = !{i64 0, i64 4, !1773, i64 4, i64 4, !1773, i64 8, i64 8, !1764}
+!1787 = !{i64 0, i64 4, !1773, i64 4, i64 8, !1764}
+!1788 = !{i64 0, i64 8, !1764}
+!1789 = distinct !DISubprogram(name: "tick_all_kernel", linkageName: "_Z15tick_all_kernelPU7_AtomicmPmPli", scope: !1, file: !1, line: 57, type: !1790, scopeLine: 58, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1796)
+!1790 = !DISubroutineType(types: !1791)
+!1791 = !{null, !1792, !1794, !1795, !49}
+!1792 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !1793, size: 64)
+!1793 = !DIDerivedType(tag: DW_TAG_atomic_type, baseType: !1270)
+!1794 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !1270, size: 64)
+!1795 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !1233, size: 64)
+!1796 = !{!1797, !1798, !1799, !1800}
+!1797 = !DILocalVariable(name: "clk", arg: 1, scope: !1789, file: !1, line: 57, type: !1792)
+!1798 = !DILocalVariable(name: "vals", arg: 2, scope: !1789, file: !1, line: 57, type: !1794)
+!1799 = !DILocalVariable(name: "dummy_data", arg: 3, scope: !1789, file: !1, line: 57, type: !1795)
+!1800 = !DILocalVariable(name: "test", arg: 4, scope: !1789, file: !1, line: 57, type: !49)
+!1801 = distinct !DISubprogram(name: "dummy_work", linkageName: "_Z10dummy_workPl", scope: !1, file: !1, line: 195, type: !1802, scopeLine: 196, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1804)
+!1802 = !DISubroutineType(types: !1803)
+!1803 = !{null, !1795}
+!1804 = !{!1805, !1806}
+!1805 = !DILocalVariable(name: "dummy_data", arg: 1, scope: !1801, file: !1, line: 195, type: !1795)
+!1806 = !DILocalVariable(name: "i", scope: !1801, file: !1, line: 197, type: !49)
+!1807 = distinct !DISubprogram(name: "dummy_kernel", linkageName: "_Z12dummy_kernelv", scope: !1, file: !1, line: 155, type: !406, scopeLine: 156, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1808)
+!1808 = !{}
+!1809 = !DILocation(line: 924, column: 9, scope: !1810, inlinedAt: !1819)
+!1810 = distinct !DILexicalBlock(scope: !1811, file: !1651, line: 923, column: 16)
+!1811 = distinct !DILexicalBlock(scope: !1812, file: !1651, line: 923, column: 9)
+!1812 = distinct !DISubprogram(name: "__work_group_barrier", linkageName: "_ZL20__work_group_barrierj14__memory_scope", scope: !1651, file: !1651, line: 921, type: !1813, scopeLine: 922, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1816)
+!1813 = !DISubroutineType(cc: DW_CC_nocall, types: !1814)
+!1814 = !{null, !27, !1815}
+!1815 = !DIDerivedType(tag: DW_TAG_typedef, name: "__memory_scope", file: !12, line: 137, baseType: !11)
+!1816 = !{!1817, !1818}
+!1817 = !DILocalVariable(name: "flags", arg: 1, scope: !1812, file: !1651, line: 921, type: !27)
+!1818 = !DILocalVariable(name: "scope", arg: 2, scope: !1812, file: !1651, line: 921, type: !1815)
+!1819 = distinct !DILocation(line: 936, column: 3, scope: !1820, inlinedAt: !1824)
+!1820 = distinct !DISubprogram(name: "__barrier", linkageName: "_ZL9__barrieri", scope: !1651, file: !1651, line: 934, type: !1821, scopeLine: 935, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagLocalToUnit | DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1822)
+!1821 = !DISubroutineType(cc: DW_CC_nocall, types: !454)
+!1822 = !{!1823}
+!1823 = !DILocalVariable(name: "n", arg: 1, scope: !1820, file: !1651, line: 934, type: !49)
+!1824 = distinct !DILocation(line: 944, column: 3, scope: !1825, inlinedAt: !1826)
+!1825 = distinct !DISubprogram(name: "__syncthreads", linkageName: "_Z13__syncthreadsv", scope: !1651, file: !1651, line: 942, type: !406, scopeLine: 943, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1808)
+!1826 = distinct !DILocation(line: 157, column: 3, scope: !1807)
+!1827 = !DILocation(line: 925, column: 9, scope: !1810, inlinedAt: !1819)
+!1828 = !DILocation(line: 926, column: 9, scope: !1810, inlinedAt: !1819)
+!1829 = !DILocation(line: 158, column: 1, scope: !1807)
+!1830 = distinct !DISubprogram(name: "dummy_init", linkageName: "_Z10dummy_initPl", scope: !1, file: !1, line: 188, type: !1802, scopeLine: 189, flags: DIFlagPrototyped | DIFlagAllCallsDescribed, spFlags: DISPFlagDefinition | DISPFlagOptimized, unit: !0, retainedNodes: !1831)
+!1831 = !{!1832, !1833}
+!1832 = !DILocalVariable(name: "dummy_data", arg: 1, scope: !1830, file: !1, line: 188, type: !1795)
+!1833 = !DILocalVariable(name: "i", scope: !1830, file: !1, line: 190, type: !49)
 
 ; __CLANG_OFFLOAD_BUNDLE____END__ hip-amdgcn-amd-amdhsa-gfx90a
 
@@ -3809,7 +3682,7 @@ attributes #23 = { builtin nounwind }
 !6 = !DICompositeType(tag: DW_TAG_class_type, name: "ios_base", scope: !2, file: !5, line: 228, size: 1728, flags: DIFlagFwdDecl | DIFlagNonTrivial, identifier: "_ZTSSt8ios_base")
 !7 = !DIGlobalVariableExpression(var: !8, expr: !DIExpression())
 !8 = distinct !DIGlobalVariable(scope: null, file: !9, line: 70, type: !10, isLocal: true, isDefinition: true)
-!9 = !DIFile(filename: "test/managed_clock_test.cpp", directory: "/g/g11/osterhou/repos/scabbard", checksumkind: CSK_MD5, checksum: "f3b95071d78788dcbdfb6777dea84a9e")
+!9 = !DIFile(filename: "test/managed_clock_test.cpp", directory: "/g/g11/osterhou/repos/scabbard", checksumkind: CSK_MD5, checksum: "84927e4bf98b7e7efaf685dc29fe5570")
 !10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !11, size: 296, elements: !13)
 !11 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !12)
 !12 = !DIBasicType(name: "char", size: 8, encoding: DW_ATE_signed_char)

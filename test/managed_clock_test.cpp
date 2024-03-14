@@ -25,7 +25,7 @@
 __host__
 void __HIP_CHECK__(hipError_t resCode);
 
-__device__
+__device__ __noinline__
 void dummy_work(int64_t* dummy_data);
 __global__
 void dummy_init(int64_t* dummy_data);
@@ -191,7 +191,7 @@ void dummy_init(int64_t* dummy_data)
   dummy_data[i] = 0l;
 }
 
-__device__
+__device__ __noinline__
 void dummy_work(int64_t* dummy_data)
 {
   int i = hipThreadIdx_x + hipBlockDim_x * hipBlockIdx_x;

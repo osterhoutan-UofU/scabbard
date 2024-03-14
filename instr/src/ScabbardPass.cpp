@@ -289,6 +289,7 @@ namespace scabbard {
       if (_F.isDeclaration()) return; // skip functions not defined (only declared) in this module
       //TODO modify the function type and parameters to include the instrumented in device tracker parameter
       llvm::Function& F = *replace_device_function(_F);
+      llvm::errs() << "[scabbard.instr.device:DBG] cloned function `" << F.getName() << "` contains " << F.getInstructionCount() << '/' << _F.getInstructionCount() <<" instructions\n"; //DEBUG
       // search for instructions to instrument and instrument them
       for (auto& bb : F)
         for (auto& i : bb)
@@ -403,20 +404,22 @@ namespace scabbard {
       for (auto& tr : to_replace) {
         auto OldFn = tr.first;
         auto NewFn = tr.second;
+        llvm::errs() << "[scabbard.instr.device:DBG] replacing " << OldFn->getNumUses() << " calls to `" << OldFn->getName() << "`\n"; //DEBUG
         for (auto& u : OldFn->uses()) {
-          if (auto CI = llvm::dyn_cast<llvm::CallInst>(u.get())) {
-            llvm::Function* pFn = CI->getFunction();
+          if (auto CI = llvm::dyn_cast<llvm::CallInst>(u.getUser())) {
+            llvm::Function* iFn = CI->getFunction();
 #           if __clang_major__ <= 16
-              if (pFn->getName().endswith("__old__scabbard_instr_replaced__old__"))
+              if (iFn->getName().endswith("__old__scabbard_instr_replaced__old__"))
                 continue;
 #           else
-              if (pFn->getName().ends_with("__old__scabbard_instr_replaced__old__"))
+              if (iFn->getName().ends_with("__old__scabbard_instr_replaced__old__"))
                 continue;
 #           endif
+            llvm::errs() << "[scabbard.instr.device:DBG] call to `" << OldFn->getName() << "` in `" << iFn->getName() << "` has been replaced!\n"; //DEBUG
             llvm::SmallVector<llvm::Value*,4u> operands;
             for (auto& op : CI->args())
               operands.push_back(op.get());
-            operands.push_back(pFn->getArg(pFn->arg_size()-1));
+            operands.push_back(iFn->getArg(iFn->arg_size()-1));
             auto ci = llvm::CallInst::Create(
                           NewFn->getFunctionType(),
                           NewFn,
@@ -430,11 +433,12 @@ namespace scabbard {
             CI->replaceAllUsesWith(ci);
             ci->setDebugLoc(CI->getDebugLoc());
             CI->eraseFromParent();
+            llvm::errs() << "```\n"; iFn->print(llvm::errs()); llvm::errs() << "\n```\n"; //DEBUG
           } else {
             LLVM_DEBUG(llvm::errs() << "\n[scabbard.instr.device:DBG] overwritten device function used in non-call instruction!\n";);
           }
         }
-        // OldFn->eraseFromParent();
+        OldFn->eraseFromParent();
       }
       to_replace.clear();
     }
