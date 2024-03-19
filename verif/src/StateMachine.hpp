@@ -25,17 +25,19 @@ namespace verif {
 
     const std::multiset<TraceData>& trace;
     std::map<size_t,const TraceData*> mem;
+    std::map<size_t,size_t> allocs;
     size_t last_global_sync = __UINT64_MAX__;
     std::map<size_t,size_t> last_stream_sync;
 
   public:
     StateMachine(const std::multiset<TraceData>& trace_);
     
-    enum ResultStatus { GOOD, ERROR, WARNING };
+    enum ResultStatus { GOOD, ERROR, WARNING, INTERNAL_ERROR };
     struct Result {
       ResultStatus status;
       const TraceData* read = nullptr; 
       const TraceData* write = nullptr;
+      std::string err_msg = "";
     };
 
     const StateMachine::Result run();

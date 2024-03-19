@@ -28,7 +28,7 @@ namespace device {
     const jobId_t JOB_ID;
     _Atomic(uint64_t) vClk;
     _Atomic(size_t) next = 0ul;
-    size_t last_read = 0ul;
+    size_t next_read = 0ul;
     _Atomic(bool) finished = false;
     TraceData buffer[SCABBARD_DEVICE_TRACKER_BUFF_LENGTH];
     __host__

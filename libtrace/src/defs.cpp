@@ -150,6 +150,12 @@ namespace scabbard {
                      "{stream: "<< dt->JOB_ID.STREAM<< ", "
                       "job: " << dt->JOB_ID.JOB  << "}\n" << std::endl;
       }
+      host::trace_append$alloc(
+          (InstrData)(InstrData::LAUNCH_EVENT & InstrData::ON_HOST & InstrData::_OPT_USED),
+          stream,
+          nullptr, 0u,0u,
+          dt->JOB_ID->job
+        );
     }
 
     

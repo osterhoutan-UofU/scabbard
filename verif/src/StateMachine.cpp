@@ -22,7 +22,7 @@ namespace verif {
   const StateMachine::Result StateMachine::run()
   {
     const InstrData FILTER = (
-        InstrData::SYNC_EVENT 
+        InstrData::SYNC_EVENT | InstrData::DESYNC_EVENT
         | InstrData::READ | InstrData::WRITE
         | InstrData::ALLOCATE | InstrData::FREE
       );
@@ -35,27 +35,29 @@ namespace verif {
             last_global_sync = td.time_stamp;
             last_stream_sync.clear();
           } else
-            last_stream_sync[td.ptr] = td.time_stamp;
+            last_stream_sync[jobId_t::hash_stream_ptr(td.ptr)] = td.time_stamp;
+          break;
+
+        case InstrData::DESYNC_EVENT:
+          //TODO handle kernel Launches
           break;
 
         case InstrData::WRITE:
-          it = mem.find(td.ptr);
-          if (it == mem.end() && not (it->second->data & InstrData::READ)) { // first write of a pair (empty or just allocated)
+          it = mem.find(td.ptr); //TODO: \/ logic below needs a refresh (might be flawed) \/
+          if (it == mem.end() || not (it->second->data & InstrData::READ)) { // first write of a pair (empty or just allocated)
             mem[td.ptr] = &td;
           } else { // This is probably a race
             return {ERROR, it->second, &td};
-            //NOTE: because we don't know if a kernel was running at the time this could be a false positive
           }
           break;
 
         case InstrData::READ:
           it = mem.find(td.ptr);
           if (td.data & InstrData::_OPT_USED) { // bulk read (memcpy device to host)
-            while (it->second->ptr < td.ptr+td._OPT_DATA && it != mem.end()) {
+            for (;it->second->ptr < td.ptr+td._OPT_DATA && it != mem.end(); ++it) {
               auto res = check_race_read(td, *it->second);
               if (res != GOOD)
                 return {res, &td, it->second};
-              ++it; // iterate to next mem address
             }
           } else if (it != mem.end()) { // single read
             auto res = check_race_read(td, *it->second);
@@ -67,11 +69,16 @@ namespace verif {
           break;
 
         case InstrData::ALLOCATE:
-          // it is currently unessisary to do anything for an allocation
+          allocs[td.ptr] = td._OPT_DATA;
           break;
 
         case InstrData::FREE:
-          mem.erase(mem.find(td.ptr), mem.find(td.ptr+td._OPT_DATA));
+          auto r = allocs.find(td.ptr);
+          if (r == allocs.end())
+            return {INTERNAL_ERROR, nullptr, nullptr, "\n[scabbard.verif:ERR] bad alloc data (could not find hipMalloc associated with hipFree in trace history)"};
+          for (it = mem.find(td.ptr);it->second->ptr < td.ptr+r->second && it != mem.end(); ++it)
+            mem.erase(it);
+          allocs.erase(r);
           break;
 
         default:
@@ -85,7 +92,8 @@ namespace verif {
   void StateMachine::reset()
   {
     mem.clear();
-    last_sync = __UINT64_MAX__;
+    last_global_sync = __UINT64_MAX__;
+    last_stream_sync.clear();
   }
 
 
@@ -97,12 +105,11 @@ namespace verif {
       if (last_global_sync > o.time_stamp) // that occurred after the last global sync event
           return ResultStatus::WARNING; // return a warning
       auto res = last_stream_sync.find(o.threadId.device.job.STREAM);
-      if (res != last_stream_sync.end() && res->second > o.time_stamp) // that happened after the last stream sync event 
+      if (res != last_stream_sync.end() && res->second > o.time_stamp) // or that happened after the last stream sync event 
         return ResultStatus::WARNING; // return a warning
-    } else {    // if a read event we don't care yet (could be a double read)
+    } // else    // if a read event we don't care yet (could be a double read)
       mem[o.ptr] = &r;
       return ResultStatus::GOOD;
-    }
   }
 
   // const StateMachine::ResultStatus StateMachine::check_race_write(const TraceData& w, const TraceData& o)
@@ -122,6 +129,8 @@ namespace verif {
         return (out << "POSSIBLE Data Race FOUND");
       case StateMachine::ResultStatus::GOOD:
         return (out << "NO data races detected");
+      case StateMachine::ResultStatus::INTERNAL_ERROR:
+        return (out << "Internal ERROR occurred in scabbard verif");
       default:
         return (out << "<UNKNOWN>");
     }

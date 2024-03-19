@@ -149,41 +149,21 @@ namespace scabbard {
     __host__ 
     void AsyncQueue::process_device(TraceWriter& tw)
     {
-      //TODO modify this to work with new device tracker
       mx_device.lock();
-      for (auto dt : device_trackers) {
-        const size_t LANE_NEXT = LANE.next; // get copy of atomic value to skip atomic reads since the buffer is frozen
-        for (size_t i = device_last_read[lID]; 
-              i != LANE_NEXT && ii < SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH;
-              (++i) + (++ii)) {
-          if (not LANE[i].empty())
-            tw << LANE[i];
-        if (dt->finished) {
-          hipFree()
+      for (auto& dt : device_trackers) {
+        if (dt == nullptr) continue;
+        const size_t NEXT = dt->next; // get copy of atomic value to skip atomic reads since the buffer is frozen
+        for (size_t i = dt->next_read; i < NEXT; ++i)
+            tw << dt->buffer[i%SCABBARD_DEVICE_TRACKER_BUFF_LENGTH];
+        dt->next_read = NEXT;
+        if (dt->finished) { // deal with a device tracker that is done with it's job
+          auto hipRes = hipFree(dt);
+          if (hipRes != hipSuccess)
+            std::cerr << "\n[scabbard.trace:ERR] failed to free a device tracker from managed memory! (errcode: " << hipRes << ")\n";
+          dt = nullptr;
         }
       }
       mx_device.unlock();
-//       using Lane = ::scabbard::trace::DeviceAsyncQueue::Lane;
-//       if (hipMemcpyAsync(&_db, deviceQ, sizeof(DeviceAsyncQueue), hipMemcpyDeviceToHost) 
-//             != hipSuccess) {
-//         std::cerr << "\n[scabbard::trace::ERROR] failed to copy the device side of the AsyncQueue for processing!\n";
-// #       ifdef DEBUG
-//           exit(EXIT_FAILURE);
-// #       else
-//           return;
-// #       endif
-//       }
-//       for (size_t lID=0; lID<SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT; ++lID) {
-//         const Lane& LANE = _db[lID];
-//         size_t ii = 0ul; // prevent from cycling forever when we roll over the limits of size_t
-//         const size_t LANE_NEXT = LANE.next; // get copy of atomic value to skip atomic reads since the buffer is frozen
-//         for (size_t i = device_last_read[lID]; 
-//               i != LANE_NEXT && ii < SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH;
-//               (++i) + (++ii)) {
-//           if (not LANE[i].empty())
-//             tw << LANE[i];
-//         }
-//       }
     }
 
     __host__ 

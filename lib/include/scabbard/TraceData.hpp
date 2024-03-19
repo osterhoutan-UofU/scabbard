@@ -76,16 +76,18 @@ struct jobId_t {
   uint16_t STREAM = 0u;
 # ifdef __scabbard_hip_compile
   __host__
-  static inline uint8_t hash_stream_ptr(const hipStream_t STREAM) 
-  {
-    if (STREAM == nullptr) return 0u;
-    return (((uint64_t)STREAM) % (UINT16_MAX-1u)) + 1u;
-  }
-  __host__
   jobId_t(uint16_t JOB_, const hipStream_t STREAM_)
     : JOB(JOB_), STREAM(jobId_t::hash_stream_ptr(STREAM_))
   {}
+  __host__
+  static inline uint16_t hash_stream_ptr(const hipStream_t STREAM) 
+# else
+  static inline uint16_t hash_stream_ptr(const std::size_t STREAM) 
 # endif
+  {
+    if (not STREAM) return 0u;
+    return (((std::uint64_t)STREAM) % (UINT16_MAX-1u)) + 1u;
+  }
 };
 #pragma pack()
 
@@ -112,7 +114,7 @@ struct DeviceThreadId {
     : job(jobId), block({0u,0u,0u}), thread(t)
   {}
   inline DeviceThreadId(uint32_t thread_x, uint32_t thread_y=0u, uint32_t thread_z=0u)
-    : job({0u,0u,0u}), block({0u,0u,0u}), thread((scabbard::dim3){thread_x,thread_y,thread_z}) 
+    : job((jobId_t){0u,0u}), block((scabbard::dim3){0u,0u,0u}), thread((scabbard::dim3){thread_x,thread_y,thread_z}) 
   {}
 # endif
 };

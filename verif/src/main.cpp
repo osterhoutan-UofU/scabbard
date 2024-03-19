@@ -48,9 +48,12 @@ int main(int argc, char *argv[]) {
       std::cout << "\nNO data races were found :)\n"; 
       break;
 
+    case StateMachine::ResultStatus::INTERNAL_ERROR:
+      std::cout << result.err_msg << std::endl;
+      return EXIT_FAILURE;
     default:
       std::cerr << "!unknown result code!" << std::endl;
-      return -1;
+      return EXIT_FAILURE;
   }
   std::cout << std::endl;
   return 0;

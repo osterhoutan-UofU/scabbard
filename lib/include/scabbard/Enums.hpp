@@ -29,16 +29,17 @@ namespace instr {
     * @brief ENUM BYTE MAP\n
     *   \code{.txt}
     *     0b_0000_0000_0000_0000
-    *        ^^^^ ^ ^  ^^^^ ^^^^
-    *        |||| | |  |||| |||L Runtime Conditional
-    *        |||| | |  |||| ||L Optional data used
-    *        |||| | |  |||| |L Instr in Host (CPU) module
-    *        |||| | |  |||| L Instr in Device (GPU) module
-    *        |||| | |  |||L Instr as ALLOCATE
-    *        |||| | |  ||L Instr as READ
-    *        |||| | |  |L Instr as FREE
-    *        |||| | |  L Instr as WRITE
-    *        |||| | L Instr as ATOMIC
+    *        ^^^^ ^^^  ^^^^ ^^^^
+    *        |||| |||  |||| |||L Runtime Conditional
+    *        |||| |||  |||| ||L Optional data used
+    *        |||| |||  |||| |L Instr in Host (CPU) module
+    *        |||| |||  |||| L Instr in Device (GPU) module
+    *        |||| |||  |||L Instr as ALLOCATE
+    *        |||| |||  ||L Instr as READ
+    *        |||| |||  |L Instr as FREE
+    *        |||| |||  L Instr as WRITE
+    *        |||| ||L Instr as ATOMIC
+    *        |||| |L Is a DeSync/kernel Launch event
     *        |||| L Instr as MANAGED
     *        |||L Is in DEVICE HEAP memory
     *        ||L Is in UNKNOWN memory
@@ -72,6 +73,9 @@ namespace instr {
     WRITE                 = 1<<7,
     // this memory should be treated as atomic
     ATOMIC_MEM            = 1<<9,
+    //
+    LAUNCH_EVENT          = 1<<10,
+    DESYNC_EVENT          = 1<<10,
     // 
     MANAGED_MEM           = 1<<11,
     //
