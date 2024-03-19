@@ -96,18 +96,19 @@ namespace scabbard {
        *        from not being called from inside the llvm device module pre-instrumentation
        */
       __global__ 
-      void call_for_looks(InstrData tmp, void* ptr, void* meta, const std::uint64_t* src_id) asm (SCABBARD_DEVICE_DUMMY_FUNC_NAME);
+      void call_for_looks(void* dt, int32_t intTy, float fTy, InstrData tmp, void* ptr, void* meta, const std::uint64_t* src_id) asm (SCABBARD_DEVICE_DUMMY_FUNC_NAME);
 
       __global__ 
-      void call_for_looks(InstrData tmp, void* ptr, void* meta, const std::uint64_t* src_id)
+      void call_for_looks(void* dt, int32_t intTy, float fTy, InstrData tmp, void* ptr, void* meta, const std::uint64_t* src_id)
       {
-        size_t dt_stand_in;
-        ::scabbard::trace::device::trace_append$mem((void*)&dt_stand_in,tmp,ptr,&src_id_reg_tmp,19u,9u);
-        ::scabbard::trace::device::trace_append$mem((void*)&dt_stand_in,tmp,ptr,&src_id_reg_tmp2,1024u,4u);
-        ::scabbard::trace::device::trace_append$mem((void*)&dt_stand_in,tmp,ptr,src_id,10240u,40u);
-        ::scabbard::trace::device::trace_append$alloc((void*)&dt_stand_in,tmp,ptr,&src_id_reg_tmp2,88u,256u,7ul);
-        ::scabbard::trace::device::trace_append$alloc((void*)&dt_stand_in,tmp,ptr,&src_id_reg_tmp3,98u,6u,23ul);
-        ::scabbard::trace::device::trace_append$alloc((void*)&dt_stand_in,tmp,ptr,src_id,980u,60u,230ul);
+        fTy *= intTy;
+        *((float*) dt) = fTy;
+        ::scabbard::trace::device::trace_append$mem(dt,tmp,ptr,&src_id_reg_tmp,19u,9u);
+        ::scabbard::trace::device::trace_append$mem(dt,tmp,ptr,&src_id_reg_tmp2,1024u,4u);
+        ::scabbard::trace::device::trace_append$mem(dt,tmp,ptr,src_id,10240u,40u);
+        ::scabbard::trace::device::trace_append$alloc(dt,tmp,ptr,&src_id_reg_tmp2,88u,256u,7ul);
+        ::scabbard::trace::device::trace_append$alloc(dt,tmp,ptr,&src_id_reg_tmp3,98u,6u,23ul);
+        ::scabbard::trace::device::trace_append$alloc(dt,tmp,ptr,src_id,980u,60u,230ul);
       }
 
       // __global__ void call_for_differentiation(InstrData tmp, void* ptr, void* meta)

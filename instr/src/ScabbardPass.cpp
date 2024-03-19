@@ -108,6 +108,7 @@ namespace scabbard {
       // get references to linked in utility functions
       device.trace_append$mem = M.getFunction(device.trace_append$mem_name);
       device.trace_append$alloc = M.getFunction(device.trace_append$alloc_name);
+      device.dummyFunc = M.getFunction(SCABBARD_DEVICE_DUMMY_FUNC_NAME);
 
       llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
                                               .getManager();
@@ -116,7 +117,8 @@ namespace scabbard {
       for (auto& f : M.getFunctionList())
         funcs.push_back(&f);
       for (auto* f : funcs)
-        if (f->getName() != device.trace_append$mem_name && f->getName() != device.trace_append$alloc_name && f->getName() != "__ockl_hostcall_internal")
+        if (f->getName() != device.trace_append$mem_name && f->getName() != device.trace_append$alloc_name && f->getName() != "__ockl_hostcall_internal"
+            && f->getName() != SCABBARD_DEVICE_DUMMY_FUNC_NAME)
           run_device(*f, fam, dt);
 
       finish_replacing_old_funcs_device();
@@ -394,12 +396,18 @@ namespace scabbard {
       //?NOTE: this might be used wrong.  Double check results in testing to make sure it works correctly
       //?     if wrong likely due to not creating vMap properly
       llvm::CloneFunctionInto(fn, &F, vMap, llvm::CloneFunctionChangeType::LocalChangesOnly, rets);
+      // if (not fn->hasFnAttribute("noinline")) //DEBUG see if adding no inline removes teh unreachable issue (it did not)
+      //   fn->addFnAttr(llvm::Attribute::NoInline); 
       to_replace.push_back(std::make_pair(&F,fn));
       return fn;
     }
 
     void ScabbardPassPlugin::finish_replacing_old_funcs_device()
     {
+      auto dummyFn = llvm::dyn_cast<llvm::Function>(device.dummyFunc.getCallee());
+      auto OldBB = &dummyFn->getEntryBlock();
+      auto BB = llvm::BasicBlock::Create(dummyFn->getContext(), "metadata_registry", dummyFn, OldBB);
+      llvm::IRBuilder<llvm::ConstantFolder,llvm::IRBuilderDefaultInserter> IRB(BB);
       //modify to pass device tracker through as last parameter to all functions defined in this module'
       for (auto& tr : to_replace) {
         auto OldFn = tr.first;
@@ -433,14 +441,37 @@ namespace scabbard {
             CI->replaceAllUsesWith(ci);
             ci->setDebugLoc(CI->getDebugLoc());
             CI->eraseFromParent();
-            llvm::errs() << "```\n"; iFn->print(llvm::errs()); llvm::errs() << "\n```\n"; //DEBUG
+            // llvm::errs() << "```\n"; iFn->print(llvm::errs()); llvm::errs() << "\n```\n"; //DEBUG
           } else {
             LLVM_DEBUG(llvm::errs() << "\n[scabbard.instr.device:DBG] overwritten device function used in non-call instruction!\n";);
           }
         }
+        //instr a call to the NewFn from the dummy function to keep llvm from optimizing out the new functions
+        llvm::SmallVector<llvm::Value*,4u> ops;
+        for (auto& arg : NewFn->args()) {
+          if (auto ity = llvm::dyn_cast<llvm::IntegerType>(arg.getType())) {
+            auto bc = IRB.CreateBitCast(dummyFn->getArg(1), arg.getType());
+            ops.push_back(bc);
+          } else if (arg.getType()->isFloatingPointTy()) {
+            auto bc = IRB.CreateBitCast(dummyFn->getArg(2), arg.getType());
+            ops.push_back(bc);
+          } else { // handle as pointer type otherwise
+            auto bc = IRB.CreateBitCast(dummyFn->getArg(0), arg.getType());
+            ops.push_back(bc);
+          }
+        }
+        IRB.CreateCall(
+            llvm::FunctionCallee(NewFn->getFunctionType(), NewFn),
+            ops
+          );
+        // remove OldFn from module
         OldFn->eraseFromParent();
       }
+      // create a bridge to the old section of the dummy function
+      IRB.CreateBr(OldBB);
+      // clear the list so we're ready for reuse
       to_replace.clear();
+      // llvm::errs() << "```\n"; dummyFn->print(llvm::errs()); llvm::errs() << "\n```\n"; //DEBUG
     }
 
 

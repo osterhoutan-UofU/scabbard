@@ -40,7 +40,7 @@ namespace scabbard {
     DepTrace<DEVICE>::DepTrace(const llvm::Module& M)
       : DepTrace()
     {
-      for (const auto& g : M.getGlobalList())
+      for (const auto& g : M.globals())
         if (const auto* mg = M.getNamedGlobal(llvm::StringRef(std::string(g.getName().str() + ".managed")))) {
           globalManagedMem.insert(std::make_pair(g.getName(),mg));
         } else if (not g.getName().endswith(".managed")) {

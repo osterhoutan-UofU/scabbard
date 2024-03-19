@@ -76,6 +76,7 @@ namespace instr {
         const std::string trace_append$mem_name = SCABBARD_DEVICE_CALLBACK_APPEND_MEM_NAME;
         llvm::FunctionCallee trace_append$alloc;
         const std::string trace_append$alloc_name = SCABBARD_DEVICE_CALLBACK_APPEND_ALLOC_NAME;
+        llvm::FunctionCallee dummyFunc;
       } device;
 
 
