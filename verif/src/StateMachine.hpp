@@ -25,7 +25,8 @@ namespace verif {
 
     const std::multiset<TraceData>& trace;
     std::map<size_t,const TraceData*> mem;
-    std::size_t last_sync = __UINT64_MAX__;
+    size_t last_global_sync = __UINT64_MAX__;
+    std::map<size_t,size_t> last_stream_sync;
 
   public:
     StateMachine(const std::multiset<TraceData>& trace_);

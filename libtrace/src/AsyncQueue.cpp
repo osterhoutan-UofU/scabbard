@@ -150,6 +150,19 @@ namespace scabbard {
     void AsyncQueue::process_device(TraceWriter& tw)
     {
       //TODO modify this to work with new device tracker
+      mx_device.lock();
+      for (auto dt : device_trackers) {
+        const size_t LANE_NEXT = LANE.next; // get copy of atomic value to skip atomic reads since the buffer is frozen
+        for (size_t i = device_last_read[lID]; 
+              i != LANE_NEXT && ii < SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH;
+              (++i) + (++ii)) {
+          if (not LANE[i].empty())
+            tw << LANE[i];
+        if (dt->finished) {
+          hipFree()
+        }
+      }
+      mx_device.unlock();
 //       using Lane = ::scabbard::trace::DeviceAsyncQueue::Lane;
 //       if (hipMemcpyAsync(&_db, deviceQ, sizeof(DeviceAsyncQueue), hipMemcpyDeviceToHost) 
 //             != hipSuccess) {
