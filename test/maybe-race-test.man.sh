@@ -21,8 +21,8 @@ export SCABBARD_INSTRUMENTED_EXE_NAME="$(pwd)/test/maybe-race-test.man.out"
 export SCABBARD_TRACE_FILE="$(pwd)/test/maybe-race-test.man.scabbard.trace"
 
 # ml rocm/6.0.0
-/opt/rocm-6.0.0/bin/rocgdb ./test/maybe-race-test.man.out
-# ./test/maybe-race-test.man.out
+# /opt/rocm-6.0.0/bin/rocgdb ./test/maybe-race-test.man.out
+./test/maybe-race-test.man.out
 
 echo -e "\n\n==== VERIFYING generated trace file ====\n\n"
 
