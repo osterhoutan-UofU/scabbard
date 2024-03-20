@@ -72,7 +72,7 @@ void printResult(std::ostream& out,
     out << "   READ: {\n" 
            "       time: " << res.read->time_stamp - TF.START_TIME << " μs,\n"
            "     device: CPU\n"
-           "  thread id: 0x" << std::hex << res.read->threadId.host << std::dec << "\n"
+           "  thread id: 0x" << std::hex << std::hash<std::thread::id>{}(res.read->threadId.host) << std::dec << "\n"
            "    src loc: \"" << TF.src_files[res.read->metadata.src_id] << ':' << res.read->metadata.line << ',' << res.read->metadata.col << "\"\n"
            "  }\n";
   };

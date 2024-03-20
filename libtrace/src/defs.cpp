@@ -51,7 +51,7 @@ namespace scabbard {
     // << ========================================================================================== >> 
 
     AsyncQueue TRACE_LOGGER; // created in scabbard init
-
+    uint64_t scabbard_src_id = 0;
     
 
     // __device__ DeviceAsyncQueue* DEVICE_TRACE_LOGGER;
@@ -68,7 +68,7 @@ namespace scabbard {
     {
       // if (__hip_gpubin_handle == nullptr)
       //   __hip_gpubin_handle = __hipRegisterFatBinary(__hip_fatbin_wrapper);
-      
+      scabbard_src_id = metadata_register$src("<scabbard.trace>");
       const char* _EXE_NAME = std::getenv("SCABBARD_INSTRUMENTED_EXE_NAME");
       const std::string EXE_NAME = ((_EXE_NAME)
                                     ? std::string(_EXE_NAME)
@@ -143,6 +143,7 @@ namespace scabbard {
     __host__
     void register_job_callback(void* dt_, hipStream_t stream)
     {
+      //TODO amend this to pass in instrumented src id, line and col metadata
       device::DeviceTracker* dt = (device::DeviceTracker*) dt_;
       auto hipRes = hipStreamAddCallback(stream, scabbard_stream_callback, dt, 0);
       if (hipRes != hipSuccess) {
@@ -153,8 +154,8 @@ namespace scabbard {
       host::trace_append$alloc(
           (InstrData)(InstrData::LAUNCH_EVENT & InstrData::ON_HOST & InstrData::_OPT_USED),
           stream,
-          nullptr, 0u,0u,
-          dt->JOB_ID->job
+          &scabbard_src_id, 153u,7u,
+          dt->JOB_ID.JOB
         );
     }
 

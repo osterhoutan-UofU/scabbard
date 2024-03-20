@@ -16,8 +16,8 @@
 #include <hip/hip_runtime_api.h>
 #endif
 
-__device__ uint64_t device_src_id = 0ul;
-__host__ uint64_t host_src_id = 0ul;
+__managed__ uint64_t device_src_id = 0ul;
+uint64_t host_src_id = 0ul;
 __host__ const char* src_file_path = "test/maybe-race-test.man.cpp";
 
 void scabbard_ctor();
@@ -62,7 +62,7 @@ void hip_increment(int* h_out, int* h_in, const size_t ARRAY_SIZE)
     scabbard::trace::host::trace_append$alloc(
         (scabbard::InstrData)(scabbard::InstrData::FREE & scabbard::InstrData::ON_HOST & scabbard::InstrData::DEVICE_HEAP & scabbard::InstrData::_OPT_USED),
         d_mem,
-        &device_src_id, 83u, 5u,
+        &host_src_id, 83u, 5u,
         ARRAY_BYTES
       );
 
@@ -70,7 +70,7 @@ void hip_increment(int* h_out, int* h_in, const size_t ARRAY_SIZE)
     scabbard::trace::host::trace_append$mem(
         (scabbard::InstrData)(scabbard::InstrData::SYNC_EVENT & scabbard::InstrData::ON_HOST),
         nullptr,
-        &device_src_id, 69u, 5u
+        &host_src_id, 69u, 5u
       );
     
     auto dt = scabbard::trace::register_job(0);
@@ -81,15 +81,15 @@ void hip_increment(int* h_out, int* h_in, const size_t ARRAY_SIZE)
     scabbard::trace::host::trace_append$alloc(
         (scabbard::InstrData)(scabbard::InstrData::READ & scabbard::InstrData::ON_HOST & scabbard::InstrData::DEVICE_HEAP & scabbard::InstrData::_OPT_USED),
         d_mem,
-        &device_src_id, 80u, 5u, 
-        ARRAY_BITES
+        &host_src_id, 80u, 5u, 
+        ARRAY_BYTES
       );
 
     hipFree(d_mem);
     scabbard::trace::host::trace_append$mem(
         (scabbard::InstrData)(scabbard::InstrData::FREE & scabbard::InstrData::ON_HOST & scabbard::InstrData::DEVICE_HEAP),
         d_mem,
-        &device_src_id, 88u, 5u
+        &host_src_id, 88u, 5u
       );
 }
 
