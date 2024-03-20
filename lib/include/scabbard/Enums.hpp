@@ -32,8 +32,8 @@ namespace instr {
     *        ^^^^ ^^^  ^^^^ ^^^^
     *        |||| |||  |||| |||L Runtime Conditional
     *        |||| |||  |||| ||L Optional data used
-    *        |||| |||  |||| |L Instr in Host (CPU) module
-    *        |||| |||  |||| L Instr in Device (GPU) module
+    *        |||| |||  |||| |L Instr in DEVICE (GPU) module
+    *        |||| |||  |||| L Instr in HOST (CPU) module
     *        |||| |||  |||L Instr as ALLOCATE
     *        |||| |||  ||L Instr as READ
     *        |||| |||  |L Instr as FREE

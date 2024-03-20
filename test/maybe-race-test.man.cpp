@@ -60,7 +60,7 @@ void hip_increment(int* h_out, int* h_in, const size_t ARRAY_SIZE)
 
     hipMalloc((void**) &d_mem, ARRAY_BYTES);
     scabbard::trace::host::trace_append$alloc(
-        (scabbard::InstrData)(scabbard::InstrData::FREE | scabbard::InstrData::ON_HOST | scabbard::InstrData::DEVICE_HEAP | scabbard::InstrData::_OPT_USED),
+        (scabbard::InstrData)(scabbard::InstrData::ALLOCATE | scabbard::InstrData::ON_HOST | scabbard::InstrData::DEVICE_HEAP | scabbard::InstrData::_OPT_USED),
         d_mem,
         &host_src_id, 62u, 5u,
         ARRAY_BYTES
