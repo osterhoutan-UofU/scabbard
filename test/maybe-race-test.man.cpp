@@ -33,7 +33,7 @@ __global__ void __d_increment(int* d_mem, void* dt) {
     __syncthreads();
     tmp += 1;
     scabbard::trace::device::trace_append$mem(dt,
-          (scabbard::InstrData)(scabbard::InstrData::WRITE & scabbard::InstrData::ON_DEVICE & scabbard::InstrData::DEVICE_HEAP),
+          (scabbard::InstrData)(scabbard::InstrData::WRITE | scabbard::InstrData::ON_DEVICE | scabbard::InstrData::DEVICE_HEAP),
           &(d_mem[Id.x]),
           &device_src_id, 39u, 5u);
     d_mem[Id.x] = tmp;
@@ -60,15 +60,15 @@ void hip_increment(int* h_out, int* h_in, const size_t ARRAY_SIZE)
 
     hipMalloc((void**) &d_mem, ARRAY_BYTES);
     scabbard::trace::host::trace_append$alloc(
-        (scabbard::InstrData)(scabbard::InstrData::FREE & scabbard::InstrData::ON_HOST & scabbard::InstrData::DEVICE_HEAP & scabbard::InstrData::_OPT_USED),
+        (scabbard::InstrData)(scabbard::InstrData::FREE | scabbard::InstrData::ON_HOST | scabbard::InstrData::DEVICE_HEAP | scabbard::InstrData::_OPT_USED),
         d_mem,
-        &host_src_id, 83u, 5u,
+        &host_src_id, 62u, 5u,
         ARRAY_BYTES
       );
 
     hipMemcpy(d_mem, h_in, ARRAY_BYTES, hipMemcpyHostToDevice);
     scabbard::trace::host::trace_append$mem(
-        (scabbard::InstrData)(scabbard::InstrData::SYNC_EVENT & scabbard::InstrData::ON_HOST),
+        (scabbard::InstrData)(scabbard::InstrData::SYNC_EVENT | scabbard::InstrData::ON_HOST),
         nullptr,
         &host_src_id, 69u, 5u
       );
@@ -79,7 +79,7 @@ void hip_increment(int* h_out, int* h_in, const size_t ARRAY_SIZE)
 
     hipMemcpyAsync(h_out, d_mem, ARRAY_BYTES, hipMemcpyDeviceToHost);
     scabbard::trace::host::trace_append$alloc(
-        (scabbard::InstrData)(scabbard::InstrData::READ & scabbard::InstrData::ON_HOST & scabbard::InstrData::DEVICE_HEAP & scabbard::InstrData::_OPT_USED),
+        (scabbard::InstrData)(scabbard::InstrData::READ | scabbard::InstrData::ON_HOST | scabbard::InstrData::DEVICE_HEAP | scabbard::InstrData::_OPT_USED),
         d_mem,
         &host_src_id, 80u, 5u, 
         ARRAY_BYTES
@@ -87,7 +87,7 @@ void hip_increment(int* h_out, int* h_in, const size_t ARRAY_SIZE)
 
     hipFree(d_mem);
     scabbard::trace::host::trace_append$mem(
-        (scabbard::InstrData)(scabbard::InstrData::FREE & scabbard::InstrData::ON_HOST & scabbard::InstrData::DEVICE_HEAP),
+        (scabbard::InstrData)(scabbard::InstrData::FREE | scabbard::InstrData::ON_HOST | scabbard::InstrData::DEVICE_HEAP),
         d_mem,
         &host_src_id, 88u, 5u
       );
