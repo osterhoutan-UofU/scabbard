@@ -39,6 +39,7 @@ namespace verif {
           break;
 
         case InstrData::DESYNC_EVENT:
+          //NOTE: currently just used to help when debugging
           //TODO handle kernel Launches
           break;
 
@@ -72,14 +73,15 @@ namespace verif {
           allocs[td.ptr] = td._OPT_DATA;
           break;
 
-        case InstrData::FREE:
+        case InstrData::FREE: {
           auto r = allocs.find(td.ptr);
           if (r == allocs.end())
             return {INTERNAL_ERROR, nullptr, nullptr, "\n[scabbard.verif:ERR] bad alloc data (could not find hipMalloc associated with hipFree in trace history)"};
-          for (it = mem.find(td.ptr);it->second->ptr < td.ptr+r->second && it != mem.end(); ++it)
+          for (it = mem.find(td.ptr); it->second->ptr < td.ptr+r->second && it != mem.end(); ++it)
             mem.erase(it);
           allocs.erase(r);
           break;
+        }
 
         default:
           break;
