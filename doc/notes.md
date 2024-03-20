@@ -4,6 +4,8 @@
  TODO:
 ----------------------------------------------------------------------------------------------------
 
+-[ ] look into why the `SimplifyCFGPass` is removing the function bodies in the kernel
+
 -[ ] create the trace file analyzer / data race detector
   -[ ] design a range based data structure that lets you apply and remove multiple traits from ranges of integers (mem addresses)
 
