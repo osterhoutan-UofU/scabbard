@@ -31,12 +31,13 @@ namespace verif {
   TraceData readTraceData_32(std::ifstream& in)
   {
     TraceData res;
-    in.read(reinterpret_cast<char*>(&res.time_stamp), sizeof(uint32_t));
-    in.read(reinterpret_cast<char*>(&res.data), sizeof(InstrData));
-    in.read(reinterpret_cast<char*>(&res.threadId), sizeof(ThreadId));
-    in.read(reinterpret_cast<char*>(&res.ptr), sizeof(uint32_t));
-    in.read(reinterpret_cast<char*>(&res.metadata), 12u);
-    in.read(reinterpret_cast<char*>(&res._OPT_DATA), sizeof(uint32_t));
+    // in.read(reinterpret_cast<char*>(&res.time_stamp), sizeof(uint32_t));
+    // in.read(reinterpret_cast<char*>(&res.data), sizeof(InstrData));
+    // in.read(reinterpret_cast<char*>(&res.threadId), sizeof(ThreadId));
+    // in.read(reinterpret_cast<char*>(&res.ptr), sizeof(uint32_t));
+    // in.read(reinterpret_cast<char*>(&res.metadata), 12u);
+    // in.read(reinterpret_cast<char*>(&res._OPT_DATA), sizeof(uint32_t));
+    in.read(reinterpret_cast<char*>(&res), sizeof(TraceData));
     return res;
   }
 
@@ -81,10 +82,12 @@ namespace verif {
   {
     char buf[BUF_L];
     std::string tmp = "";
+    if (l >= BUF_L) {
     std::streamoff J = l / BUF_L;
-    for (size_t j=0; j<J; ++j) {
-      in.read(buf, BUF_L);
-      tmp.append(buf, BUF_L);
+      for (size_t j=0; j<J; ++j) {
+        in.read(buf, BUF_L);
+        tmp.append(buf, BUF_L);
+      }
     }
     std::streamoff K = l % BUF_L;
     in.read(buf,K);
@@ -138,20 +141,33 @@ namespace verif {
       if (std::streamoff diff2 = exe_l % tf.WORD_LEN)
         in.seekg(in.tellg() + diff2);
 
-      // read in the metadata jump table
-      std::vector<std::streamoff> jmpTbl;
-      std::streamoff tmp;
-      do {
-        in.read(reinterpret_cast<char*>(&tmp), tf.WORD_LEN);
-        jmpTbl.push_back(tmp);
-      } while (in.tellg() < jmpTbl[0]);
-
-      // read in the metadata
-      for (size_t i=0; i<(jmpTbl.size()-1); ++i) {
-        in.seekg(jmpTbl[i]);
-        std::streamoff l = jmpTbl[i+1] - jmpTbl[i];
-        tf.src_files.push_back(readStringL(in,l));
+      // read in src file metadata
+      uint64_t srcs_len = 0ul;
+      in.read(reinterpret_cast<char*>(&srcs_len), sizeof(uint64_t));
+      for (size_t i=0; i < srcs_len; ++i) {
+        uint64_t src_len = 0ul;
+        in.read(reinterpret_cast<char*>(&src_len), sizeof(uint64_t));
+        std::string dbg_tmp = readStringL(in, src_len);
+        tf.src_files.push_back(dbg_tmp);
+        std::cout << "[scabbard.verif:DBG] read in metadata for src file: `" << dbg_tmp << "`\n";
       }
+
+      // // read in the metadata jump table
+      // std::vector<std::streamoff> jmpTbl;
+      // std::streamoff tmp;
+      // do {
+      //   in.read(reinterpret_cast<char*>(&tmp), tf.WORD_LEN);
+      //   jmpTbl.push_back(tmp);
+      // } while (in.tellg() < jmpTbl[0]);
+
+      // // read in the metadata
+      // for (size_t i=0; i<(jmpTbl.size()-1); ++i) {
+      //   in.seekg(jmpTbl[i]);
+      //   std::streamoff l = jmpTbl[i+1] - jmpTbl[i];
+      //   std::string dbg_tmp = readStringL(in,l);
+      //   tf.src_files.push_back(dbg_tmp);
+      //   std::cout << "[scabbard.verif:DBG] read in metadata for src file: `" << dbg_tmp << "`\n";
+      // }
       if (std::streamoff diff3 = in.tellg() % tf.WORD_LEN)
         in.seekg(in.tellg() + diff3);
 

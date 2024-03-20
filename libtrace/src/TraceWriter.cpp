@@ -71,21 +71,30 @@ namespace scabbard {
       // write links to metadata table and end of trace table (recorded in finalize)
       const auto& srcs = *metadata.get_srcs();
       std::cerr << "\n[scabbard:trace:dbg] src's registered at this point: " << srcs.size() << std::endl;
-      // record the jump table for the source files
-      assert((sizeof(std::streamoff) == WORD_LEN) && "stream offset is the right size to be written");
-      std::streamoff pos = ((std::streamoff)out.tellp()) + (std::streamoff)(WORD_LEN*(srcs.size()+1));
-      out.write(reinterpret_cast<const char*>(&pos), WORD_LEN);
-      for (const auto& src : srcs) {
-        pos += (std::streamoff)src.size();
-        out.write(reinterpret_cast<const char*>(&pos), WORD_LEN);
-      }
-      out.write(BUF,WORD_LEN); // write end of table null
-      // record the actual src strings
-      for (const auto& src : srcs) {
+      // record number of entries in the table
+      uint64_t num_buf = srcs.size();
+      out.write(reinterpret_cast<const char*>(&num_buf), sizeof(uint64_t));
+      for (auto src : srcs) {
+        num_buf = src.size()+1;
+        out.write(reinterpret_cast<const char*>(&num_buf), sizeof(uint64_t));
         out.write(src.c_str(), src.size());
-        std::cerr << "\n[scabbard:trace:dbg] encoding src file: `" << src << "`\n";
+        out.write(BUF, 1ul); // write null at end of string for separation
       }
-      std::cerr << std::endl;
+      // // record the jump table for the source files
+      // assert((sizeof(std::streamoff) == WORD_LEN) && "stream offset is the right size to be written");
+      // std::streamoff pos = ((std::streamoff)out.tellp()) + (std::streamoff)(WORD_LEN*(srcs.size()+1));
+      // out.write(reinterpret_cast<const char*>(&pos), WORD_LEN);
+      // for (const auto& src : srcs) {
+      //   pos += (std::streamoff)src.size();
+      //   out.write(reinterpret_cast<const char*>(&pos), WORD_LEN);
+      // }
+      // out.write(BUF,WORD_LEN); // write end of table null
+      // // record the actual src strings
+      // for (const auto& src : srcs) {
+      //   out.write(src.c_str(), src.size());
+      //   std::cerr << "\n[scabbard:trace:dbg] encoding src file: `" << src << "`\n";
+      // }
+      // std::cerr << std::endl;
       out.write(BUF, ((std::streamoff)out.tellp()) % WORD_LEN); // word align for next section
       
     }

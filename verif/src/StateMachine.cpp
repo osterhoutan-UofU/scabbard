@@ -26,6 +26,7 @@ namespace verif {
         | InstrData::READ | InstrData::WRITE
         | InstrData::ALLOCATE | InstrData::FREE
       );
+    size_t dbg_i = 0;
     for (const auto& td : trace) {
       std::map<size_t, const scabbard::TraceData *>::iterator it = mem.end();
       switch (td.data & FILTER)
@@ -85,9 +86,10 @@ namespace verif {
 
         default:
           break;
-      } 
+      }
+      dbg_i++;
     }
-    return {GOOD, nullptr, nullptr};
+    return {GOOD, nullptr, nullptr, std::to_string(dbg_i)};
   }
 
 
