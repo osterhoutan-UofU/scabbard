@@ -56,7 +56,7 @@ namespace verif {
         case InstrData::READ:
           it = mem.find(td.ptr);
           if (td.data & InstrData::_OPT_USED) { // bulk read (memcpy device to host)
-            for (;it->second->ptr < td.ptr+td._OPT_DATA && it != mem.end(); ++it) {
+            for (; it != mem.end() && it->second->ptr < td.ptr+td._OPT_DATA; ++it) {
               auto res = check_race_read(td, *it->second);
               if (res != GOOD)
                 return {res, &td, it->second};
@@ -78,7 +78,7 @@ namespace verif {
           auto r = allocs.find(td.ptr);
           if (r == allocs.end())
             return {INTERNAL_ERROR, nullptr, nullptr, "\n[scabbard.verif:ERR] bad alloc data (could not find hipMalloc associated with hipFree in trace history)"};
-          for (it = mem.find(td.ptr); it->second->ptr < td.ptr+r->second && it != mem.end(); ++it)
+          for (it = mem.find(td.ptr); it != mem.end() && it->second->ptr < td.ptr+r->second; ++it)
             mem.erase(it);
           allocs.erase(r);
           break;

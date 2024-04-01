@@ -53,7 +53,8 @@ namespace instr {
     std::string source_loc = "";
     std::size_t archBit = 64;
 
-    std::vector<std::pair<llvm::Function*,llvm::Function*>> to_replace;
+    // std::vector<std::tuple<llvm::Function*,llvm::Function*,llvm::MDNode*>> to_replace;
+    std::vector<std::tuple<llvm::Function*,llvm::Function*>> to_replace;
 
     MetadataHandler& metadata;
 
@@ -181,7 +182,7 @@ namespace instr {
                                 llvm::CallInst& CI) -> void;
 
     auto replace_device_function(llvm::Function& F) -> llvm::Function*;
-    auto finish_replacing_old_funcs_device() -> void;
+    auto finish_replacing_old_funcs_device(llvm::Module& M) -> void;
     
   };//?END class ScabbardPassPlugin
 

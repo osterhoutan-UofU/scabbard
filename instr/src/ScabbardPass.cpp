@@ -26,6 +26,9 @@
 #include <llvm/Transforms/Utils/BasicBlockUtils.h>
 #include <llvm/Transforms/Utils/Cloning.h>
 
+
+
+
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/Support/SourceMgr.h>
 
@@ -76,7 +79,7 @@ namespace scabbard {
       // DepTraceDevice dt(M);
       // for (auto& f : M.getFunctionList())
       //     run_device(f, fam, dt);
-      // auto result = linkPass.run(M,MAM);
+      // auto result = linkPass.run(M,MAM);x
       const auto SCABBARD_PATH = std::getenv("SCABBARD_PATH");
       if (SCABBARD_PATH == nullptr) {
         llvm::errs() << "\n[scabbard::instr::link::ERROR] Env var `SCABBARD_PATH` was undefined could not identify instrumentation file location!!\n";
@@ -121,7 +124,7 @@ namespace scabbard {
             && f->getName() != SCABBARD_DEVICE_DUMMY_FUNC_NAME)
           run_device(*f, fam, dt);
 
-      finish_replacing_old_funcs_device();
+      finish_replacing_old_funcs_device(M);
 
       // remove the dummy caller function from device_def
       // M.getFunction(SCABBARD_DEVICE_DUMMY_FUNC_NAME)->eraseFromParent(); //note: causes all linked functions to also be removed
@@ -288,10 +291,9 @@ namespace scabbard {
 
     void ScabbardPassPlugin::run_device(llvm::Function& _F, llvm::FunctionAnalysisManager& FAM, const DepTraceDevice& DT)
     {
-      if (_F.isDeclaration()) return; // skip functions not defined (only declared) in this module
-      //TODO modify the function type and parameters to include the instrumented in device tracker parameter
+      if (_F.isDeclaration()) return; // skip functions not defined (only declared) in this module 
       llvm::Function& F = *replace_device_function(_F);
-      llvm::errs() << "[scabbard.instr.device:DBG] cloned function `" << F.getName() << "` contains " << F.getInstructionCount() << '/' << _F.getInstructionCount() <<" instructions\n"; //DEBUG
+
       // search for instructions to instrument and instrument them
       for (auto& bb : F)
         for (auto& i : bb)
@@ -334,7 +336,12 @@ namespace scabbard {
             //instrument atomic readwrite instructions
             instr_mem_func_device(F, i, atomic->getPointerOperand(), data);
           }
-          // llvm::errs() << "\n[scabbard.instr.device:DBG] fully instrumented `"<< F.getName()  <<"`\n";
+
+
+
+
+
+
           // return llvm::PreservedAnalyses::all();
     }
 
@@ -371,48 +378,44 @@ namespace scabbard {
     }
 
 
-    llvm::Function* ScabbardPassPlugin::replace_device_function(llvm::Function& F)
+    llvm::Function* ScabbardPassPlugin::replace_device_function(llvm::Function& OldFn)
     {
-      llvm::Module& M = *F.getParent();
-      std::string old_name = F.getName().str();
-      F.setName(old_name+"__old__scabbard_instr_replaced__old__");
-      auto oldParamTys = F.getFunctionType()->params();
+      llvm::Module& M = *OldFn.getParent();
+      std::string old_name = OldFn.getName().str();
+      OldFn.setName(old_name+"__old__scabbard_instr_replaced__old__");
+      auto oldParamTys = OldFn.getFunctionType()->params();
       std::vector<llvm::Type*> paramTys(oldParamTys.begin(), oldParamTys.end());
-      paramTys.push_back(llvm::PointerType::get(F.getContext(),0ul));
+      paramTys.push_back(llvm::PointerType::get(OldFn.getContext(),0ul));
       auto fn_callee = M.getOrInsertFunction(
                           old_name,
                           llvm::FunctionType::get(
-                              F.getFunctionType()->getReturnType(),
+                              OldFn.getFunctionType()->getReturnType(),
                               llvm::ArrayRef<llvm::Type*>(paramTys),
-                              F.getFunctionType()->isVarArg()
+                              OldFn.getFunctionType()->isVarArg()
                             ),
-                          F.getAttributes()
+                          OldFn.getAttributes()
                         );
-      llvm::Function* fn = llvm::dyn_cast<llvm::Function>(fn_callee.getCallee()); // new function (F is old function)
+      llvm::Function* NewFn = llvm::dyn_cast<llvm::Function>(fn_callee.getCallee()); // new function (OldFn is old function)
+      NewFn->setCallingConv(OldFn.getCallingConv());
       llvm::ValueToValueMapTy vMap;
-      for (size_t i=0; i<F.arg_size(); ++i)
-        vMap[F.getArg(i)] = fn->getArg(i);
+      for (size_t i=0; i<OldFn.arg_size(); ++i)
+        vMap[OldFn.getArg(i)] = NewFn->getArg(i);
       llvm::SmallVector<llvm::ReturnInst*,8> rets;
       //?NOTE: this might be used wrong.  Double check results in testing to make sure it works correctly
       //?     if wrong likely due to not creating vMap properly
-      llvm::CloneFunctionInto(fn, &F, vMap, llvm::CloneFunctionChangeType::LocalChangesOnly, rets);
-      // if (not fn->hasFnAttribute("noinline")) //DEBUG see if adding no inline removes teh unreachable issue (it did not)
-      //   fn->addFnAttr(llvm::Attribute::NoInline); 
-      to_replace.push_back(std::make_pair(&F,fn));
-      return fn;
+      llvm::CloneFunctionInto(NewFn, &OldFn, vMap, llvm::CloneFunctionChangeType::LocalChangesOnly, rets);
+      to_replace.push_back(std::tuple(&OldFn,NewFn));
+      return NewFn;
     }
 
-    void ScabbardPassPlugin::finish_replacing_old_funcs_device()
+    void ScabbardPassPlugin::finish_replacing_old_funcs_device(llvm::Module& M)
     {
-      auto dummyFn = llvm::dyn_cast<llvm::Function>(device.dummyFunc.getCallee());
-      auto OldBB = &dummyFn->getEntryBlock();
-      auto BB = llvm::BasicBlock::Create(dummyFn->getContext(), "metadata_registry", dummyFn, OldBB);
-      llvm::IRBuilder<llvm::ConstantFolder,llvm::IRBuilderDefaultInserter> IRB(BB);
       //modify to pass device tracker through as last parameter to all functions defined in this module'
       for (auto& tr : to_replace) {
-        auto OldFn = tr.first;
-        auto NewFn = tr.second;
-        llvm::errs() << "[scabbard.instr.device:DBG] replacing " << OldFn->getNumUses() << " calls to `" << OldFn->getName() << "`\n"; //DEBUG
+        llvm::Function* OldFn, * NewFn; // llvm::MDNode* NewFnMDN;
+        // std::tie(OldFn, NewFn, NewFnMDN) = tr;
+        std::tie(OldFn, NewFn) = tr;
+
         for (auto& u : OldFn->uses()) {
           if (auto CI = llvm::dyn_cast<llvm::CallInst>(u.getUser())) {
             llvm::Function* iFn = CI->getFunction();
@@ -423,7 +426,7 @@ namespace scabbard {
               if (iFn->getName().ends_with("__old__scabbard_instr_replaced__old__"))
                 continue;
 #           endif
-            llvm::errs() << "[scabbard.instr.device:DBG] call to `" << OldFn->getName() << "` in `" << iFn->getName() << "` has been replaced!\n"; //DEBUG
+
             llvm::SmallVector<llvm::Value*,4u> operands;
             for (auto& op : CI->args())
               operands.push_back(op.get());
@@ -440,38 +443,19 @@ namespace scabbard {
             ci->insertBefore(CI);
             CI->replaceAllUsesWith(ci);
             ci->setDebugLoc(CI->getDebugLoc());
+            ci->setCallingConv(CI->getCallingConv());
             CI->eraseFromParent();
-            // llvm::errs() << "```\n"; iFn->print(llvm::errs()); llvm::errs() << "\n```\n"; //DEBUG
+
           } else {
             LLVM_DEBUG(llvm::errs() << "\n[scabbard.instr.device:DBG] overwritten device function used in non-call instruction!\n";);
           }
         }
-        //instr a call to the NewFn from the dummy function to keep llvm from optimizing out the new functions
-        llvm::SmallVector<llvm::Value*,4u> ops;
-        for (auto& arg : NewFn->args()) {
-          if (auto ity = llvm::dyn_cast<llvm::IntegerType>(arg.getType())) {
-            auto bc = IRB.CreateBitCast(dummyFn->getArg(1), arg.getType());
-            ops.push_back(bc);
-          } else if (arg.getType()->isFloatingPointTy()) {
-            auto bc = IRB.CreateBitCast(dummyFn->getArg(2), arg.getType());
-            ops.push_back(bc);
-          } else { // handle as pointer type otherwise
-            auto bc = IRB.CreateBitCast(dummyFn->getArg(0), arg.getType());
-            ops.push_back(bc);
-          }
-        }
-        IRB.CreateCall(
-            llvm::FunctionCallee(NewFn->getFunctionType(), NewFn),
-            ops
-          );
         // remove OldFn from module
         OldFn->eraseFromParent();
       }
-      // create a bridge to the old section of the dummy function
-      IRB.CreateBr(OldBB);
       // clear the list so we're ready for reuse
       to_replace.clear();
-      // llvm::errs() << "```\n"; dummyFn->print(llvm::errs()); llvm::errs() << "\n```\n"; //DEBUG
+
     }
 
 
