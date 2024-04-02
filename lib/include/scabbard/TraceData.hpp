@@ -158,9 +158,9 @@ struct TraceData {
   InstrData     data        = InstrData::NEVER;   //  2B ( 16b)  8B ( 64b)
   ThreadId      threadId    = ((void*)nullptr);   // 24B (192b) 24B (192b)
   const void*   ptr         = nullptr;            //  8B ( 64b)  8B ( 64b)
-  LocMData_t    metadata    = {0ul,0ul,0ul};      // 24B (192b) 24B (192b)
+  LocMData_t    metadata    = {0ul,0ul,0ul};      // 16B (128b) 16B (128b)
   std::size_t   _OPT_DATA   = 0ul;                //  8B ( 64b)  8B ( 64b)
-  //                                        TOTALS:  74B (592b) 74B (592b)
+  //                                        TOTALS:  66B (528b) 72B (576b) (91.66% data occupancy)
 # else
   std::size_t   time_stamp  = 0ul;
   InstrData     data        = InstrData::NEVER;

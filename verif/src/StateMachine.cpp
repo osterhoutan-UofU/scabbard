@@ -26,8 +26,12 @@ namespace verif {
         | InstrData::READ | InstrData::WRITE
         | InstrData::ALLOCATE | InstrData::FREE
       );
-    size_t dbg_i = 0;
+    size_t dbg_i = 0u; //DEBUG
+    size_t dbg_j = 0u; //DEBUG
+    size_t dbg_k = 0u; //DEBUG
     for (const auto& td : trace) {
+      if (/* td.time_stamp == 0u || */ td.data == InstrData::NEVER) dbg_j++; //DEBUG
+      if (td.data & InstrData::ON_GPU) dbg_k++; //DEBUG
       std::map<size_t, const scabbard::TraceData *>::iterator it = mem.end();
       switch (td.data & FILTER)
       {
@@ -46,7 +50,9 @@ namespace verif {
 
         case InstrData::WRITE:
           it = mem.find(td.ptr); //TODO: \/ logic below needs a refresh (might be flawed) \/
-          if (it == mem.end() || not (it->second->data & InstrData::READ)) { // first write of a pair (empty or just allocated)
+          if (it == mem.end()) { // first write of a pair (empty or just allocated)
+            mem[td.ptr] = &td;
+          } else if (not (it->second->data & InstrData::READ)) { // OR the last operation on the mem space was a read 
             mem[td.ptr] = &td;
           } else { // This is probably a race
             return {ERROR, it->second, &td};

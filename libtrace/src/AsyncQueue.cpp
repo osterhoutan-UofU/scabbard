@@ -154,6 +154,7 @@ namespace scabbard {
       for (auto& dt : device_trackers) {
         if (dt == nullptr) continue;
         const size_t NEXT = dt->next; // get copy of atomic value to skip atomic reads since the buffer is frozen
+        std::cerr << "[scabbard.trace:DBG] reading " << NEXT - dt->next_read << "data points from GPU s:" << dt->JOB_ID.STREAM << " j:" << dt->JOB_ID.JOB << std::endl;
         for (size_t i = dt->next_read; i < NEXT; ++i)
             tw << dt->buffer[i%SCABBARD_DEVICE_TRACKER_BUFF_LENGTH];
         dt->next_read = NEXT;

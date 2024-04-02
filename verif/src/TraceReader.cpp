@@ -111,14 +111,22 @@ namespace verif {
     std::memset(buf, 0, 16ul);
 
     try {
+      if (not in.is_open())
+        throw std::domain_error("could not open file `" + filepath + "`");
+      if (in.eof())
+        throw std::domain_error("end of file reached before read could begin");
       // read in the version identifiers
-      in.read(reinterpret_cast<char*>(&tf.VER_MAJOR), sizeof(uint8_t));
-      in.read(reinterpret_cast<char*>(&tf.VER_MINOR), sizeof(uint8_t));
-      in.read(reinterpret_cast<char*>(&tf.VER_PATCH), sizeof(uint8_t));
-      // _input->read(buf, sizeof(uint8_t)*3);
-      // tf.VER_MAJOR = buf[0];
-      // tf.VER_MINOR = buf[1];
-      // tf.VER_PATCH = buf[2];
+      // tf.VER_MAJOR = in.get();
+      // tf.VER_MINOR = in.get();
+      // tf.VER_PATCH = in.get();
+      // in.get(tf.VER_MAJOR).get(tf.VER_MINOR).get(tf.VER_PATCH);
+      // in.read(reinterpret_cast<char*>(&tf.VER_MAJOR), sizeof(uint8_t));
+      // in.read(reinterpret_cast<char*>(&tf.VER_MINOR), sizeof(uint8_t));
+      // in.read(reinterpret_cast<char*>(&tf.VER_PATCH), sizeof(uint8_t));
+      in.read(buf, sizeof(uint8_t)*3);
+      tf.VER_MAJOR = buf[0];
+      tf.VER_MINOR = buf[1];
+      tf.VER_PATCH = buf[2];
       check_version(tf);
 
       // read in the writing system's word size
