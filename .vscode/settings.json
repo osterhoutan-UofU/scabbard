@@ -118,7 +118,8 @@
         "span": "cpp",
         "cfenv": "cpp",
         "valarray": "cpp",
-        "codecvt": "cpp"
+        "codecvt": "cpp",
+        "ranges": "cpp"
     },
     "cSpell.words": [
         "amdgcn",
