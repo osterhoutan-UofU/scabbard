@@ -85,7 +85,8 @@ namespace verif {
           if (r == allocs.end())
             return {INTERNAL_ERROR, nullptr, nullptr, "\n[scabbard.verif:ERR] bad alloc data (could not find hipMalloc associated with hipFree in trace history)"};
           for (it = mem.find(td.ptr); it != mem.end() && it->second->ptr < td.ptr+r->second; ++it)
-            mem.erase(it);
+            it = mem.erase(it);
+            // mem.erase(it);
           allocs.erase(r);
           break;
         }
