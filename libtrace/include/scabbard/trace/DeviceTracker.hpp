@@ -37,6 +37,16 @@ namespace device {
     {
       std::memset(buffer, 0u, sizeof(TraceData)*SCABBARD_DEVICE_TRACKER_BUFF_LENGTH);
     }
+    // __host__
+    // DeviceTracker(const DeviceTracker& other)
+    // {
+    //   *this = other;
+    // }
+    // __host__
+    // DeviceTracker& operator = (const DeviceTracker&)
+    // {
+    //   JOB_ID = 
+    // }
   };
 
 

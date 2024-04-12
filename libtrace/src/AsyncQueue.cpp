@@ -114,8 +114,8 @@ namespace scabbard {
     device::DeviceTracker* AsyncQueue::add_job(const hipStream_t STREAM)
     {
       device::DeviceTracker* dt = nullptr;
-      // hipError_t hipRes = hipMallocManaged(&dt, sizeof(device::DeviceTracker), hipMemAttachGlobal);
-      hipError_t hipRes = hipHostMalloc(&dt, sizeof(device::DeviceTracker), hipHostMallocPortable);
+      hipError_t hipRes = hipMallocManaged(&dt, sizeof(device::DeviceTracker), hipMemAttachGlobal);
+      // hipError_t hipRes = hipHostMalloc(&dt, sizeof(device::DeviceTracker), hipHostMallocPortable);
       if (hipRes != hipSuccess) {
         std::cerr << "\n[scabbard.trace:ERROR] failed to allocate managed memory before kernel launch!\n" << std::endl;
         exit(EXIT_FAILURE);
@@ -124,7 +124,9 @@ namespace scabbard {
       auto tmp = stream_job_counters.find(STREAM);
       if (tmp == stream_job_counters.end())
         stream_job_counters.emplace(std::make_pair(STREAM,0u));
-      device_trackers.push_back(new device::DeviceTracker(jobId_t(tmp->second,STREAM), vClk++));
+      auto tmp_dt = new device::DeviceTracker(jobId_t(tmp->second,STREAM), vClk);
+      std::memcpy(dt, tmp_dt, sizeof(device::DeviceTracker));      
+      device_trackers.push_back(dt);
       stream_job_counters[STREAM] = tmp->second+1u; 
       mx_device.unlock();
       return dt;
