@@ -17,7 +17,7 @@
 #include <hip/hip_runtime.h>
 #include <hip/hip_runtime_api.h>
 
-#define SCABBARD_DEVICE_TRACKER_BUFF_LENGTH (128ul)
+#define SCABBARD_DEVICE_TRACKER_BUFF_LENGTH (2048ul)
 
 
 namespace scabbard {
