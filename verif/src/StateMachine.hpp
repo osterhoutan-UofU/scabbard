@@ -40,7 +40,7 @@ namespace verif {
       std::string err_msg = "";
     };
 
-    const StateMachine::Result run();
+    std::vector<StateMachine::Result> run();
 
     void reset();
 

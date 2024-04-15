@@ -19,13 +19,14 @@ namespace verif {
   {}
 
 
-  const StateMachine::Result StateMachine::run()
+  std::vector<StateMachine::Result> StateMachine::run()
   {
     const InstrData FILTER = (
         InstrData::SYNC_EVENT | InstrData::DESYNC_EVENT
         | InstrData::READ | InstrData::WRITE
         | InstrData::ALLOCATE | InstrData::FREE
       );
+    std::vector<StateMachine::Result> results;
     size_t dbg_i = 0u; //DEBUG
     size_t dbg_j = 0u; //DEBUG
     size_t dbg_k = 0u; //DEBUG
@@ -55,24 +56,29 @@ namespace verif {
           } else if (not (it->second->data & InstrData::READ)) { // OR the last operation on the mem space was a read 
             mem[td.ptr] = &td;
           } else { // This is probably a race
-            return {ERROR, it->second, &td};
+            return {{ERROR, it->second, &td, "Data Written to after it was read from"}};
           }
           break;
 
         case InstrData::READ:
           it = mem.find(td.ptr);
-          if (td.data & InstrData::_OPT_USED) { // bulk read (memcpy device to host)
+          if (it == mem.end()) {// read with no preceding write
+            results.push_back({WARNING, &td, nullptr, "Read with no preceding/matching Write"}); // read with no preceding write
+            break;
+          } else if (td.data & InstrData::_OPT_USED) { // bulk read (memcpy device to host)
             for (; it != mem.end() && it->second->ptr < td.ptr+td._OPT_DATA; ++it) {
               auto res = check_race_read(td, *it->second);
-              if (res != GOOD)
-                return {res, &td, it->second};
+              if (res != GOOD) {
+                results.push_back({res, &td, it->second, "Bulk Read/MemCpyAsync occurs before any relevant sync event"});
+                goto switch_exit;
+              }
             }
-          } else if (it != mem.end()) { // single read
+          } else { // single read
             auto res = check_race_read(td, *it->second);
-              if (res != GOOD)
-                return {res, &td, it->second};
-          } else { // read with no preceding write
-            return {WARNING, &td, nullptr}; // read with no preceding write
+              if (res != GOOD) {
+                results.push_back({res, &td, it->second, "Read occurs before any relevant sync event"});
+                break;
+              }
           }
           break;
 
@@ -83,7 +89,7 @@ namespace verif {
         case InstrData::FREE: {
           auto r = allocs.find(td.ptr);
           if (r == allocs.end())
-            return {INTERNAL_ERROR, nullptr, nullptr, "\n[scabbard.verif:ERR] bad alloc data (could not find hipMalloc associated with hipFree in trace history)"};
+            return {{INTERNAL_ERROR, nullptr, nullptr, "\n[scabbard.verif:ERR] bad alloc data (could not find hipMalloc associated with hipFree in trace history)"}};
           for (it = mem.find(td.ptr); it != mem.end() && it->second->ptr < td.ptr+r->second; ++it)
             it = mem.erase(it);
             // mem.erase(it);
@@ -94,9 +100,12 @@ namespace verif {
         default:
           break;
       }
-      dbg_i++;
+      switch_exit:  // quick exit for when in loops (I hate having to use GOTO)
+      dbg_i++; //DEBUG
     }
-    return {GOOD, nullptr, nullptr, std::to_string(dbg_i)};
+    if (results.size() == 0)
+      return {{GOOD, nullptr, nullptr, std::to_string(dbg_i)}};
+    return results;
   }
 
 

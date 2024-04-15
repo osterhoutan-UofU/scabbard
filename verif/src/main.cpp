@@ -30,32 +30,36 @@ int main(int argc, char *argv[]) {
   auto tf = scabbard::verif::readTraceFile(std::string(argv[1]));
 
   scabbard::verif::StateMachine sm(tf.trace_data);
-  auto result = sm.run();
+  auto results = sm.run();
 
-  switch (result.status)
-  {
-    case StateMachine::ResultStatus::ERROR:
-      std::cout << "\nA data race was detected!\n";
-      printResult(std::cout, tf, result);
-      break;
+  std::string sep = "";
+  for (auto result : results) {
+    std::cout << sep; 
+    switch (result.status)
+    {
+      case StateMachine::ResultStatus::ERROR:
+        std::cout << "\nA data race was detected!\n";
+        printResult(std::cout, tf, result);
+        break;
 
-    case StateMachine::ResultStatus::WARNING:
-      std::cout << "\nA POSSIBLE data race was detected!\n";
-      printResult(std::cout, tf, result);
-      break;
+      case StateMachine::ResultStatus::WARNING:
+        std::cout << "\nA POSSIBLE data race was detected!\n";
+        printResult(std::cout, tf, result);
+        break;
 
-    case StateMachine::ResultStatus::GOOD:
-      std::cout << "\nNO data races were found :)\n"; 
-      break;
+      case StateMachine::ResultStatus::GOOD:
+        std::cout << "\nNO data races were found :)\n"; 
+        break;
 
-    case StateMachine::ResultStatus::INTERNAL_ERROR:
-      std::cout << result.err_msg << std::endl;
-      return EXIT_FAILURE;
-    default:
-      std::cerr << "!unknown result code!" << std::endl;
-      return EXIT_FAILURE;
+      case StateMachine::ResultStatus::INTERNAL_ERROR:
+        std::cout << result.err_msg << std::endl;
+        return EXIT_FAILURE;
+      default:
+        std::cerr << "!unknown result code!" << std::endl;
+        return EXIT_FAILURE;
+    }
+    sep = "\n========";
   }
-  std::cout << std::endl;
   return 0;
 }
 
@@ -70,27 +74,29 @@ void printResult(std::ostream& out,
   }
   auto printRead = [&]() -> void {
     out << "   READ: {\n" 
-           "       time: " << res.read->time_stamp - TF.START_TIME << " μs,\n"
-           "     device: CPU\n"
-           "  thread id: 0x" << std::hex << std::hash<std::thread::id>{}(res.read->threadId.host) << std::dec << "\n"
-           "    src loc: \"" << TF.src_files[res.read->metadata.src_id] << ':' << res.read->metadata.line << ',' << res.read->metadata.col << "\"\n"
+           "       time (logical): " << res.read->time_stamp << ",\n"
+           "               device: CPU\n"
+           "            thread id: 0x" << std::hex << std::hash<std::thread::id>{}(res.read->threadId.host) << std::dec << "\n"
+           "              src loc: \"" << TF.src_files[res.read->metadata.src_id] << ':' << res.read->metadata.line << ',' << res.read->metadata.col << "\"\n"
            "  }\n";
   };
   auto printWrite = [&]() -> void {
     out << "  WRITE: {\n" 
-           "       time: " << res.write->time_stamp - TF.START_TIME << " μs,\n"
-           "     device: CPU\n"
-           "  thread id: {block: {x:" << res.write->threadId.device.block.x << 
+           "    time (logical): " << res.write->time_stamp << ",\n"
+           "            device: CPU\n"
+           "         thread id: {block: {x:" << res.write->threadId.device.block.x << 
                                   ",y:" << res.write->threadId.device.block.y << 
                                   ",z:"<< res.write->threadId.device.block.z <<"}, "
                           "thread: {x:" << res.write->threadId.device.thread.x << 
                                     ",y:" << res.write->threadId.device.thread.y << 
                                     ",z:"<< res.write->threadId.device.thread.z <<"}}\n"
-           "    src loc: \"" << TF.src_files[res.write->metadata.src_id] << ':' << res.write->metadata.line << ',' << res.write->metadata.col << "\"\n"
+           "           src loc: \"" << TF.src_files[res.write->metadata.src_id] << ':' << res.write->metadata.line << ',' << res.write->metadata.col << "\"\n"
            "  }\n";
   };
-  out << " RESULT: `" << res.status << "`\n" 
-         "MEM LOC: 0x" << std::hex << ((res.read) ? res.read->ptr : res.write->ptr) << std::dec << ", {" << res.read->data << "}\n";
+  out << " RESULT: `" << res.status << "`\n";
+  if (res.err_msg != "")
+    out << "MESSAGE: \"" << res.err_msg << "\"\n";
+  out << "MEM LOC: 0x" << std::hex << ((res.read) ? res.read->ptr : res.write->ptr) << std::dec << ", {" << res.read->data << "}\n";
   
   if (res.write == nullptr) { //case there is no write data
     printRead();
