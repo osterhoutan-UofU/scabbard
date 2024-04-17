@@ -21,14 +21,14 @@ auto matrix_mul(double* A, double* B, double* C) -> void
 {
   const size_t ROW = blockIdx.y*blockDim.y+threadIdx.y;
   const size_t COL = blockIdx.x*blockDim.x+threadIdx.x;
-  double tmp_sum = 0.0d;
+  double tmp_sum = 0.0L;
   for (size_t i=0; i<DIM; ++i)
     tmp_sum += A[ROW*DIM + i] * B[i*DIM + COL];
   C[ROW*DIM + COL] = tmp_sum;
 }
 
 __host__
-auto HIP_CHECK(hipResult_t hipRes, const std::string& errMsg) -> void
+auto HIP_CHECK(hipError_t hipRes, const std::string& errMsg) -> void
 {
   if (hipRes == hipSuccess) return;
   std::cerr << "\n[hip ERR: " << hipRes << "] " << errMsg << std::endl;
@@ -38,14 +38,14 @@ auto HIP_CHECK(hipResult_t hipRes, const std::string& errMsg) -> void
 __host__
 auto main() -> int 
 {
-  double* A,B,C;
+  double* A, * B, * C;
   double out[DIM*DIM];
 
   HIP_CHECK(hipMalloc(&A, sizeof(double)*DIM*DIM), "from `hipMalloc(&A, ...)`");
   HIP_CHECK(hipMalloc(&B, sizeof(double)*DIM*DIM), "from `hipMalloc(&B, ...)`");
   HIP_CHECK(hipMalloc(&C, sizeof(double)*DIM*DIM), "from `hipMalloc(&C, ...)`");
 
-  matrix_mul<<<{1,1},{DIM,DIM},0,0>>>(A,B,C);
+  matrix_mul<<<(dim3){1u,1u,1u,},(dim3){DIM,DIM,1},0ul,0ul>>>(A,B,C);
 
   // calls to hipMemcpy automaticaly perform a global stream sync (or stream sync for hipMemcpyStream) preventing data races (but also not utilizing the benefits of heterogenous memory)
   HIP_CHECK(hipMemcpy(out, C, sizeof(double)*DIM*DIM), "from `hipMemcpy(out, C, ...)`");

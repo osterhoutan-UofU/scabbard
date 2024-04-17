@@ -28,7 +28,7 @@ auto matrix_mul(double* A, double* B, double* C) -> void
   using namespace scabbard;
   const size_t ROW = blockIdx.y*blockDim.y+threadIdx.y;
   const size_t COL = blockIdx.x*blockDim.x+threadIdx.x;
-  double tmp_sum = 0.0d;
+  double tmp_sum = 0.0L;
   for (size_t i=0; i<DIM; ++i)
     tmp_sum += A[ROW*DIM + i] * B[i*DIM + COL];
   double& tmp = C[ROW*DIM + COL];
@@ -41,7 +41,7 @@ auto matrix_mul(double* A, double* B, double* C) -> void
 }
 
 __host__
-auto HIP_CHECK(hipResult_t hipRes, const std::string& errMsg) -> void
+auto HIP_CHECK(hipError_t hipRes, const std::string& errMsg) -> void
 {
   if (hipRes == hipSuccess) return;
   std::cerr << "\n[hip ERR: " << hipRes << "] " << errMsg << std::endl;
@@ -55,7 +55,7 @@ auto main() -> int
   src_id = scabbard.trace.metadata_register("test/device/maybe-race.man.cpp");
   scabbard::trace::scabbard_init();
 
-  double* A,B,C;
+  double* A, * B, * C;
 
   HIP_CHECK(hipMalloc(&A, sizeof(double)*DIM*DIM), "from `hipMalloc(&A, ...)`");
   scabbard.trace.host.trace_append$alloc(
@@ -80,13 +80,13 @@ auto main() -> int
     );
 
   void* DT = scabbard.trace.register_job(0ul);
-  matrix_mul<<<{1u,1u},{DIM,DIM},0ul,0ul>>>(A,B,C,DT);
+  matrix_mul<<<(dim3){1u,1u,1u,},(dim3){DIM,DIM,1},0ul,0ul>>>(A,B,C,DT);
   scabbard.trace.register_job_callback(DT, 0ul);
 
   // this is what makes this maybe race (we don't know how driver and OS will time things)
   std::this_thread::sleep_for(500ms);
 
-  double res_sum = 0.0d;
+  double res_sum = 0.0L;
   for (size_t i=0; i<DIM*DIM; ++i) {
     res_sum += C[i];
     scabbard::trace::host::trace_append$mem(

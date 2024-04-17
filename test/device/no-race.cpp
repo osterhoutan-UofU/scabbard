@@ -23,14 +23,14 @@ auto matrix_mul(double* A, double* B, double* C) -> void
 {
   const size_t ROW = blockIdx.y*blockDim.y+threadIdx.y;
   const size_t COL = blockIdx.x*blockDim.x+threadIdx.x;
-  double tmp_sum = 0.0d;
+  double tmp_sum = 0.0L;
   for (size_t i=0; i<DIM; ++i)
     tmp_sum += A[ROW*DIM + i] * B[i*DIM + COL];
   C[ROW*DIM + COL] = tmp_sum;
 }
 
 __host__
-auto HIP_CHECK(hipResult_t hipRes, const std::string& errMsg) -> void
+auto HIP_CHECK(hipError_t hipRes, const std::string& errMsg) -> void
 {
   if (hipRes == hipSuccess) return;
   std::cerr << "\n[hip ERR: " << hipRes << "] " << errMsg << std::endl;
@@ -40,19 +40,19 @@ auto HIP_CHECK(hipResult_t hipRes, const std::string& errMsg) -> void
 __host__
 auto main() -> int 
 {
-  double* A,B,C;
+  double* A, * B, * C;
   double out[DIM*DIM];
 
   HIP_CHECK(hipMalloc(&A, sizeof(double)*DIM*DIM), "from `hipMalloc(&A, ...)`");
   HIP_CHECK(hipMalloc(&B, sizeof(double)*DIM*DIM), "from `hipMalloc(&B, ...)`");
   HIP_CHECK(hipMalloc(&C, sizeof(double)*DIM*DIM), "from `hipMalloc(&C, ...)`");
 
-  matrix_mul<<<{1,1},{DIM,DIM},0,0>>>(A,B,C);
+  matrix_mul<<<(dim3){1u,1u,1u,},(dim3){DIM,DIM,1},0ul,0ul>>>(A,B,C);
 
-  HIP_CHECK(hipStreamSync(0ul), "from `hipStreamSync(0ul)`");
-  hipStreamSync(0ul); // sync will prevent any data races from occurring
+  // sync will prevent any data races from occurring
+  HIP_CHECK(hipStreamSynchronize(0ul), "from `hipStreamSynchronize(0ul)`");
 
-  double res_sum = 0.0d;
+  double res_sum = 0.0L;
   for (int64_t i=(DIM*DIM)-1ul; i>=0ul; --i) // iterating backwards should ensure that we read something before a write (if no sync is used).
     res_sum += C[i];
 
