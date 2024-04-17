@@ -80,11 +80,11 @@ auto main() -> int
     );
 
   void* DT = scabbard.trace.register_job(0ul);
-  matrix_mul<<<(dim3){1u,1u,1u,},(dim3){DIM,DIM,1},0ul,0ul>>>(A,B,C,DT);
+  matrix_mul<<<(dim3){1u,1u,1u},(dim3){DIM,DIM,1u},0ul,0ul>>>(A,B,C,DT);
   scabbard.trace.register_job_callback(DT, 0ul);
 
   // this is what makes this maybe race (we don't know how driver and OS will time things)
-  std::this_thread::sleep_for(500ms);
+  std::this_thread::sleep_for(std::chrono::milliseconds(500ul));
 
   double res_sum = 0.0L;
   for (size_t i=0; i<DIM*DIM; ++i) {

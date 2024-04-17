@@ -45,7 +45,7 @@ auto main() -> int
   HIP_CHECK(hipMalloc(&B, sizeof(double)*DIM*DIM), "from `hipMalloc(&B, ...)`");
   HIP_CHECK(hipMalloc(&C, sizeof(double)*DIM*DIM), "from `hipMalloc(&C, ...)`");
 
-  matrix_mul<<<(dim3){1u,1u,1u,},(dim3){DIM,DIM,1},0ul,0ul>>>(A,B,C);
+  matrix_mul<<<(dim3){1u,1u,1u},(dim3){DIM,DIM,1u},0ul,0ul>>>(A,B,C);
 
   // calls to hipMemcpy automaticaly perform a global stream sync (or stream sync for hipMemcpyStream) preventing data races (but also not utilizing the benefits of heterogenous memory)
   HIP_CHECK(hipMemcpy(out, C, sizeof(double)*DIM*DIM), "from `hipMemcpy(out, C, ...)`");

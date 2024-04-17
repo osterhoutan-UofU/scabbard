@@ -79,7 +79,7 @@ auto main(int argc, char** argv) -> int
     );
 
   void* DT = scabbard.trace.register_job(0ul);
-  matrix_mul<<<(dim3){1u,1u,1u,},(dim3){DIM,DIM,1},0ul,0ul>>>(A,B,C,DT);
+  matrix_mul<<<(dim3){1u,1u,1u},(dim3){DIM,DIM,1u},0ul,0ul>>>(A,B,C,DT);
   scabbard.trace.register_job_callback(DT, 0ul);
 
   HIP_CHECK(hipMemcpy(out, C, sizeof(double)*DIM*DIM), "from `hipMemcpy(out, C, ...)`");
