@@ -11,7 +11,7 @@
  */
 
 #include <hip/hip_runtime.h>
-#include <scabbard/calls.hpp>
+#include <scabbard/trace/calls.hpp>
 #include <src/device-defs.cpp>
 
 #include <string>
@@ -31,8 +31,8 @@ auto matrix_mul(double* A, double* B, double* C, void* DT) -> void
   for (size_t i=0; i<DIM; ++i)
     tmp_sum += A[ROW*DIM + i] * B[i*DIM + COL];
   double& tmp = C[ROW*DIM + COL];
-  scabbard.trace.device.trace_append$mem(DT,
-        InstrData::WRITE | InstrData::ON_DEVICE | InstrData::DEVICE_HEAP,
+  scabbard::trace::device::trace_append$mem(DT,
+        (InstrData)(InstrData::WRITE | InstrData::ON_DEVICE | InstrData::DEVICE_HEAP),
         &tmp,
         &src_id, 39u, 3u
       );
@@ -51,44 +51,44 @@ __host__
 auto main(int argc, char** argv) -> int 
 {
   using namespace scabbard;
-  src_id = scabbard.trace.metadata_register("test/device/memcpy-no-race.man.cpp");
-  scabbard.trace.scabbard_init();
+  src_id = scabbard::trace::metadata_register$src("test/device/memcpy-no-race.man.cpp");
+  scabbard::trace::scabbard_init();
   double* A, * B, * C;
   double out[DIM*DIM];
 
   HIP_CHECK(hipMalloc(&A, sizeof(double)*DIM*DIM), "from `hipMalloc(&A, ...)`");
-  scabbard.trace.host.trace_append$alloc(
+  scabbard::trace::host::trace_append$alloc(
       InstrData::ALLOCATE | InstrData::ON_HOST | InstrData::DEVICE_HEAP,
       A,
       &src_id, 59u, 13u,
       sizeof(double)*DIM*DIM
     );
   HIP_CHECK(hipMalloc(&B, sizeof(double)*DIM*DIM), "from `hipMalloc(&B, ...)`");
-  scabbard.trace.host.trace_append$alloc(
+  scabbard::trace::host::trace_append$alloc(
       InstrData::ALLOCATE | InstrData::ON_HOST | InstrData::DEVICE_HEAP,
       B,
       &src_id, 66u, 13u,
       sizeof(double)*DIM*DIM
     );
   HIP_CHECK(hipMalloc(&C, sizeof(double)*DIM*DIM), "from `hipMalloc(&C, ...)`");
-  scabbard.trace.host.trace_append$alloc(
+  scabbard::trace::host::trace_append$alloc(
       InstrData::ALLOCATE | InstrData::ON_HOST | InstrData::DEVICE_HEAP,
       C,
       &src_id, 73u, 13u,
       sizeof(double)*DIM*DIM
     );
 
-  void* DT = scabbard.trace.register_job(0ul);
+  void* DT = scabbard::trace::register_job(0ul);
   matrix_mul<<<(dim3){1u,1u,1u},(dim3){DIM,DIM,1u},0ul,0ul>>>(A,B,C,DT);
-  scabbard.trace.register_job_callback(DT, 0ul);
+  scabbard::trace::register_job_callback(DT, 0ul);
 
   HIP_CHECK(hipMemcpy(out, C, sizeof(double)*DIM*DIM), "from `hipMemcpy(out, C, ...)`");
-  scabbard.trace.host.trace_append$mem(
+  scabbard::trace::host::trace_append$mem(
       InstrData::SYNC | InstrData::ON_HOST,
       0ul,
       &src_id, 85u, 13u
     );
-  scabbard.trace.host.trace_append$alloc(
+  scabbard::trace::host::trace_append$alloc(
       InstrData::READ | InstrData::ON_HOST | InstrData::DEVICE_HEAP,
       C,
       &src_id, 85u, 13u,
@@ -96,19 +96,19 @@ auto main(int argc, char** argv) -> int
     );
 
   HIP_CHECK(hipFree(A), "from `hipFree(A)`");
-  scabbard.trace.host.trace_append$mem(
+  scabbard::trace::host::trace_append$mem(
       InstrData::FREE | InstrData::ON_HOST | InstrData::DEVICE_HEAP,
       A,
       &src_id, 98u, 13u
     );
   HIP_CHECK(hipFree(B), "from `hipFree(B)`");
-  scabbard.trace.host.trace_append$mem(
+  scabbard::trace::host::trace_append$mem(
       InstrData::FREE | InstrData::ON_HOST | InstrData::DEVICE_HEAP,
       B,
       &src_id, 104u, 13u
     );
   HIP_CHECK(hipFree(C), "from `hipFree(C)`");
-  scabbard.trace.host.trace_append$mem(
+  scabbard::trace::host::trace_append$mem(
       InstrData::FREE | InstrData::ON_HOST | InstrData::DEVICE_HEAP,
       C,
       &src_id, 110u, 13u
