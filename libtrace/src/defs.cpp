@@ -221,7 +221,7 @@ namespace scabbard {
             TraceData(
                 TRACE_LOGGER.vClk++,
                 // std::chrono::high_resolution_clock::now().time_since_epoch().count(),
-                data,
+                (data | InstrData::_OPT_USED),
                 ThreadId(),
                 PTR,
                 LocationMetadata{*src_id, line,col},

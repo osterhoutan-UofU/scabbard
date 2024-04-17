@@ -105,7 +105,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/verif/verif",
-            "args": ["${workspaceFolder}/test/trace-file-read-test.man.trace"],
+            "args": ["${workspaceFolder}/test/verif/trace-file-read-test.man.trace"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
