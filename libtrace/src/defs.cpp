@@ -151,7 +151,7 @@ namespace scabbard {
                       "job: " << dt->JOB_ID.JOB  << "}\n" << std::endl;
       }
       host::trace_append$alloc(
-          (InstrData)(InstrData::LAUNCH_EVENT & InstrData::ON_HOST & InstrData::_OPT_USED),
+          (InstrData)(InstrData::LAUNCH_EVENT | InstrData::ON_HOST | InstrData::_OPT_USED),
           stream,
           &scabbard_src_id, 153u,7u,
           dt->JOB_ID.JOB

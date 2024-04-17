@@ -14,6 +14,8 @@ echo -e "\n\n==== CHECKING the Enviroment Variables ====\n\n"
 # get the rocm and hipcc version
 HIP_EXE=${ROCM_PATH:-/opt/rocm}/bin/hipcc
 
+echo "HIPCC: '$HIP_EXE'"
+
 
 # if [[ -z "${ROCM_PATH}"]]; then
 #     HIP_EXE="$(ROCM_PATH)/bin/hipcc"
@@ -43,12 +45,14 @@ FILE_BASE=$(echo "$FILE" | awk 'match($0, /^(.+)\.cpp$/, arr) { print arr[1]}')
 if [[ $FILE_BASE == *".man" ]]; then # this is a manual file
 
   echo -e "\n\n==== BUILDING the MANUALLY instrumented executable ====\n\n"
+  echo "$HIP_EXE -L$SCABBARD_PATH -ltrace -lpthread -I$(pwd)/lib/include -I$(pwd)/libtrace/include -I$(pwd)/libtrace -std=c++17 -x hip -g -O2 -o$FILE_BASE.out $1"
   $HIP_EXE -L$SCABBARD_PATH -ltrace -lpthread -I$(pwd)/lib/include -I$(pwd)/libtrace/include -I$(pwd)/libtrace -std=c++17 -x hip -g -O2 -o$FILE_BASE.out $1
 
 
 else # this is a file that needs to be instrumented
 
   echo -e "\n\n==== INSTRUMENTING and BUILDING the executable ====\n\n"
+  echo "$HIP_EXE -fpass-plugin=build/instr/libinstr.so -L$SCABBARD_PATH -ltrace -std=c++17 -x hip -g -O2 -o$FILE_BASE.out $1"
   $HIP_EXE -fpass-plugin=build/instr/libinstr.so -L$SCABBARD_PATH -ltrace -std=c++17 -x hip -g -O2 -o$FILE_BASE.out $1
 
 fi
@@ -58,12 +62,12 @@ export SCABBARD_INSTRUMENTED_EXE_NAME="$FILE_BASE.out"
 export SCABBARD_TRACE_FILE="$FILE_BASE.scabbard.trace"
 
 # run the built executable
-echo -e "\n\n==== RUNNING the executable ====\n\n"
+echo -e "\n\n==== RUNNING the executable ====\n\n$SCABBARD_INSTRUMENTED_EXE_NAME\n"
 $SCABBARD_INSTRUMENTED_EXE_NAME
 
 
 # run the verifier
-echo -e "\n\n==== VERIFYING generated trace file ====\n\n"
+echo -e "\n\n==== VERIFYING generated trace file ====\n\n./build/verif/verif $SCABBARD_TRACE_FILE\n"
 ./build/verif/verif $SCABBARD_TRACE_FILE
 
 
