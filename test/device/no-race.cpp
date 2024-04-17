@@ -53,7 +53,7 @@ auto main() -> int
   hipStreamSync(0ul); // sync will prevent any data races from occurring
 
   double res_sum = 0.0d;
-  for (int64_t i=DIM*DIM; i>=0; --i) // iterating backwards should ensure that we read something before a write (if no sync is used).
+  for (int64_t i=(DIM*DIM)-1ul; i>=0ul; --i) // iterating backwards should ensure that we read something before a write (if no sync is used).
     res_sum += C[i];
 
   HIP_CHECK(hipFree(A), "from `hipFree(A)`");

@@ -82,8 +82,8 @@ auto main() -> int
   scabbard.trace.register_job_callback(DT, 0ul);
 
   double res_sum = 0.0d;
-  for (int64_t i=DIM*DIM; i>=0; --i) { // iterating backwards should ensure that we read something before a write.
-    res_sum += C[i];
+  for (int64_t i=(DIM*DIM)-1ul; i>=0ul; --i) { // iterating backwards should ensure that we read something before a write.
+    res_sum += C[i-1];
     scabbard::trace::host::trace_append$mem(
         InstrData::READ | InstrData::ON_HOST | InstrData::DEVICE_HEAP,
         &(C[i]),

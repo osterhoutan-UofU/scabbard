@@ -50,7 +50,7 @@ auto main() -> int
   matrix_mul<<<{1,1},{DIM,DIM},0,0>>>(A,B,C);
 
   double res_sum = 0.0d;
-  for (int64_t i=DIM*DIM; i>=0; --i) // iterating backwards should ensure that we read something before a write.
+  for (int64_t i=(DIM*DIM)-1ul; i>=0ul; --i) // iterating backwards should ensure that we read something before a write.
     res_sum += C[i];
 
   HIP_CHECK(hipFree(A), "from `hipFree(A)`");
