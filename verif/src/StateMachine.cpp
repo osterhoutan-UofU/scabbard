@@ -123,10 +123,10 @@ namespace verif {
   {
     // mem[o.ptr] = &r;
     if (o.data & InstrData::WRITE) { // if mem stores a write event 
-      if (last_global_sync >= o.time_stamp) // that occurred after the last global sync event
+      if (last_global_sync < o.time_stamp || last_global_sync > r.time_stamp ) // the write happened after the last global sync event
           return ResultStatus::WARNING; // return a warning
       auto res = last_stream_sync.find(o.threadId.device.job.STREAM);
-      if (res != last_stream_sync.end() && res->second > o.time_stamp) // or that happened after the last stream sync event 
+      if (res != last_stream_sync.end() && (res->second < o.time_stamp || res->second >= r.time_stamp )) // the write happened after the last global sync event or the read occurred after the last global sync event
         return ResultStatus::WARNING; // return a warning
     } // else    // if a read event we don't care yet (could be a double read)
       mem[o.ptr] = &r;

@@ -83,13 +83,16 @@ void printResult(std::ostream& out,
   auto printWrite = [&]() -> void {
     out << "  WRITE: {\n" 
            "    time (logical): " << res.write->time_stamp << ",\n"
-           "            device: CPU\n"
-           "         thread id: {block: {x:" << res.write->threadId.device.block.x << 
-                                  ",y:" << res.write->threadId.device.block.y << 
-                                  ",z:"<< res.write->threadId.device.block.z <<"}, "
-                          "thread: {x:" << res.write->threadId.device.thread.x << 
-                                    ",y:" << res.write->threadId.device.thread.y << 
-                                    ",z:"<< res.write->threadId.device.thread.z <<"}}\n"
+           "            device: GPU\n"
+           "         thread id: {\n"
+           "                   id: {stream: 0x" << std::hex << res.write->threadId.device.job.STREAM << std::dec << ", job#: " << res.write->threadId.device.job.JOB << "},\n"
+           "                block: {x:" << res.write->threadId.device.block.x << 
+                                  ", y:" << res.write->threadId.device.block.y << 
+                                  ", z:"<< res.write->threadId.device.block.z <<"},\n"
+           "               thread: {x:" << res.write->threadId.device.thread.x << 
+                                    ", y:" << res.write->threadId.device.thread.y << 
+                                    ", z:"<< res.write->threadId.device.thread.z <<"}\n"
+           "            }\n"
            "           src loc: \"" << TF.src_files[res.write->metadata.src_id] << ':' << res.write->metadata.line << ',' << res.write->metadata.col << "\"\n"
            "  }\n";
   };
