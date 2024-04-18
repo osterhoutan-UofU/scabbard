@@ -22,7 +22,7 @@ __managed__ size_t src_id = 0;
 
 __global__
 auto matrix_mul(double* A, double* B, double* C, void* DT) -> void
-{// This is a device tracker passed through kernel fns /\
+{
   using namespace scabbard;
   const size_t ROW = blockIdx.y*blockDim.y+threadIdx.y;
   const size_t COL = blockIdx.x*blockDim.x+threadIdx.x;
@@ -116,29 +116,38 @@ auto main() -> int
     res_sum += tmp1 + tmp2;
   }
 
+  // added in to prevent memory errors from freeing before kernels finish
+  HIP_CHECK(hipStreamSynchronize(0ul), "from `hipStreamSynchronize(0ul)`");
+  scabbard::trace::host::trace_append$mem(
+      InstrData::SYNC_EVENT | InstrData::ON_HOST,
+      (void*)0ul,
+      &src_id, 120u, 13u
+    );
+
+
   HIP_CHECK(hipFree(A), "from `hipFree(A)`");
   scabbard::trace::host::trace_append$mem(
       InstrData::FREE | InstrData::ON_HOST | InstrData::DEVICE_HEAP,
       A,
-      &src_id, 119u, 13u
+      &src_id, 132u, 13u
     );
   HIP_CHECK(hipFree(B), "from `hipFree(B)`");
   scabbard::trace::host::trace_append$mem(
       InstrData::FREE | InstrData::ON_HOST | InstrData::DEVICE_HEAP,
       B,
-      &src_id, 125u, 13u
+      &src_id, 138u, 13u
     );
   HIP_CHECK(hipFree(C1), "from `hipFree(C1)`");
   scabbard::trace::host::trace_append$mem(
       InstrData::FREE | InstrData::ON_HOST | InstrData::DEVICE_HEAP,
       C1,
-      &src_id, 131u, 13u
+      &src_id, 144u, 13u
     );
   HIP_CHECK(hipFree(C2), "from `hipFree(C2)`");
   scabbard::trace::host::trace_append$mem(
       InstrData::FREE | InstrData::ON_HOST | InstrData::DEVICE_HEAP,
       C2,
-      &src_id, 137u, 13uDIM
+      &src_id, 150u, 13u
     );
 
   return 0;

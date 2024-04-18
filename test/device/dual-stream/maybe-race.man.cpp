@@ -86,7 +86,7 @@ auto main() -> int
     );
 
   HIP_CHECK(hipStreamCreateWithPriority(&S1, hipStreamDefault, 0u), "from `hipStreamCreateWithPriority(&S1, ..., 1u)`");
-  HIP_CHECK(hipStreamCreateWithPriority(&S2, hipStreamDefault, 8u), "from `hipStreamCreateWithPriority(&S2, ..., 5u)`");
+  HIP_CHECK(hipStreamCreateWithPriority(&S2, hipStreamDefault, 8u), "from `hipStreamCreateWithPriority(&S2, ..., 8u)`");
 
   void* DT1 = scabbard::trace::register_job(S1);
   matrix_mul<<<(dim3){1u,1u,1u},(dim3){DIM,DIM,1u},0ul,S1>>>(A,B,C1,DT1);
