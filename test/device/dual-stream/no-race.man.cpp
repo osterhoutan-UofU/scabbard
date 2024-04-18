@@ -53,7 +53,7 @@ auto main() -> int
   src_id = scabbard::trace::metadata_register$src("test/device/dual-stream/no-race.man.cpp");
   scabbard::trace::scabbard_init();
 
-  double* A, * B, * C;
+  double* A, * B, * C1, * C2;
   hipStream_t S1, S2;
 
   HIP_CHECK(hipMalloc(&A, sizeof(double)*DIM*DIM), "from `hipMalloc(&A, ...)`");
@@ -89,11 +89,11 @@ auto main() -> int
   HIP_CHECK(hipStreamCreate(&S2), "from `hipStreamCreate(&S2)`");
 
   void* DT1 = scabbard::trace::register_job(S1);
-  matrix_mul<<<(dim3){1u,1u,1u},(dim3){DIM,DIM,1u},0ul,S1>>>(A,B,C,DT1);
-  scabbard::trace::register_job_callback(DT, S1);
+  matrix_mul<<<(dim3){1u,1u,1u},(dim3){DIM,DIM,1u},0ul,S1>>>(A,B,C1,DT1);
+  scabbard::trace::register_job_callback(DT1, S1);
   void* DT2 = scabbard::trace::register_job(S2);
-  matrix_mul<<<(dim3){1u,1u,1u},(dim3){DIM,DIM,1u},0ul,S2>>>(A,B,C,DT2);
-  scabbard::trace::register_job_callback(DT, S2);
+  matrix_mul<<<(dim3){1u,1u,1u},(dim3){DIM,DIM,1u},0ul,S2>>>(A,B,C2,DT2);
+  scabbard::trace::register_job_callback(DT2, S2);
 
 
   // syncing on 0ul (default stream) will sync all streams

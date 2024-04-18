@@ -29,12 +29,12 @@ echo "HIPCC: '$HIP_EXE'"
 #   HIP_EXE="hipcc"
 # fi
 
-# if [[ -z "${SCABBARD_PATH}"]]; then
-#   echo "" &> /dev/null # don't do anything, just continue
-# else
-#   echo -e "\n:ERROR: SCABBARD_PATH was not defined!\n"
-#   exit -1
-# fi
+if [[ -v "SCABBARD_PATH" ]]; then
+  echo "" &> /dev/null # don't do anything, just continue
+else
+  echo -e "\n:ERROR: SCABBARD_PATH was not defined!\n"
+  exit -1
+fi
 
 
 # remove file extension
