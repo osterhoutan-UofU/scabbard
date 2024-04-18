@@ -22,7 +22,7 @@ __managed__ size_t src_id = 0;
 
 __global__
 auto matrix_mul(double* A, double* B, double* C, void* DT) -> void
-{
+{// This is a device tracker passed through kernel fns /\
   using namespace scabbard;
   const size_t ROW = blockIdx.y*blockDim.y+threadIdx.y;
   const size_t COL = blockIdx.x*blockDim.x+threadIdx.x;
