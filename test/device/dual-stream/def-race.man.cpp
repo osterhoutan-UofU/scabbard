@@ -16,13 +16,13 @@
 #include <string>
 #include <iostream>
 
-#define DIM (ul)
+#define DIM (32ul)
 
 __managed__ size_t src_id = 0;
 
 __global__
 auto matrix_mul(double* A, double* B, double* C, void* DT) -> void
-{
+{// This is a device tracker passed through kernel fns /\
   using namespace scabbard;
   const size_t ROW = blockIdx.y*blockDim.y+threadIdx.y;
   const size_t COL = blockIdx.x*blockDim.x+threadIdx.x;
@@ -138,7 +138,7 @@ auto main() -> int
   scabbard::trace::host::trace_append$mem(
       InstrData::FREE | InstrData::ON_HOST | InstrData::DEVICE_HEAP,
       C2,
-      &src_id, 137u, 13u
+      &src_id, 137u, 13uDIM
     );
 
   return 0;
