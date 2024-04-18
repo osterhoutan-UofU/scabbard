@@ -11,6 +11,9 @@
 
 
 #include <scabbard/TraceData.hpp>
+#include <scabbard/Metadata.hpp>
+
+#include <cstring>
 
 namespace scabbard {
 

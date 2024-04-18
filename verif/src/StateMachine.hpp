@@ -14,6 +14,7 @@
 #include <scabbard/TraceData.hpp>
 #include <scabbard/less.hpp>
 
+#include <unordered_set>
 #include <set>
 #include <map>
 #include <tuple>
@@ -38,9 +39,10 @@ namespace verif {
       const TraceData* read = nullptr; 
       const TraceData* write = nullptr;
       std::string err_msg = "";
+      friend inline bool operator == (const Result& L, const Result& R);
     };
 
-    std::vector<StateMachine::Result> run();
+    std::unordered_set<StateMachine::Result> run();
 
     void reset();
 
@@ -68,3 +70,21 @@ namespace verif {
 
 } //?namespace verif
 } //?namespace scabbard
+
+
+namespace std {
+
+template<>
+struct hash<scabbard::verif::StateMachine::Result> {
+  uint64_t operator () (const scabbard::verif::StateMachine::Result& res) const
+  {
+    return ((
+            std::hash<int>()(res.status)
+            ^ (((res.read) ? std::hash<scabbard::LocationMetadata>()(res.read->metadata) : 0ul) << 1u) >> 1u)
+          ^ (((res.write) ? std::hash<scabbard::LocationMetadata>()(res.write->metadata) : 0ul) << 1u
+        )
+      );
+  }
+};
+
+} //?namespace std

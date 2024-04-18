@@ -19,14 +19,14 @@ namespace verif {
   {}
 
 
-  std::vector<StateMachine::Result> StateMachine::run()
+  std::unordered_set<StateMachine::Result> StateMachine::run()
   {
     const InstrData FILTER = (
         InstrData::SYNC_EVENT | InstrData::DESYNC_EVENT
         | InstrData::READ | InstrData::WRITE
         | InstrData::ALLOCATE | InstrData::FREE
       );
-    std::vector<StateMachine::Result> results;
+    std::unordered_set<StateMachine::Result> results;
     size_t dbg_i = 0u; //DEBUG
     size_t dbg_j = 0u; //DEBUG
     size_t dbg_k = 0u; //DEBUG
@@ -63,20 +63,20 @@ namespace verif {
         case InstrData::READ:
           it = mem.find(td.ptr);
           if (it == mem.end()) {// read with no preceding write
-            results.push_back({WARNING, &td, nullptr, "Read with no preceding/matching Write"}); // read with no preceding write
+            results.insert({WARNING, &td, nullptr, "Read with no preceding/matching Write"}); // read with no preceding write
             break;
           } else if (td.data & InstrData::_OPT_USED) { // bulk read (memcpy device to host)
             for (; it != mem.end() && it->second->ptr < td.ptr+td._OPT_DATA; ++it) {
               auto res = check_race_read(td, *it->second);
-              if (res != GOOD) {
-                results.push_back({res, &td, it->second, "Bulk Read/MemCpyAsync occurs before any relevant sync event"});
-                goto switch_exit;
+              if (res != GOOD && (it->second->data & InstrData::WRITE)) {
+                results.insert({res, &td, it->second, "Bulk Read/MemCpyAsync occurs before any identifiably relevant sync event"});
+                break; // goto switch_exit;
               }
             }
           } else { // single read
             auto res = check_race_read(td, *it->second);
-              if (res != GOOD) {
-                results.push_back({res, &td, it->second, "Read occurs before any relevant sync event"});
+              if (res != GOOD && (it->second->data & InstrData::WRITE)) {
+                results.insert({res, &td, it->second, "Read occurs before any identifiably relevant sync event"});
                 break;
               }
           }
@@ -100,7 +100,7 @@ namespace verif {
         default:
           break;
       }
-      switch_exit:  // quick exit for when in loops (I hate having to use GOTO)
+      // switch_exit:  // quick exit for when in loops (I hate having to use GOTO)
       dbg_i++; //DEBUG
     }
     if (results.size() == 0)
@@ -155,6 +155,14 @@ namespace verif {
       default:
         return (out << "<UNKNOWN>");
     }
+  }
+
+  inline bool operator == (const StateMachine::Result& L, const StateMachine::Result& R)
+  {
+    return ( (L.status == R.status)
+        && ((L.read && R.read) ? L.read->metadata == R.read->metadata : L.read == R.read)
+        && ((L.write && R.write) ? L.write->metadata == R.write->metadata : L.write == R.write)
+      );
   }
 
 } //?namespace verif

@@ -157,7 +157,7 @@ namespace verif {
         in.read(reinterpret_cast<char*>(&src_len), sizeof(uint64_t));
         std::string dbg_tmp = readStringL(in, src_len);
         tf.src_files.push_back(dbg_tmp);
-        std::cout << "[scabbard.verif:DBG] read in metadata for src file: `" << dbg_tmp << "`\n";
+        // std::cout << "[scabbard.verif:DBG] read in metadata for src file: `" << dbg_tmp << "`\n"; //DEBUG
       }
 
       // // read in the metadata jump table
