@@ -14,7 +14,7 @@
 #include <string>
 #include <iostream>
 
-#define DIM (64ul)
+#define DIM (32ul)
 
 __global__
 auto matrix_mul(double* A, double* B, double* C) -> void

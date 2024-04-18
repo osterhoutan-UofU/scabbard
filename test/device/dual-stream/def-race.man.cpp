@@ -16,7 +16,7 @@
 #include <string>
 #include <iostream>
 
-#define DIM (64ul)
+#define DIM (32ul)
 
 __managed__ size_t src_id = 0;
 
@@ -138,7 +138,7 @@ auto main() -> int
   scabbard::trace::host::trace_append$mem(
       InstrData::FREE | InstrData::ON_HOST | InstrData::DEVICE_HEAP,
       C2,
-      &src_id, 137u, 13u
+      &src_id, 137u, 13uDIM
     );
 
   return 0;

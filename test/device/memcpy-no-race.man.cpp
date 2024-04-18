@@ -17,7 +17,7 @@
 #include <string>
 #include <iostream>
 
-#define DIM (64ul)
+#define DIM (32ul)
 
 __managed__ size_t src_id = 0;
 
