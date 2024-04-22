@@ -74,11 +74,11 @@ void printResult(std::ostream& out,
   }
   auto printRead = [&]() -> void {
     out << "   READ: {\n" 
-           "       time (logical): " << res.read->time_stamp << ",\n"
-           "               device: CPU\n"
-           "            thread id: 0x" << std::hex << std::hash<std::thread::id>{}(res.read->threadId.host) << std::dec << "\n"
-           "              src loc: \"" << TF.src_files[res.read->metadata.src_id] << ':' << res.read->metadata.line << ',' << res.read->metadata.col << "\"\n"
-           "  }\n";
+           "         time (logical): " << res.read->time_stamp << ",\n"
+           "                 device: CPU\n"
+           "              thread id: 0x" << std::hex << std::hash<std::thread::id>{}(res.read->threadId.host) << std::dec << "\n"
+           "                src loc: \"" << TF.src_files[res.read->metadata.src_id] << ':' << res.read->metadata.line << ',' << res.read->metadata.col << "\"\n"
+           "    }\n";
   };
   auto printWrite = [&]() -> void {
     out << "  WRITE: {\n" 
@@ -94,7 +94,7 @@ void printResult(std::ostream& out,
                                     ", z:"<< res.write->threadId.device.thread.z <<"}\n"
            "            }\n"
            "           src loc: \"" << TF.src_files[res.write->metadata.src_id] << ':' << res.write->metadata.line << ',' << res.write->metadata.col << "\"\n"
-           "  }\n";
+           "    }\n";
   };
   out << " RESULT: `" << res.status << "`\n";
   if (res.err_msg != "")
