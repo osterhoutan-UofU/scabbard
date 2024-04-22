@@ -50,8 +50,10 @@ auto main() -> int
   matrix_mul<<<(dim3){1u,1u,1u},(dim3){DIM,DIM,1u},0ul,0ul>>>(A,B,C);
 
   double res_sum = 0.0L;
-  for (int64_t i=(DIM*DIM)-1ul; i>=0ul; --i) // iterating backwards should ensure that we read something before a write.
+  for (int64_t i=(DIM*DIM)-1l; i>=0l; --i) // iterating backwards should ensure that we read something before a write.
     res_sum += C[i];
+
+  HIP_CHECK(hipStreamSynchronize(0ul), "from `hipStreamSynchronize(0ul)`");
 
   HIP_CHECK(hipFree(A), "from `hipFree(A)`");
   HIP_CHECK(hipFree(B), "from `hipFree(B)`");

@@ -100,7 +100,7 @@ auto main() -> int
 
 
   double tmp1, tmp2, res_sum = 0.0L;
-  for (size_t i=(DIM*DIM)-1ul; i>=0ul; --i) { // iterating backwards can help ensure that the race occurs
+  for (int64_t i=(DIM*DIM)-1l; i>=0l; --i) { // iterating backwards can help ensure that the race occurs
     tmp1 = C1[i];
     scabbard::trace::host::trace_append$mem(
         InstrData::READ | InstrData::ON_HOST | InstrData::DEVICE_HEAP,

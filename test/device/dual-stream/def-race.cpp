@@ -55,7 +55,7 @@ auto main() -> int
   // NOT SYNCING on any stream will almost grantee that a race occurs (given other measures taken)
 
   double res_sum = 0.0L;
-  for (size_t i=(DIM*DIM)-1ul; i>=0ul; --i) // iterating backwards can help ensure that the race occurs
+  for (int64_t i=(DIM*DIM)-1l; i>=0l; --i) // iterating backwards can help ensure that the race occurs
     res_sum += C1[i] + C2[i];  
 
   HIP_CHECK(hipFree(A), "from `hipFree(A)`");

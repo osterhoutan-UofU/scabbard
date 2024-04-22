@@ -53,7 +53,7 @@ auto main() -> int
   HIP_CHECK(hipStreamSynchronize(0ul), "from `hipStreamSynchronize(0ul)`");
 
   double res_sum = 0.0L;
-  for (int64_t i=(DIM*DIM)-1ul; i>=0ul; --i) // iterating backwards should ensure that we read something before a write (if no sync is used).
+  for (size_t i=0; i<(DIM*DIM); ++i)
     res_sum += C[i];
 
   HIP_CHECK(hipFree(A), "from `hipFree(A)`");

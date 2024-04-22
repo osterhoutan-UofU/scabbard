@@ -82,8 +82,8 @@ auto main() -> int
   scabbard::trace::register_job_callback(DT, 0ul);
 
   double res_sum = 0.0L;
-  for (int64_t i=(DIM*DIM)-1ul; i>=0ul; --i) { // iterating backwards should ensure that we read something before a write.
-    res_sum += C[i-1];
+  for (int64_t i=(DIM*DIM)-1l; i>=0l; --i) { // iterating backwards should ensure that we read something before a write.
+    res_sum += C[i];
     scabbard::trace::host::trace_append$mem(
         InstrData::READ | InstrData::ON_HOST | InstrData::DEVICE_HEAP,
         &(C[i]),
@@ -91,24 +91,31 @@ auto main() -> int
       );
   }
 
-  HIP_CHECK(hipFree(A), "from `hipFree(A)`");
-  scabbard::trace::host::trace_append$mem(
-      InstrData::FREE | InstrData::ON_HOST | InstrData::DEVICE_HEAP,
-      A,
-      &src_id, 94u, 13u
-    );
-  HIP_CHECK(hipFree(B), "from `hipFree(B)`");
-  scabbard::trace::host::trace_append$mem(
-      InstrData::FREE | InstrData::ON_HOST | InstrData::DEVICE_HEAP,
-      B,
-      &src_id, 100u, 13u
-    );
-  HIP_CHECK(hipFree(C), "from `hipFree(C)`");
-  scabbard::trace::host::trace_append$mem(
-      InstrData::FREE | InstrData::ON_HOST | InstrData::DEVICE_HEAP,
-      C,
-      &src_id, 106u, 13u
-    );
+  // HIP_CHECK(hipStreamSynchronize(0ul), "from `hipStreamSynchronize(0ul)`");
+  // scabbard::trace::host::trace_append$mem(
+  //     InstrData::SYNC_EVENT | InstrData::ON_HOST,
+  //     0ul,
+  //     &src_id, 94u, 13u
+  //   );
+
+  // HIP_CHECK(hipFree(A), "from `hipFree(A)`");
+  // scabbard::trace::host::trace_append$mem(
+  //     InstrData::FREE | InstrData::ON_HOST | InstrData::DEVICE_HEAP,
+  //     A,
+  //     &src_id, 101u, 13u
+  //   );
+  // HIP_CHECK(hipFree(B), "from `hipFree(B)`");
+  // scabbard::trace::host::trace_append$mem(
+  //     InstrData::FREE | InstrData::ON_HOST | InstrData::DEVICE_HEAP,
+  //     B,
+  //     &src_id, 107u, 13u
+  //   );
+  // HIP_CHECK(hipFree(C), "from `hipFree(C)`");
+  // scabbard::trace::host::trace_append$mem(
+  //     InstrData::FREE | InstrData::ON_HOST | InstrData::DEVICE_HEAP,
+  //     C,
+  //     &src_id, 113u, 13u
+  //   );
 
   return 0;
 }
