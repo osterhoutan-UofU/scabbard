@@ -4,6 +4,7 @@
  TODO:
 ----------------------------------------------------------------------------------------------------
 
+
 -[ ] look into effects of only capturing first X GPU write operations and last X gpu write Operations
 
 -[X] look into why the `SimplifyCFGPass` is removing the function bodies in the kernel
@@ -68,7 +69,22 @@ tail call void @__hipRegisterVar(
  Design Decisions:
 ----------------------------------------------------------------------------------------------------
 
-
+- Decided to use a logical vector clock (where all cpu threads share one clock and a lock for said clock),
+   and each GPU job has one clock, using callbacks teh GPU clock is reunited with the CPU clock after
+   it completes a run
+  - ALTERNATIVE:
+    - Use wall clock time at highest resolution and try to compensate for the drift 
+       and offset of these clocks between the CPU and GPU
+  - SIDE EFFECTS:
+    - Trace report will often report that a CPU event occurs before a GPU event because for every 
+       event on teh CPU to tick it's clock up 1 there are at least 32 more ticks on the CPU clock.
+      This can result in a CPU event altering the State machine before registering a GPU event in the
+       Verification State machine.
+      - EXAMPLE(S):
+        - A user does not perform a sync before freeing the GPU memory they used, 
+           but it does happen to occur in wall time after the write on the GPU.
+          This results in the state machine loosing its memory of previous reads on said memory 
+           address before the state machine gets to the write that would trigger the violation.
 
 
 

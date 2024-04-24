@@ -46,7 +46,10 @@ namespace verif {
 
         case InstrData::DESYNC_EVENT:
           //NOTE: currently just used to help when debugging
-          //TODO handle kernel Launches
+          if (td.ptr == 0ul)
+            last_global_sync = UINT64_MAX;
+          else
+            last_stream_sync[jobId_t::hash_stream_ptr(td.ptr)] = UINT64_MAX;  //replace with erase?
           break;
 
         case InstrData::WRITE:
@@ -55,8 +58,8 @@ namespace verif {
             mem[td.ptr] = &td;
           } else if (not (it->second->data & InstrData::READ)) { // OR the last operation on the mem space was a read 
             mem[td.ptr] = &td;
-          } else { // This is probably a race
-            return {{ERROR, it->second, &td, "Data Written to after it was read from"}};
+          } else { // This is probably a race  //NOTE: expand this to search for read times compared to last desync event? (after ending mem wipes during free events)
+            return {{ERROR, it->second, &td, "Data Written to after it was Read from"}};
           }
           break;
 
@@ -64,12 +67,14 @@ namespace verif {
           it = mem.find(td.ptr);
           if (it == mem.end()) {// read with no preceding write
             results.insert({WARNING, &td, nullptr, "Read with no preceding/matching Write"}); // read with no preceding write
+            mem[td.ptr] = &td;
             break;
           } else if (td.data & InstrData::_OPT_USED) { // bulk read (memcpy device to host)
             for (; it != mem.end() && it->second->ptr < td.ptr+td._OPT_DATA; ++it) {
               auto res = check_race_read(td, *it->second);
               if (res != GOOD) {
                 results.insert({res, &td, it->second, "Bulk Read/MemCpyAsync occurs before any identifiably relevant sync event"});
+                mem[it->second->ptr] = &td;
                 break; // goto switch_exit;
               }
             }
@@ -77,6 +82,7 @@ namespace verif {
             auto res = check_race_read(td, *it->second);
               if (res != GOOD) {
                 results.insert({res, &td, it->second, "Read occurs before any identifiably relevant sync event"});
+                mem[it->second->ptr] = &td;
                 break;
               }
           }
@@ -84,6 +90,7 @@ namespace verif {
 
         case InstrData::ALLOCATE:
           allocs[td.ptr] = td._OPT_DATA;
+          last_global_sync = td.time_stamp;   // currently assuming all allocate and free are synchonous
           break;
 
         case InstrData::FREE: {
@@ -94,6 +101,7 @@ namespace verif {
             it = mem.erase(it);
             // mem.erase(it);
           allocs.erase(r);
+          last_global_sync = td.time_stamp;   // currently assuming all allocate and free are synchonous
           break;
         }
 

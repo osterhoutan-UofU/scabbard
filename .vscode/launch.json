@@ -53,7 +53,7 @@
             ]
         },
         {
-            "name": "(gdb) Launch verif on def-race-test.man.trace",
+            "name": "(gdb) Launch verif on def-race.man.trace",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/verif/verif",
@@ -77,11 +77,59 @@
             ]
         },
         {
-            "name": "(gdb) Launch verif on maybe-race-test.scabbard.trace",
+            "name": "(gdb) Launch verif on test/device/maybe-race.man.scabbard.trace",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/verif/verif",
-            "args": ["${workspaceFolder}/test/maybe-race-test.scabbard.trace"],
+            "args": ["${workspaceFolder}/test/device/maybe-race.man.scabbard.trace"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch verif on test/device/dual-stream/def-race.man.scabbard.trace",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/verif/verif",
+            "args": ["${workspaceFolder}/test/device/dual-stream/def-race.man.scabbard.trace"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Launch verif on test/device/def-race.man.scabbard.trace",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/verif/verif",
+            "args": ["${workspaceFolder}/test/device/dual-stream/def-race.man.scabbard.trace"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
