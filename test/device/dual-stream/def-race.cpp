@@ -56,7 +56,7 @@ auto main() -> int
 
   double res_sum = 0.0L;
   for (int64_t i=(DIM*DIM)-1l; i>=0l; --i) // iterating backwards can help ensure that the race occurs
-    res_sum += C1[i] + C2[i];  
+    res_sum += C1[i] + C2[i];
 
   HIP_CHECK(hipFree(A), "from `hipFree(A)`");
   HIP_CHECK(hipFree(B), "from `hipFree(B)`");
