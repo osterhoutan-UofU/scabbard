@@ -4,6 +4,9 @@
  TODO:
 ----------------------------------------------------------------------------------------------------
 
+-[ ] look into following projects to adapt them as tests for testing scabbard
+     - smallpt-parallel-bvh-gpu \[[repo](https://github.com/andrewwuan/smallpt-parallel-bvh-gpu/tree/master)\] by An Wu \[[github-profile](https://github.com/andrewwuan)\]
+     - dpid \[[repo](https://github.com/mergian/dpid)\] by Nicolas Weber \[[github-profile](https://github.com/mergian/)\]
 
 -[ ] look into effects of only capturing first X GPU write operations and last X gpu write Operations
 
