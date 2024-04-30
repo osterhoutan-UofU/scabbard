@@ -38,3 +38,6 @@
 
 # LLNL flux files
 *.core
+
+# scabbard trace files
+*.scabbard.trace
