@@ -127,6 +127,7 @@
         "ASYNCQUEUE",
         "Bitcode",
         "DESYNC",
+        "dpid",
         "endregion",
         "endswith",
         "hipcc",
