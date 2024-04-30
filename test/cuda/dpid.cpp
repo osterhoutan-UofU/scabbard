@@ -18,7 +18,7 @@
 #include <hip/hip_runtime.h>
 #include <hip/hip_runtime_api.h>
 #include <hip/hip_vector_types.h>
-#include <vector_functions.h>
+// #include <vector_functions.h> // not needed for hip included in teh vector_types header
 
 #define THREADS 128
 #define WSIZE 32
@@ -153,7 +153,7 @@ __global__ void kernelGuidance(const uchar3* __restrict__ input, uchar3* __restr
 
 	// init
 	const Local l(p);
-	float4 color = {0};
+	float4 color = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	// iterate pixels
 	for(uint32_t i = WTHREAD; i < l.pixelCount; i += WSIZE) {
@@ -183,7 +183,7 @@ __device__ __forceinline__ float4 calcAverage(const Params& p, const uchar3* __r
 	const float center	= 4.0;
 
 	// calculate average color
-	float4 avg = {0};
+	float4 avg = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	// TOP
 	if(PY > 0) {
@@ -231,7 +231,7 @@ __global__ void kernelDownsampling(const uchar3* __restrict__ input, const uchar
 	const Local l(p);
 	const float4 avg = calcAverage(p, patches);
 
-	float4 color = {0};
+	float4 color = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	// iterate pixels
 	for(uint32_t i = WTHREAD; i < l.pixelCount; i += WSIZE) {
@@ -315,23 +315,26 @@ void run(const Params& i, const void* hInput, void* hOutput) {
 #define OH (2048u)
 #define PW ((float)(IW/((float)OW)))
 #define PH ((float)(IH/((float)OH)))
-#define LAMBDA (16f)
+#define LAMBDA (16.0f)
 #define I_SIZE (IH * IW)
 #define O_SIZE (OH * OW)
 
 auto main() -> int {
+	src_id = scabbard::trace::metadata_register$src("test/cuda/dpid.man.cpp");
+	scabbard::trace::scabbard_init();
+
 	Params i = {
-							oWidth=OW, oHeight=OH, 
-							iWidth=IW, iHeight=IH, 
-							pWidth=PW, pHeight=PH,
-							lambda=LAMBDA
+							OW, OH, 
+							IW, IH, 
+							PW, PH,
+							LAMBDA
 						};
 	const size_t sInput		= sizeof(uchar3) * i.iWidth * i.iHeight;
 	const size_t sOutput	= sizeof(uchar3) * i.oWidth * i.oHeight;
 
 	uchar3 hInput[I_SIZE], hOutput[O_SIZE];
 
-	run(i, hInput, hOuput);
+	run(i, hInput, hOutput);
 	
 	return EXIT_SUCCESS;
 }

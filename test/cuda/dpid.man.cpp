@@ -19,7 +19,7 @@
 #include <hip/hip_runtime.h>
 #include <hip/hip_runtime_api.h>
 #include <hip/hip_vector_types.h>
-#include <vector_functions.h>
+// #include <hip/vector_functions.h>
 
 #include <scabbard/trace/calls.hpp>
 #include <src/device-defs.cpp>
@@ -83,7 +83,7 @@ __device__ __forceinline__ void normalize(float4& var, void* DT) {
 }
 
 //-------------------------------------------------------------------
-__device__ __forceinline__ void add(float4& output, const uchar3& color, const float factor, , void* DT) {
+__device__ __forceinline__ void add(float4& output, const uchar3& color, const float factor, void* DT) {
 	scabbard::trace::device::trace_append$mem(DT,
 			(InstrData)(InstrData::WRITE | InstrData::ON_DEVICE | InstrData::UNKNOWN_HEAP),
 			&(output.x),
@@ -149,30 +149,30 @@ __device__ __forceinline__ float lambda(const Params p, const float dist, void* 
 }
 
 //-------------------------------------------------------------------
-__device__ __forceinline__ void operator+=(float4& output, const float4 value, void* DT) {
-	scabbard::trace::device::trace_append$mem(DT,
-			(InstrData)(InstrData::WRITE | InstrData::ON_DEVICE | InstrData::UNKNOWN_HEAP),
-			&(output.x),
-			&src_id, 158u, 3u
-		);
+__device__ __forceinline__ void operator+=(float4& output, const float4 value) {
+	// scabbard::trace::device::trace_append$mem(DT,
+	// 		(InstrData)(InstrData::WRITE | InstrData::ON_DEVICE | InstrData::UNKNOWN_HEAP),
+	// 		&(output.x),
+	// 		&src_id, 158u, 3u
+	// 	);
 	output.x += value.x;
-	scabbard::trace::device::trace_append$mem(DT,
-			(InstrData)(InstrData::WRITE | InstrData::ON_DEVICE | InstrData::UNKNOWN_HEAP),
-			&(output.y),
-			&src_id, 162u, 3u
-		);
+	// scabbard::trace::device::trace_append$mem(DT,
+	// 		(InstrData)(InstrData::WRITE | InstrData::ON_DEVICE | InstrData::UNKNOWN_HEAP),
+	// 		&(output.y),
+	// 		&src_id, 162u, 3u
+	// 	);
 	output.y += value.y;
-	scabbard::trace::device::trace_append$mem(DT,
-			(InstrData)(InstrData::WRITE | InstrData::ON_DEVICE | InstrData::UNKNOWN_HEAP),
-			&(output.z),
-			&src_id, 170u, 3u
-		);
+	// scabbard::trace::device::trace_append$mem(DT,
+	// 		(InstrData)(InstrData::WRITE | InstrData::ON_DEVICE | InstrData::UNKNOWN_HEAP),
+	// 		&(output.z),
+	// 		&src_id, 170u, 3u
+	// 	);
 	output.z += value.z;
-	scabbard::trace::device::trace_append$mem(DT,
-			(InstrData)(InstrData::WRITE | InstrData::ON_DEVICE | InstrData::UNKNOWN_HEAP),
-			&(output.w),
-			&src_id, 176u, 3u
-		);
+	// scabbard::trace::device::trace_append$mem(DT,
+	// 		(InstrData)(InstrData::WRITE | InstrData::ON_DEVICE | InstrData::UNKNOWN_HEAP),
+	// 		&(output.w),
+	// 		&src_id, 176u, 3u
+	// 	);
 	output.w += value.w;
 }
 
@@ -210,10 +210,10 @@ __device__ __forceinline__ float contribution(const Local& l, float f, const uin
 // taken from: https://devblogs.nvidia.com/parallelforall/faster-parallel-reductions-kepler/
 __device__ __forceinline__ float4 __shfl_down(const float4 var, const uint32_t srcLane, void* DT, const uint32_t width = 32) {
 	float4 output;
-	output.x = __shfl_down(var.x, srcLane, DT, width);
-	output.y = __shfl_down(var.y, srcLane, DT, width);
-	output.z = __shfl_down(var.z, srcLane, DT, width);
-	output.w = __shfl_down(var.w, srcLane, DT, width);
+	output.x = __shfl_down(var.x, srcLane, width);
+	output.y = __shfl_down(var.y, srcLane, width);
+	output.z = __shfl_down(var.z, srcLane, width);
+	output.w = __shfl_down(var.w, srcLane, width);
 	return output;
 }
 
@@ -272,7 +272,7 @@ __global__ void kernelGuidance(const uchar3* __restrict__ input, uchar3* __restr
 
 	// init
 	const Local l(p);
-	float4 color = {0};
+	float4 color = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	// iterate pixels
 	for(uint32_t i = WTHREAD; i < l.pixelCount; i += WSIZE) {
@@ -286,13 +286,13 @@ __global__ void kernelGuidance(const uchar3* __restrict__ input, uchar3* __restr
 	}
 
 	// reduce warps
-	reduce(color);
+	reduce(color, DT);
 
 	// store results
 	if((TX % 32) == 0) {
-		normalize(color);
+		normalize(color, DT);
 		uchar3 tmp_val = make_uchar3(color.x, color.y, color.z);
-		ucahr3& tmp_ref = patches[PX + PY * p.oWidth];
+		uchar3& tmp_ref = patches[PX + PY * p.oWidth];
 		scabbard::trace::device::trace_append$mem(DT,
 				(InstrData)(InstrData::WRITE | InstrData::ON_DEVICE | InstrData::UNKNOWN_HEAP),
 				&(tmp_ref),
@@ -309,7 +309,7 @@ __device__ __forceinline__ float4 calcAverage(const Params& p, const uchar3* __r
 	const float center	= 4.0;
 
 	// calculate average color
-	float4 avg = {0};
+	float4 avg = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	// TOP
 	if(PY > 0) {
@@ -357,7 +357,7 @@ __global__ void kernelDownsampling(const uchar3* __restrict__ input, const uchar
 	const Local l(p);
 	const float4 avg = calcAverage(p, patches, DT);
 
-	float4 color = {0};
+	float4 color = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	// iterate pixels
 	for(uint32_t i = WTHREAD; i < l.pixelCount; i += WSIZE) {
@@ -381,10 +381,10 @@ __global__ void kernelDownsampling(const uchar3* __restrict__ input, const uchar
 		uchar3 val;
 
 		if(color.w == 0.0f)
-			uchar3 = make_uchar3((unsigned char)avg.x, (unsigned char)avg.y, (unsigned char)avg.z);
+			val = make_uchar3((unsigned char)avg.x, (unsigned char)avg.y, (unsigned char)avg.z);
 		else {
-			normalize(color);
-			uchar3 = make_uchar3((unsigned char)color.x, (unsigned char)color.y, (unsigned char)color.z);
+			normalize(color, DT);
+			val = make_uchar3((unsigned char)color.x, (unsigned char)color.y, (unsigned char)color.z);
 		}
 		scabbard::trace::device::trace_append$mem(DT,
 				(InstrData)(InstrData::WRITE | InstrData::ON_DEVICE | InstrData::UNKNOWN_HEAP),
@@ -502,7 +502,7 @@ void run(const Params& i, const void* hInput, void* hOutput) {
 #define OH (2048u)
 #define PW ((float)(IW/((float)OW)))
 #define PH ((float)(IH/((float)OH)))
-#define LAMBDA (16f)
+#define LAMBDA (16.0f)
 #define I_SIZE (IH * IW)
 #define O_SIZE (OH * OW)
 
@@ -511,17 +511,17 @@ auto main() -> int {
 	scabbard::trace::scabbard_init();
 
 	Params i = {
-							oWidth=OW, oHeight=OH, 
-							iWidth=IW, iHeight=IH, 
-							pWidth=PW, pHeight=PH,
-							lambda=LAMBDA
+							OW, OH, 
+							IW, IH, 
+							PW, PH,
+							LAMBDA
 						};
 	const size_t sInput		= sizeof(uchar3) * i.iWidth * i.iHeight;
 	const size_t sOutput	= sizeof(uchar3) * i.oWidth * i.oHeight;
 
 	uchar3 hInput[I_SIZE], hOutput[O_SIZE];
 
-	run(i, hInput, hOuput);
+	run(i, hInput, hOutput);
 	
 	return EXIT_SUCCESS;
 }
