@@ -603,13 +603,14 @@ namespace scabbard {
       else if (fnName == "hipMalloc")
       {
         auto loc = metadata.trace(F, CI->getDebugLoc(), false);
-        if (auto mem_loc = get_ptr_from_ptr(CI->getArgOperand(0u))) {
+        if (auto _mem_loc = get_ptr_from_ptr(CI->getArgOperand(0u))) {
+          auto mem_loc = new llvm::LoadInst(llvm::PointerType::get(F.getContext(),0u), _mem_loc, llvm::Twine(""), CI->getNextNode());
           auto ci = llvm::CallInst::Create(
               host.trace_append$alloc,
               llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,6>{
                   llvm::ConstantInt::get(
                       llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
-                      llvm::APInt(sizeof(InstrData)*8, InstrData::ALLOCATE | InstrData::DEVICE_HEAP)
+                      llvm::APInt(sizeof(InstrData)*8, InstrData::ALLOCATE | InstrData::UNKNOWN_HEAP)
                     ),
                   mem_loc, // ptrtoint
                   loc.src_id_ptr,
@@ -618,7 +619,7 @@ namespace scabbard {
                   CI->getArgOperand(1u)
                 })
             );
-          ci->insertAfter(CI);
+          ci->insertAfter(mem_loc);
         } 
         else llvm::errs() << "\n[scabbard.instr.host:ERR] hip malloc found but could not find associated memory address!\n"; //DEBUG
       }
