@@ -551,19 +551,19 @@ namespace scabbard {
      *        (used to get the mem address of the ptr value of hipMalloc)
      *        Not safe to use outside of specific use
      */
-    const llvm::Value* get_ptr_from_ptr(const llvm::Value* V)
+    llvm::Value* get_ptr_from_ptr(llvm::Value* V)
     {
-      if (const auto* alloc = llvm::dyn_cast<llvm::AllocaInst>(V)) {
+      if (auto* alloc = llvm::dyn_cast<llvm::AllocaInst>(V)) {
         return alloc;
-      } else if (const auto* arg = llvm::dyn_cast<llvm::Argument>(V)) {
+      } else if (auto* arg = llvm::dyn_cast<llvm::Argument>(V)) {
         if (arg->getType()->isPointerTy())
           return arg;
         return nullptr;
-      } else if (const auto* bitCast = llvm::dyn_cast<llvm::BitCastInst>(V)) {
+      } else if (auto* bitCast = llvm::dyn_cast<llvm::BitCastInst>(V)) {
         return get_ptr_from_ptr(bitCast->getOperand(0u)); //NOTE: this not being arg operand might cause problems
-      } else if (const auto* bitCast = llvm::dyn_cast<llvm::BitCastOperator>(V)) {
+      } else if (auto* bitCast = llvm::dyn_cast<llvm::BitCastOperator>(V)) {
         return get_ptr_from_ptr(bitCast->getOperand(0u)); //NOTE: this not being arg operand might cause problems
-      } else if (const auto* inst = llvm::dyn_cast<llvm::Instruction>(V)) {
+      } else if (auto* inst = llvm::dyn_cast<llvm::Instruction>(V)) {
         return get_ptr_from_ptr(inst->getOperand(0u)); //NOTE: this not being arg operand might cause problems
       }
       return nullptr;
@@ -592,7 +592,7 @@ namespace scabbard {
                 ),
               ((fnName == "hipDeviceSynchronize") 
                 ? llvm::ConstantPointerNull::get(llvm::PointerType::get(F.getContext(), 0u))
-                : CI->getArgOperand(0)), // ptrtoint
+                : CI->getArgOperand(0u)), // ptrtoint
               loc.src_id_ptr,
               loc.getLineAsConstant(F.getContext()),
               loc.getColAsConstant(F.getContext())
@@ -603,23 +603,24 @@ namespace scabbard {
       else if (fnName == "hipMalloc")
       {
         auto loc = metadata.trace(F, CI->getDebugLoc(), false);
-        auto ci = llvm::CallInst::Create(
-          host.trace_append$alloc,
-          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,6>{
-              llvm::ConstantInt::get(
-                  llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
-                  llvm::APInt(sizeof(InstrData)*8, InstrData::ALLOCATE | InstrData::DEVICE_HEAP)
-                ),
-              ((fnName == "hipDeviceSynchronize") 
-                ? llvm::ConstantPointerNull::get(llvm::PointerType::get(F.getContext(), 0u))
-                : CI->getArgOperand(0)), // ptrtoint
-              loc.src_id_ptr,
-              loc.getLineAsConstant(F.getContext()),
-              loc.getColAsConstant(F.getContext()),
-              CI->getArgOperand(1)
-            })
-        );
-        ci->insertAfter(CI);
+        if (auto mem_loc = get_ptr_from_ptr(CI->getArgOperand(0u))) {
+          auto ci = llvm::CallInst::Create(
+              host.trace_append$alloc,
+              llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,6>{
+                  llvm::ConstantInt::get(
+                      llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
+                      llvm::APInt(sizeof(InstrData)*8, InstrData::ALLOCATE | InstrData::DEVICE_HEAP)
+                    ),
+                  mem_loc, // ptrtoint
+                  loc.src_id_ptr,
+                  loc.getLineAsConstant(F.getContext()),
+                  loc.getColAsConstant(F.getContext()),
+                  CI->getArgOperand(1u)
+                })
+            );
+          ci->insertAfter(CI);
+        } 
+        else llvm::errs() << "\n[scabbard.instr.host:ERR] hip malloc found but could not find associated memory address!\n"; //DEBUG
       }
       else if (fnName == "hipFree")
       {
@@ -631,13 +632,13 @@ namespace scabbard {
                   llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
                   llvm::APInt(sizeof(InstrData)*8, InstrData::FREE | InstrData::DEVICE_HEAP)
                 ),
-              llvm::ConstantPointerNull::get(llvm::PointerType::get(F.getContext(), 0u)),
+              CI->getArgOperand(0u),
               loc.src_id_ptr,
               loc.getLineAsConstant(F.getContext()),
               loc.getColAsConstant(F.getContext()),
               llvm::ConstantInt::get( // we can't contextually know how much is being free'd inline, but we can keep track like a normal allocator does 
-                  llvm::IntegerType::get(F.getContext(), 64),
-                  llvm::APInt(64u, 0)
+                  llvm::IntegerType::get(F.getContext(), 64u),
+                  llvm::APInt(64u, 0ul)
                 )
             })
         );
