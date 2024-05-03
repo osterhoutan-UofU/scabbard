@@ -39,12 +39,16 @@ namespace scabbard {
 
     typedef std::function<bool(const llvm::Value&,const llvm::CallInst&)> CallCheck_t;
 
-    auto BASE_CHECK(const llvm::Value& V, const llvm::CallInst& C) -> bool {
+    CallCheck_t BASE_CHECK = [](const llvm::Value& V, const llvm::CallInst& C) -> bool {
       return (&V) == throughConstExpr(C.getArgOperand(0)); // compare ptr's and hope llvm does not make copies of IR objects
-    }
-    
+    };
+
+    CallCheck_t ALWAYS = [](const llvm::Value&, const llvm::CallInst&) -> bool { return true; };
+    CallCheck_t NEVER = [](const llvm::Value&, const llvm::CallInst&) -> bool { return false; };
+
+
     const std::unordered_map<std::string, CallCheck_t> funcsOfInterest = {
-        { "hipMalloc", BASE_CHECK },
+        { "hipMalloc", ALWAYS },
         {
           "hipMemcpy", 
           [](const llvm::Value& V, const llvm::CallInst& C) -> bool {
@@ -67,8 +71,8 @@ namespace scabbard {
             LLVM_BUILTIN_UNREACHABLE;
           }
         },
-        { "hipHostRegister", BASE_CHECK },
-        { "__hipMallocManaged", BASE_CHECK },
+        { "hipHostRegister", ALWAYS },
+        { "hipMallocManaged", ALWAYS },
         { "hipMemAdvise", BASE_CHECK },
       };
 
@@ -146,6 +150,8 @@ namespace scabbard {
     template<>
     InstrData DepTrace<HOST>::getInstrData(const llvm::LoadInst& I) const
     {
+      if (const auto alloca = llvm::dyn_cast<llvm::AllocaInst>(I.getPointerOperand()))
+        return InstrData::NEVER;  // skip all loads direct from local memory
       InstrData res = __getInstrData_val(*I.getPointerOperand());
       if (res == InstrData::NEVER)
         return InstrData::NEVER;
@@ -213,11 +219,10 @@ namespace scabbard {
     {
       //check if this is used in a hipMalloc
       for (const auto& U : I.uses()) {
-        if (const auto* CI = llvm::dyn_cast<llvm::CallInst>(U.get())) {
-          if (auto p = funcsOfInterest.find(CI->getName().str()); p != funcsOfInterest.end()) {
-            if (p->second(I,*CI))
-              return InstrData::ON_HOST;
-          }
+        if (const auto* CI = llvm::dyn_cast<llvm::CallInst>(U.getUser())) {
+          auto p = funcsOfInterest.find(CI->getCalledFunction()->getName().str());
+          if (p != funcsOfInterest.end() && p->second(I,*CI))
+            return InstrData::ON_HOST;
         }
       }
       return InstrData::NEVER; // this means that this ptr comes from the stack frame

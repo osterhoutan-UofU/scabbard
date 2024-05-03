@@ -308,7 +308,7 @@ namespace scabbard {
               llvm::errs() << "`\n[scabbard::device]\n";
             );
             //instrument store instructions to update trace
-            instr_mem_func_device(F, i, store->getPointerOperand(), data);
+            instr_mem_func_device(F, i, store->getPointerOperand(), data, false);
           } else if (auto* load = llvm::dyn_cast<llvm::LoadInst>(&i)) {
             auto data = DT.getInstrData(*load);
             if (not data) continue;
@@ -464,17 +464,18 @@ namespace scabbard {
 
     void ScabbardPassPlugin::run_host(llvm::Function& F, llvm::FunctionAnalysisManager& FAM, const DepTraceHost& DT)
     {
+      if (F.isDeclaration()) return; // skip functions not defined (only declared) in this module
       for (auto& bb : F)
         for (auto& i : bb)
           if (auto* store = llvm::dyn_cast<llvm::StoreInst>(&i)) {
             auto data = DT.getInstrData(*store);
             LLVM_DEBUG(
               if (not data) continue;
-            llvm::errs() << "[scabbard::host] Found a `store` inst to instrument!\n"
-              "[scabbard::host]    prop: " << data << "\n"
-              "[scabbard::host]    repr: `";
+            llvm::errs() << "[scabbard.instr.host:DBG] Found a `store` inst to instrument!\n"
+              "[scabbard.instr.host:DBG]    prop: " << data << "\n"
+              "[scabbard.instr.host:DBG]    repr: `";
             i.print(llvm::errs());
-            llvm::errs() << "`\n[scabbard::host]\n";
+            llvm::errs() << "`\n[scabbard.instr.host:DBG]\n";
             );
             // instrument store instructions to update trace 
             instr_mem_func_host(F, i, store->getPointerOperand(), data);
@@ -482,26 +483,27 @@ namespace scabbard {
             auto data = DT.getInstrData(*load);
             LLVM_DEBUG(
               if (not data) continue;
-            llvm::errs() << "[scabbard::host] Found a `load` inst to instrument!\n"
-              "[scabbard::host]    prop: " << data << "\n"
-              "[scabbard::host]    repr: `";
+            llvm::errs() << "[scabbard.instr.host:DBG] Found a `load` inst to instrument!\n"
+              "[scabbard.instr.host:DBG]    prop: " << data << "\n"
+              "[scabbard.instr.host:DBG]    repr: `";
             i.print(llvm::errs());
-            llvm::errs() << "`\n[scabbard::host]\n";
+            llvm::errs() << "`\n[scabbard.instr.host:DBG]\n";
             );
+            // skip the loads inserted after instrumenting a hipMalloc call
+            if (not load->getDebugLoc()) continue; //NOTE: bad optimizers might make this skip valid loads to instrument
             // instrument load instructions
             instr_mem_func_host(F, i, load->getPointerOperand(), data);
           } else if (auto* call = llvm::dyn_cast<llvm::CallInst>(&i)) {
-            //TODO instrument calls to hip malloc, hip copy, kernel launch and stream sync
             instr_call_host(F, call);
           } else if (auto atomic = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
             auto data = DT.getInstrData(*atomic);
             LLVM_DEBUG(
               if (not data) continue;
-            llvm::errs() << "[scabbard::host] Found an `atomicrmw` inst to instrument!\n"
-              "[scabbard::host]    prop: " << data << "\n"
-              "[scabbard::host]    repr: `";
+            llvm::errs() << "[scabbard.instr.host:DBG] Found an `atomicrmw` inst to instrument!\n"
+              "[scabbard.instr.host:DBG]    prop: " << data << "\n"
+              "[scabbard.instr.host:DBG]    repr: `";
             i.print(llvm::errs());
-            llvm::errs() << "`\n[scabbard::host]\n";
+            llvm::errs() << "`\n[scabbard.instr.host:DBG]\n";
             );
             //instrument atomic readwrite instructions
             instr_mem_func_host(F, i, atomic->getPointerOperand(), data);

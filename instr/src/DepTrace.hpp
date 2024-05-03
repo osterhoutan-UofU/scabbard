@@ -106,7 +106,7 @@ namespace scabbard {
         } else
           // handle local function args/registers
           if (const auto* _A = llvm::dyn_cast<llvm::Argument>(&V)) {
-            return __getInstrData_rec(*_A);
+            return __getInstrData_rec(*_A); //NOTE: this might cause issues for the host
           }
         // handle derived values (aka instructions)
         if (const auto* _I = llvm::dyn_cast<llvm::Instruction>(&V)) {
