@@ -40,4 +40,4 @@
 *.core
 
 # scabbard trace files
-*.scabbard.trace
+*.trace
