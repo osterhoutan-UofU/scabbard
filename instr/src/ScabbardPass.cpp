@@ -546,6 +546,30 @@ namespace scabbard {
     }
 
 
+    /**
+     * @brief Get the value that contains the mem address of the pointer pointer
+     *        (used to get the mem address of the ptr value of hipMalloc)
+     *        Not safe to use outside of specific use
+     */
+    const llvm::Value* get_ptr_from_ptr(const llvm::Value* V)
+    {
+      if (const auto* alloc = llvm::dyn_cast<llvm::AllocaInst>(V)) {
+        return alloc;
+      } else if (const auto* arg = llvm::dyn_cast<llvm::Argument>(V)) {
+        if (arg->getType()->isPointerTy())
+          return arg;
+        return nullptr;
+      } else if (const auto* bitCast = llvm::dyn_cast<llvm::BitCastInst>(V)) {
+        return get_ptr_from_ptr(bitCast->getOperand(0u)); //NOTE: this not being arg operand might cause problems
+      } else if (const auto* bitCast = llvm::dyn_cast<llvm::BitCastOperator>(V)) {
+        return get_ptr_from_ptr(bitCast->getOperand(0u)); //NOTE: this not being arg operand might cause problems
+      } else if (const auto* inst = llvm::dyn_cast<llvm::Instruction>(V)) {
+        return get_ptr_from_ptr(inst->getOperand(0u)); //NOTE: this not being arg operand might cause problems
+      }
+      return nullptr;
+    }
+
+
     void ScabbardPassPlugin::instr_call_host(llvm::Function& F, llvm::CallInst* CI)
     {
       const auto* fn = CI->getCalledFunction();

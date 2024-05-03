@@ -52,8 +52,8 @@ if [[ $FILE_BASE == *".man" ]]; then # this is a manual file
 else # this is a file that needs to be instrumented
 
   echo -e "\n\n==== INSTRUMENTING and BUILDING the executable ====\n\n"
-  echo "$HIP_EXE -fpass-plugin=build/instr/libinstr.so -L$SCABBARD_PATH -ltrace -std=c++17 -x hip -g -O2 -o$FILE_BASE.out $1"
-  $HIP_EXE -fpass-plugin=build/instr/libinstr.so -L$SCABBARD_PATH -ltrace -std=c++17 -x hip -g -O2 -o$FILE_BASE.out $1
+  echo "$HIP_EXE -fpass-plugin=build/instr/libinstr.so -L$SCABBARD_PATH -ltrace -lpthread -std=c++17 -x hip -g -O2 -o$FILE_BASE.out $1"
+  $HIP_EXE -fpass-plugin=build/instr/libinstr.so -L$SCABBARD_PATH -ltrace -lpthread -std=c++17 -x hip -g -O2 -o$FILE_BASE.out $1
 
 fi
 
