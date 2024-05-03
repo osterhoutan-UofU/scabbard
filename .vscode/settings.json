@@ -119,7 +119,8 @@
         "cfenv": "cpp",
         "valarray": "cpp",
         "codecvt": "cpp",
-        "ranges": "cpp"
+        "ranges": "cpp",
+        "typeindex": "cpp"
     },
     "cSpell.words": [
         "amdgcn",

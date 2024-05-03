@@ -46,7 +46,7 @@ auto main() -> int
   HIP_CHECK(hipMalloc(&C1, sizeof(double)*DIM*DIM), "from `hipMalloc(&C1, ...)`");
   HIP_CHECK(hipMalloc(&C2, sizeof(double)*DIM*DIM), "from `hipMalloc(&C2, ...)`");
 
-  HIP_CHECK(hipStreamCreate(&S1), "from `hipStream(&S1)`");
+  HIP_CHECK(hipStreamCreate(&S1), "from `hipStreamCreate(&S1)`");
   HIP_CHECK(hipStreamCreate(&S2), "from `hipStreamCreate(&S2)`");
 
   matrix_mul<<<(dim3){1u,1u,1u},(dim3){DIM,DIM,1u},0ul,S1>>>(A,B,C1);
@@ -63,6 +63,8 @@ auto main() -> int
   HIP_CHECK(hipFree(B), "from `hipFree(B)`");
   HIP_CHECK(hipFree(C1), "from `hipFree(C1)`");
   HIP_CHECK(hipFree(C2), "from `hipFree(C2)`");
+
+  std::cout << res_sum << std::endl;
 
   return 0;
 }

@@ -64,6 +64,8 @@ auto main() -> int
   HIP_CHECK(hipFree(C1), "from `hipFree(C1)`");
   HIP_CHECK(hipFree(C2), "from `hipFree(C2)`");
 
+  std::cout << res_sum << std::endl;
+
   return 0;
 }
 
