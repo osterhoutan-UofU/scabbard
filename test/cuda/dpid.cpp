@@ -320,8 +320,6 @@ void run(const Params& i, const void* hInput, void* hOutput) {
 #define O_SIZE (OH * OW)
 
 auto main() -> int {
-	src_id = scabbard::trace::metadata_register$src("test/cuda/dpid.man.cpp");
-	scabbard::trace::scabbard_init();
 
 	Params i = {
 							OW, OH, 

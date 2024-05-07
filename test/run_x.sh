@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/zsh
 
 #flux: -N1
 #flux: -n1
@@ -29,10 +29,10 @@ echo "HIPCC: '$HIP_EXE'"
 #   HIP_EXE="hipcc"
 # fi
 
-if [[ -v "$SCABBARD_PATH" ]]; then
+if [[ -v SCABBARD_PATH ]]; then
   echo "" &> /dev/null # don't do anything, just continue
 else
-  echo -e "\n:ERROR: SCABBARD_PATH was not defined!\n"
+  echo -e "\n:ERROR: SCABBARD_PATH was not defined!\n  \$SCABBARD_PATH: \`$SCABBARD_PATH\`\n"
   exit -1
 fi
 
@@ -45,15 +45,15 @@ FILE_BASE=$(echo "$FILE" | awk 'match($0, /^(.+)\.cpp$/, arr) { print arr[1]}')
 if [[ $FILE_BASE == *".man" ]]; then # this is a manual file
 
   echo -e "\n\n==== BUILDING the MANUALLY instrumented executable ====\n\n"
-  echo "$HIP_EXE -L$SCABBARD_PATH -ltrace -lpthread -I$(pwd)/lib/include -I$(pwd)/libtrace/include -I$(pwd)/libtrace -std=c++17 -x hip -g -O2 -o$FILE_BASE.out $1"
-  $HIP_EXE -L$SCABBARD_PATH -ltrace -lpthread -I$(pwd)/lib/include -I$(pwd)/libtrace/include -I$(pwd)/libtrace -std=c++17 -x hip -g -O2 -o$FILE_BASE.out $1
+  echo "$HIP_EXE -L$SCABBARD_PATH -ltrace -lpthread -I$(pwd)/lib/include -I$(pwd)/libtrace/include -I$(pwd)/libtrace -std=c++17 -x hip -g -O2 -o$FILE_BASE.out $FILE"
+  $HIP_EXE -L$SCABBARD_PATH -ltrace -lpthread -I$(pwd)/lib/include -I$(pwd)/libtrace/include -I$(pwd)/libtrace -std=c++17 -x hip -g -O2 -o$FILE_BASE.out $FILE
 
 
 else # this is a file that needs to be instrumented
 
   echo -e "\n\n==== INSTRUMENTING and BUILDING the executable ====\n\n"
-  echo "$HIP_EXE -fpass-plugin=build/instr/libinstr.so -L$SCABBARD_PATH -ltrace -lpthread -std=c++17 -x hip -g -O2 -o$FILE_BASE.out $1"
-  $HIP_EXE -fpass-plugin=build/instr/libinstr.so -L$SCABBARD_PATH -ltrace -lpthread -std=c++17 -x hip -g -O2 -o$FILE_BASE.out $1
+  echo "$HIP_EXE -fpass-plugin=build/instr/libinstr.so -L$SCABBARD_PATH -ltrace -lpthread -std=c++17 -x hip -g -O2 -o$FILE_BASE.out $FILE"
+  $HIP_EXE -fpass-plugin=build/instr/libinstr.so -L$SCABBARD_PATH -ltrace -lpthread -std=c++17 -x hip -g -O2 -o$FILE_BASE.out $FILE
 
 fi
 
