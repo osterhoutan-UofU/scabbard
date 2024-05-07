@@ -15,6 +15,7 @@
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/IR/SymbolTableListTraits.h>
 #include <llvm/ADT/StringMap.h>
+#include<llvm/ADT/SmallPtrSet.h>
 #include <llvm/IR/Instructions.h>
 
 #include <unordered_set>
@@ -86,8 +87,19 @@ namespace scabbard {
       InstrData __getInstrData_phi(const llvm::PHINode& PHI) const
       {
         InstrData res = InstrData::NEVER;
-        for (const auto& U : PHI.incoming_values())
-          res |= __getInstrData_val(*U.get());
+        static llvm::SmallPtrSet<const llvm::BasicBlock*, 32u> phiVisited; //lets hope static lets me get around the const function issue
+        phiVisited.insert(PHI.getParent());
+        for (const auto& _U : PHI.incoming_values()) {
+          if (auto U = llvm::dyn_cast<llvm::Instruction>(_U.get())) {
+            if (not phiVisited.contains(U->getParent())) {
+              phiVisited.insert(U->getParent());
+              res |= __getInstrData_val(*U);
+            }
+          } else if (auto A = llvm::dyn_cast<llvm::Argument>(_U.get())) {
+            res |= __getInstrData_rec(*U);
+          }
+        }
+        phiVisited.clear();
         return res;
       }
       // InstrData __getInstrData_val(const llvm::Value& V) const;

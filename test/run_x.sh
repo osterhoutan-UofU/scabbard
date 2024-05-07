@@ -1,4 +1,4 @@
-#!/usr/bin/sh
+#!/usr/bin/bash
 
 #flux: -N1
 #flux: -n1
@@ -29,7 +29,7 @@ echo "HIPCC: '$HIP_EXE'"
 #   HIP_EXE="hipcc"
 # fi
 
-if [[ -v "SCABBARD_PATH" ]]; then
+if [[ -v "$SCABBARD_PATH" ]]; then
   echo "" &> /dev/null # don't do anything, just continue
 else
   echo -e "\n:ERROR: SCABBARD_PATH was not defined!\n"
