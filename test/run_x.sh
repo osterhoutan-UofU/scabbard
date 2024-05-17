@@ -45,25 +45,27 @@ FILE_BASE=$(echo "$FILE" | awk 'match($0, /^(.+)\.cpp$/, arr) { print arr[1]}')
 if [[ $FILE_BASE == *".man" ]]; then # this is a manual file
 
   echo -e "\n\n==== BUILDING the MANUALLY instrumented executable ====\n\n"
-  echo "$HIP_EXE -L$SCABBARD_PATH -ltrace -lpthread -I$(pwd)/lib/include -I$(pwd)/libtrace/include -I$(pwd)/libtrace -std=c++17 -x hip -g -O2 -o$FILE_BASE.out $FILE"
-  $HIP_EXE -L$SCABBARD_PATH -ltrace -lpthread -I$(pwd)/lib/include -I$(pwd)/libtrace/include -I$(pwd)/libtrace -std=c++17 -x hip -g -O2 -o$FILE_BASE.out $FILE
+  echo "$HIP_EXE -L$SCABBARD_PATH -ltrace -lpthread -I$(pwd)/lib/include -I$(pwd)/libtrace/include -I$(pwd)/libtrace -std=c++17 -x hip -g -O2 -o$FILE_BASE.instr.out $FILE"
+  $HIP_EXE -L$SCABBARD_PATH -ltrace -lpthread -I$(pwd)/lib/include -I$(pwd)/libtrace/include -I$(pwd)/libtrace -std=c++17 -x hip -g -O2 -o$FILE_BASE.instr.out $FILE
 
 
 else # this is a file that needs to be instrumented
 
   echo -e "\n\n==== INSTRUMENTING and BUILDING the executable ====\n\n"
-  echo "$HIP_EXE -fpass-plugin=build/instr/libinstr.so -L$SCABBARD_PATH -ltrace -lpthread -std=c++17 -x hip -g -O2 -o$FILE_BASE.out $FILE"
-  $HIP_EXE -fpass-plugin=build/instr/libinstr.so -L$SCABBARD_PATH -ltrace -lpthread -std=c++17 -x hip -g -O2 -o$FILE_BASE.out $FILE
+  echo "$HIP_EXE -fpass-plugin=build/instr/libinstr.so -L$SCABBARD_PATH -ltrace -lpthread -std=c++17 -x hip -g -O2 -o$FILE_BASE.instr.out $FILE"
+  $HIP_EXE -fpass-plugin=build/instr/libinstr.so -L$SCABBARD_PATH -ltrace -lpthread -std=c++17 -x hip -g -O2 -o$FILE_BASE.instr.out $FILE
 
 fi
 
 #compile the required enviroment variables
-export SCABBARD_INSTRUMENTED_EXE_NAME="$FILE_BASE.out"
+export SCABBARD_INSTRUMENTED_EXE_NAME="$FILE_BASE.instr.out"
 export SCABBARD_TRACE_FILE="$FILE_BASE.scabbard.trace"
 
 # run the built executable
 echo -e "\n\n==== RUNNING the executable ====\n\n$SCABBARD_INSTRUMENTED_EXE_NAME\n"
 $SCABBARD_INSTRUMENTED_EXE_NAME
+
+# $ROCM_PATH/bin/rocgdb $SCABBARD_INSTRUMENTED_EXE_NAME
 
 
 # run the verifier

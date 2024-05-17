@@ -5,6 +5,35 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "(rocgdb) Launch test/cuda/dpid.out",
+            "type": "cppdbg",
+            "request": "launch",
+            "miDebuggerPath": "/opt/rocm-6.1.1/bin/rocgdb",
+            "program": "${workspaceFolder}/test/cuda/dpid.out",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [
+                {"name": "SCABBARD_INSTRUMENTED_EXE_NAME", "value": "${workspaceFolder}/test/cuda/dpid.out"},
+                {"name": "SCABBARD_TRACE_FILE", "value": "${workspaceFolder}/test/cuda/dpid.scabbard.trace"},
+                {"name": "ROCM_PATH", "value": "/opt/rocm-6.1.1"}
+            ],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
             "name": "(gdb) Launch verif on test.scabbard.trace",
             "type": "cppdbg",
             "request": "launch",

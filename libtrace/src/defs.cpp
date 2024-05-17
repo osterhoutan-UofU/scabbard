@@ -194,12 +194,12 @@ namespace scabbard {
       __host__ 
       void trace_append$mem$cond(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col)
       {
-        hipPointerAttribute_t* attrs;
-        const auto status = hipPointerGetAttributes(attrs,PTR);
+        hipPointerAttribute_t attrs;
+        const auto status = hipPointerGetAttributes(&attrs,PTR);
         if (status == hipSuccess) {
-          if (attrs->isManaged) {
+          if (attrs.isManaged) {
             data |= InstrData::MANAGED_MEM;
-          } else if (attrs->devicePointer == nullptr) {
+          } else if (attrs.devicePointer == nullptr) {
             data |= InstrData::HOST_HEAP;
           } else {
             data |= InstrData::DEVICE_HEAP;

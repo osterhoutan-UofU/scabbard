@@ -66,6 +66,8 @@ namespace verif {
         case InstrData::READ:
           it = mem.find(td.ptr);
           if (it == mem.end()) {// read with no preceding write
+            if ((td.data & InstrData::_RUNTIME_CONDITIONAL) && (td.data & InstrData::HOST_HEAP)) // if the memory location was conditional and verified to be on the heap
+              break;  // it is not likely to be relevant to the gpu; skip it
             results.insert({WARNING, &td, nullptr, "Read with no preceding/matching Write"}); // read with no preceding write
             mem[td.ptr] = &td;
             break;
