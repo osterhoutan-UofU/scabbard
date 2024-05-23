@@ -79,7 +79,8 @@ set(CMAKE_INSTALL_LIBDIR ${ROCM_PATH}/lib/scabbard)
 # set(CMAKE_INSTALL_BINDIR ${ROCM_PATH}/bin)
 set(CMAKE_INSTALL_INCLUDEDIR ${ROCM_PATH}/include)
 
-add_subdirectory(lib) # might neeed this might not
-add_subdirectory(libtrace) # might neeed this might not
+add_subdirectory(lib)
+add_subdirectory(libtrace)
 add_subdirectory(instr)
 add_subdirectory(verif) # will need this latter
+add_subdirectory(interception)
