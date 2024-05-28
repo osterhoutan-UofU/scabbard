@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
+#!@Python_EXECUTABLE@
 
 """*
  * @file scabbard.py
  * @author osterhoutan (osterhoutan+scabbard@gmail.com)
- * @brief derived from https://github.com/LLNL/FAROS/blob/e6c9ece1356c93418a04452f98f0f55497f4bf4d/interception/faros.py
+ * @brief derived from https://github.com/LLNL/SCABBARD/blob/e6c9ece1356c93418a04452f98f0f55497f4bf4d/interception/scabbard.py
  *        used to implement the LD_PRELOAD trick for getting the scabbard instrumenter working.
  * @date 2024-05-23
  * 
@@ -14,30 +14,41 @@ import sys
 import os
 from colors import *
 
-FAROS_PATH = os.path.dirname(os.path.abspath(__file__)) + '/../'
-sys.path.append(FAROS_PATH)
-# from libs.faros import faroslib as faros
+SCABBARD_PATH:str = os.environ['SCABBARD_PATH'] if 'SCABBARD_PATH' in os.environ else os.path.dirname(os.path.abspath(__file__))
+# sys.path.append(SCABBARD_PATH)
+# from libs.scabbard import scabbardlib as scabbard
 
-INTERCEPT_LIB = os.path.dirname(os.path.abspath(__file__))+"/intercept.so"
+INTERCEPT_LIB:str = SCABBARD_PATH+"/intercept.so"
 
-def runBuildCommand(params):
-  prGreen('*** FAROS ***')
-  prGreen('Intercepting commands in: ' + ' '.join(params))
-  params.insert(0, 'LD_PRELOAD='+INTERCEPT_LIB)
-  env_path = os.getenv('PATH')
-  params.insert(0, 'PATH='+FAROS_PATH+'interception'+':'+env_path)
-  params.insert(0, 'FAROS_SAVEDPATH='+env_path)
+def runBuildCommand(params: list) -> None:
+    prGreen('*** SCABBARD ***')
+    prGreen('Intercepting commands in: ' + ' '.join(params))
+    params.insert(0, 'LD_PRELOAD='+INTERCEPT_LIB)
+    
+    env: dict = dict(os.environ)
+    
+    if 'SCABBARD_PATH' not in env:
+        env.update({'SCABBARD_PATH':os.path.dirname(os.path.abspath(__file__))})
+    if 'SCABBARD_METADATA_FILE' not in env:
+        env.update({'SCABBARD_METADATA_FILE':f"{os.path.abspath(os.getcwd())}/scabbard.metadata"})
 
-  try:
-    cmdOutput = subprocess.run(' '.join(params), shell=True, check=True)
-  except Exception as e:
-    print(e)
-    raise RuntimeError('Error when running FAROS input')
+    try:
+        cmdOutput = subprocess.run(' '.join(params), shell=True, check=True, env=env)
+    except Exception as e:
+        raise RuntimeError('Error when running scabbard.intercept on a build command') from e
 
-#   faros.merge_stats_reports('./report/', './', 'output')
-#   faros.generate_remark_reports('./report/', './', ['output'])
+#     scabbard.merge_stats_reports('./report/', './', 'output')
+#     scabbard.generate_remark_reports('./report/', './', ['output'])
+
+
+
+def main(argv:list) -> None:
+    try:
+        runBuildCommand(argv[1:])
+    except Exception as e:
+        prRed(e)
+
+
 
 if __name__ == '__main__':
-  params = sys.argv
-  params.pop(0)
-  runBuildCommand(params)
+    main(sys.argv)

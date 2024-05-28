@@ -1,7 +1,7 @@
 /**
  * @file intercept.c
  * @author osterhoutan (osterhoutan+scabbard@gmail.com)
- * @brief derived from https://github.com/LLNL/FAROS/blob/e6c9ece1356c93418a04452f98f0f55497f4bf4d/interception/intercept.c
+ * @brief derived from https://github.com/LLNL/SCABBARD/blob/e6c9ece1356c93418a04452f98f0f55497f4bf4d/interception/intercept.c
  *        used to implement the LD_PRELOAD trick for getting the scabbard instrumenter working.
  * @date 2024-05-23
  * 
@@ -34,9 +34,9 @@ static execvpe_func_t   old_execvpe = NULL;
 //static execlp_func_t    old_execlp = NULL;
 //static execle_func_t    old_execle = NULL;
 
-static const char *nvcc_faros = __NVCC_WRAPPER__;
-static const char *clang_faros = __CLANG_WRAPPER__;
-static const char *clangpp_faros = __CLANGPP_WRAPPER__;
+// static const char *hipcc_scabbard = __SCABBARD_WRAPPER__;
+// static const char *clang_scabbard = __SCABBARD_WRAPPER__;
+// static const char *clangpp_scabbard = __SCABBARD_WRAPPER__;
 
 /** Return: one if the string t occurs at the end of the string s, and zero otherwise **/
 int str_end(const char *s, const char *t)
@@ -45,9 +45,9 @@ int str_end(const char *s, const char *t)
     return 0 == strcmp(&s[strlen(s)-strlen(t)], t);
 }
 
-int isNVCC(const char* filename) {
-  return (str_end(filename, "/nvcc") ||
-          strcmp(filename, "nvcc")==0
+int isHIPCC(const char* filename) {
+  return (str_end(filename, "/hipcc") ||
+          strcmp(filename, "hipcc")==0
           );
 }
 
@@ -125,6 +125,26 @@ void copy_env_variables(char* const envp[], char *** new_envp) {
   (*new_envp)[elems] = NULL;
 }
 
+/* Copy the old argv with the filename inserted as the first element */
+void copy_command(const char* filename, char* const argv[], char *** new_argv) {
+  char **ptr = (char **)argv;
+  size_t elems = 0;
+  while (ptr != NULL) {
+    if (*ptr == NULL)
+      break;
+    elems++;
+    ptr++;
+  }
+
+  *new_argv = (char **)malloc(sizeof(char *)*elems+2);
+  strcpy((*new_argv)[0], filename);
+  for (size_t i=0; i < elems; ++i) {
+    (*new_argv)[i+1] = (char *)malloc(strlen(argv[i]) * sizeof(char) + 1);
+    strcpy((*new_argv)[i+1], argv[i]);
+  }
+  (*new_argv)[elems+1] = NULL;
+}
+
 /* Remove LD_PRELOAD library to avoid a cycle in pre-loading */
 void remove_ld_preload() {
     unsetenv("LD_PRELOAD");
@@ -134,52 +154,83 @@ void remove_ld_preload() {
 int execve(const char* filename, char* const argv[], char* const envp[]) {
     // Copy env variables
     char ** new_envp;
+    char ** new_argv; 
+    char SCABBARD_WRAPPER[1024];
     copy_env_variables(envp, &new_envp);
+    copy_command(filename, argv, &new_argv);
+    snprintf(SCABBARD_WRAPPER, sizeof(SCABBARD_WRAPPER),
+            "%s/driver.py", getenv("SCABBARD_PATH")); // getenv might be unsafe if SCABBARD_PATH is not defined
     old_execve = dlsym(RTLD_NEXT, "execve");
 
-    if (isNVCC(filename))         return old_execve(nvcc_faros, argv, new_envp);
-    else if (isClang(filename))   return old_execve(clang_faros, argv, new_envp);
-    else if (isClangPP(filename)) return old_execve(clangpp_faros, argv, new_envp);
-    else if (isGCC(filename))     return old_execve(clang_faros, argv, new_envp);
-    else if (isGPP(filename))     return old_execve(clangpp_faros, argv, new_envp);
-    return old_execve(filename, argv, envp); // else run original call
+    // if (isHIPCC(filename))         return old_execve(hipcc_scabbard, argv, new_envp);
+    // else if (isClang(filename))   return old_execve(clang_scabbard, argv, new_envp);
+    // else if (isClangPP(filename)) return old_execve(clangpp_scabbard, argv, new_envp);
+    // else if (isGCC(filename))     return old_execve(clang_scabbard, argv, new_envp);
+    // else if (isGPP(filename))     return old_execve(clangpp_scabbard, argv, new_envp);
+    // return old_execve(filename, argv, envp); // else run original call
+
+
+    return old_execve(SCABBARD_WRAPPER, new_argv, new_envp);
 }
 
 int execv(const char *path, char *const argv[]) {
-    if (isNVCC(path) || isClang(path) || isClangPP(path))
-      remove_ld_preload();
+    char ** new_argv; 
+    char SCABBARD_WRAPPER[1024];
+    copy_command(path, argv, &new_argv);
+    snprintf(SCABBARD_WRAPPER, sizeof(SCABBARD_WRAPPER),
+            "%s/driver.py", getenv("SCABBARD_PATH")); // getenv might be unsafe if SCABBARD_PATH is not defined
+    remove_ld_preload();
+  // if (isHIPCC(path) || isClang(path) || isClangPP(path))
+  //     remove_ld_preload();
     old_execv = dlsym(RTLD_NEXT, "execv");
 
-    if (isNVCC(path))         return old_execv(nvcc_faros, argv);
-    else if (isClang(path))   return old_execv(clang_faros, argv);
-    else if (isClangPP(path)) return old_execv(clangpp_faros, argv);
-    else if (isGCC(path))     return old_execv(clang_faros, argv);
-    else if (isGPP(path))     return old_execv(clangpp_faros, argv);
-    return old_execv(path, argv); // else run original call
+    // if (isHIPCC(path))         return old_execv(hipcc_scabbard, argv);
+    // else if (isClang(path))   return old_execv(clang_scabbard, argv);
+    // else if (isClangPP(path)) return old_execv(clangpp_scabbard, argv);
+    // else if (isGCC(path))     return old_execv(clang_scabbard, argv);
+    // else if (isGPP(path))     return old_execv(clangpp_scabbard, argv);
+    // return old_execv(path, argv); // else run original call
+
+    return old_execv(SCABBARD_WRAPPER, new_argv);
 }
 
 int execvp (const char *file, char *const argv[]) {
-    if (isNVCC(file) || isClang(file) || isClangPP(file))
-      remove_ld_preload();
+  char ** new_argv; 
+    char SCABBARD_WRAPPER[1024];
+    copy_command(file, argv, &new_argv);
+    snprintf(SCABBARD_WRAPPER, sizeof(SCABBARD_WRAPPER),
+            "%s/driver.py", getenv("SCABBARD_PATH")); // getenv might be unsafe if SCABBARD_PATH is not defined
+    remove_ld_preload();
+    // if (isHIPCC(file) || isClang(file) || isClangPP(file))
+    //   remove_ld_preload();
     old_execvp = dlsym(RTLD_NEXT, "execvp");
 
-    if (isNVCC(file))         return old_execvp(nvcc_faros, argv);
-    else if (isClang(file))   return old_execvp(clang_faros, argv);
-    else if (isClangPP(file)) return old_execvp(clangpp_faros, argv);
-    else if (isGCC(file))     return old_execvp(clang_faros, argv);
-    else if (isGPP(file))     return old_execvp(clangpp_faros, argv);
-    return old_execvp(file, argv); // else run original call
+    // if (isHIPCC(file))         return old_execvp(hipcc_scabbard, argv);
+    // else if (isClang(file))   return old_execvp(clang_scabbard, argv);
+    // else if (isClangPP(file)) return old_execvp(clangpp_scabbard, argv);
+    // else if (isGCC(file))     return old_execvp(clang_scabbard, argv);
+    // else if (isGPP(file))     return old_execvp(clangpp_scabbard, argv);
+    // return old_execvp(file, argv); // else run original call
+
+    return old_execvp(SCABBARD_WRAPPER, new_argv);
 }
 
 int execvpe(const char *file, char *const argv[], char *const envp[]) {
     char ** new_envp;
+    char ** new_argv; 
+    char SCABBARD_WRAPPER[1024];
     copy_env_variables(envp, &new_envp);
+    copy_command(file, argv, &new_argv);
+    snprintf(SCABBARD_WRAPPER, sizeof(SCABBARD_WRAPPER),
+            "%s/driver.py", getenv("SCABBARD_PATH")); // getenv might be unsafe if SCABBARD_PATH is not defined
     old_execvpe = dlsym(RTLD_NEXT, "execvpe");
 
-    if (isNVCC(file))         return old_execvpe(nvcc_faros, argv, new_envp);
-    else if (isClang(file))   return old_execvpe(clang_faros, argv, new_envp);
-    else if (isClangPP(file)) return old_execvpe(clangpp_faros, argv, new_envp);
-    else if (isGCC(file))     return old_execvpe(clang_faros, argv, new_envp);
-    else if (isGPP(file))     return old_execvpe(clangpp_faros, argv, new_envp);
-    return old_execvpe(file, argv, envp); // else run original call
+    // if (isHIPCC(file))         return old_execvpe(hipcc_scabbard, argv, new_envp);
+    // else if (isClang(file))   return old_execvpe(clang_scabbard, argv, new_envp);
+    // else if (isClangPP(file)) return old_execvpe(clangpp_scabbard, argv, new_envp);
+    // else if (isGCC(file))     return old_execvpe(clang_scabbard, argv, new_envp);
+    // else if (isGPP(file))     return old_execvpe(clangpp_scabbard, argv, new_envp);
+    // return old_execvpe(file, argv, envp); // else run original call
+
+    return old_execvpe(SCABBARD_WRAPPER, new_argv, new_envp);
 }

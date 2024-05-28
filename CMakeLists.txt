@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
 project(scabbard VERSION 0.3.0)
 
 include(GNUInstallDirs)
@@ -75,9 +75,13 @@ endif()
 set(CMAKE_C_COMPILER $ENV{ROCM_PATH}/llvm/bin/clang CACHE FILEPATH "set C compiler to amd-clang" FORCE)
 set(CMAKE_CXX_COMPILER $ENV{ROCM_PATH}/llvm/bin/clang++ CACHE FILEPATH "set C++ compiler to amd-clang" FORCE)
 
-set(CMAKE_INSTALL_LIBDIR ${ROCM_PATH}/lib/scabbard)
-# set(CMAKE_INSTALL_BINDIR ${ROCM_PATH}/bin)
-set(CMAKE_INSTALL_INCLUDEDIR ${ROCM_PATH}/include)
+set(CMAKE_INSTALL_LIBDIR ${ROCM_PATH}/scabbard)
+set(CMAKE_INSTALL_BINDIR ${ROCM_PATH}/scababrd)
+set(CMAKE_INSTALL_INCLUDEDIR ${ROCM_PATH}/scabbard/include)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/scabbard)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/scabbard)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/scabbard)
+set(SCABBARD_PATH ${CMAKE_BINARY_DIR}/scabbard)
 
 add_subdirectory(lib)
 add_subdirectory(libtrace)
