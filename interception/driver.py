@@ -15,14 +15,14 @@ import subprocess
 import platform
 import sys
 from colors import prGreen, prCyan, prRed
-from exceptions import CompileException
-from scabbard import runBuildCommand
+# from exceptions import CompileException
+from builtins import Exception
+from scabbard import runBuildCommand, SCABBARD_PATH
 
 # --------------------------------------------------------------------------- #
 # --- Installation Paths ---------------------------------------------------- #
 # --------------------------------------------------------------------------- #
 
-SCABBARD_PATH: str = os.environ['SCABBARD_PATH'] if 'SCABBARD_PATH' in os.environ else os.path.dirname(os.path.abspath(__file__))
 ADDED_FLAGS: list = [
         f'-fpass-plugin={SCABBARD_PATH}/libinstr.so', 
         f'-L{SCABBARD_PATH}',
@@ -92,7 +92,7 @@ def runCommandWithFlags(argv: list) -> None:
         cmdOutput = subprocess.run(new_cmd, shell=True, check=True, env=env)
     except Exception as e:
         prRed(e)
-        raise CompileException(new_cmd) from e
+        raise Exception(new_cmd) from e
 
 
 

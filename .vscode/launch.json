@@ -5,6 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python Debugger: scababrd interrface with test args",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/scabbard/scabbard.py",
+            "console": "integratedTerminal",
+            "args": "build --meta-file=./test.scabbard.meta hipcc -o test.out test.cpp"
+            // "args": "${command:pickArgs}"
+        },
+        {
             "name": "(rocgdb) Launch test/cuda/dpid.out",
             "type": "cppdbg",
             "request": "launch",
@@ -14,9 +23,18 @@
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [
-                {"name": "SCABBARD_INSTRUMENTED_EXE_NAME", "value": "${workspaceFolder}/test/cuda/dpid.out"},
-                {"name": "SCABBARD_TRACE_FILE", "value": "${workspaceFolder}/test/cuda/dpid.scabbard.trace"},
-                {"name": "ROCM_PATH", "value": "/opt/rocm-6.1.1"}
+                {
+                    "name": "SCABBARD_INSTRUMENTED_EXE_NAME",
+                    "value": "${workspaceFolder}/test/cuda/dpid.out"
+                },
+                {
+                    "name": "SCABBARD_TRACE_FILE",
+                    "value": "${workspaceFolder}/test/cuda/dpid.scabbard.trace"
+                },
+                {
+                    "name": "ROCM_PATH",
+                    "value": "/opt/rocm-6.1.1"
+                }
             ],
             "externalConsole": false,
             "MIMode": "gdb",
@@ -38,7 +56,9 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/verif/verif",
-            "args": ["${workspaceFolder}/test/test.scabbard.trace"],
+            "args": [
+                "${workspaceFolder}/test/test.scabbard.trace"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -62,7 +82,9 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/verif/verif",
-            "args": ["${workspaceFolder}/test/basic/maybe-race.man.scabbard.trace"],
+            "args": [
+                "${workspaceFolder}/test/basic/maybe-race.man.scabbard.trace"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -86,7 +108,9 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/verif/verif",
-            "args": ["${workspaceFolder}/test/basic/def-race.man.scabbard.trace"],
+            "args": [
+                "${workspaceFolder}/test/basic/def-race.man.scabbard.trace"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -110,7 +134,9 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/verif/verif",
-            "args": ["${workspaceFolder}/test/device/maybe-race.man.scabbard.trace"],
+            "args": [
+                "${workspaceFolder}/test/device/maybe-race.man.scabbard.trace"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -134,7 +160,9 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/verif/verif",
-            "args": ["${workspaceFolder}/test/device/dual-stream/def-race.man.scabbard.trace"],
+            "args": [
+                "${workspaceFolder}/test/device/dual-stream/def-race.man.scabbard.trace"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -158,7 +186,9 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/verif/verif",
-            "args": ["${workspaceFolder}/test/device/dual-stream/def-race.man.scabbard.trace"],
+            "args": [
+                "${workspaceFolder}/test/device/dual-stream/def-race.man.scabbard.trace"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -182,7 +212,9 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/verif/verif",
-            "args": ["${workspaceFolder}/test/device/def-race.scabbard.trace"],
+            "args": [
+                "${workspaceFolder}/test/device/def-race.scabbard.trace"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -206,7 +238,9 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/verif/verif",
-            "args": ["${workspaceFolder}/test/verif/trace-file-read-test.man.trace"],
+            "args": [
+                "${workspaceFolder}/test/verif/trace-file-read-test.man.trace"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -225,7 +259,6 @@
                 }
             ]
         },
-        
         {
             "name": "(gdb) Launch instrumented test file",
             "type": "cppdbg",
@@ -236,8 +269,14 @@
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [
-                {"name":"SCABBARD_INSTRUMENTED_EXE_NAME", "value":"${workspaceFolder}/test/test.instr.out"},
-                {"name":"SCABBARD_TRACE_FILE", "value":"${workspaceFolder}/test/test.instr.scabbard.trace"}
+                {
+                    "name": "SCABBARD_INSTRUMENTED_EXE_NAME",
+                    "value": "${workspaceFolder}/test/test.instr.out"
+                },
+                {
+                    "name": "SCABBARD_TRACE_FILE",
+                    "value": "${workspaceFolder}/test/test.instr.scabbard.trace"
+                }
             ],
             "externalConsole": false,
             "MIMode": "gdb",
@@ -254,7 +293,6 @@
                 }
             ]
         },
-        
         {
             "name": "(gdb) Instr Build and DBG single file",
             "type": "cppdbg",
@@ -286,14 +324,20 @@
             "request": "launch",
             "program": "/usr/bin/hipcc", // point to debug build of opt
             "args": [
-                "-fpass-plugin=${workspaceFolder}/build/instr/libinstr.so", 
-                "-g", "-std=c++17",
+                "-fpass-plugin=${workspaceFolder}/build/instr/libinstr.so",
+                "-g",
+                "-std=c++17",
                 "-o${workspaceFolder}/test/test.out",
                 "${workspaceFolder}/test/test.cpp",
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [{"name": "SCABBARD_PATH", "value":"${workspaceFolder}/build/libtrace"}],
+            "environment": [
+                {
+                    "name": "SCABBARD_PATH",
+                    "value": "${workspaceFolder}/build/libtrace"
+                }
+            ],
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
@@ -316,12 +360,108 @@
             "request": "launch",
             "program": "/g/g11/osterhou/repos/llvm-project/build/bin/clang-15", // point to debug build of opt
             "args": [
-                "-cc1","-triple","amdgcn-amd-amdhsa","-aux-triple","x86_64-unknown-linux-gnu","-emit-llvm","-save-temps=cwd","-disable-free","-clear-ast-before-backend","-disable-llvm-verifier","-discard-value-names","-main-file-name","test.cpp","-mrelocation-model","pic","-pic-level","1","-fhalf-no-semantic-interposition","-mframe-pointer=none","-fno-rounding-math","-mconstructor-aliases","-aux-target-cpu","x86-64","-mlink-builtin-bitcode","/var/tmp/osterhou/libbc-trace-amdgcn-gfx90a-6f3a02.a","-mlink-builtin-bitcode","/var/tmp/osterhou/libbc-clang_rt.builtins-x86_64-amdgcn-gfx90a-5fc721.a","-fcuda-is-device","-mllvm","-amdgpu-internalize-symbols","-fcuda-allow-variadic-functions","-fvisibility","hidden","-fapply-global-visibility-to-externs","-mlink-builtin-bitcode","/opt/rocm-5.4.3/amdgcn/bitcode/hip.bc","-mlink-builtin-bitcode","/opt/rocm-5.4.3/amdgcn/bitcode/ocml.bc","-mlink-builtin-bitcode","/opt/rocm-5.4.3/amdgcn/bitcode/ockl.bc","-mlink-builtin-bitcode","/opt/rocm-5.4.3/amdgcn/bitcode/oclc_daz_opt_off.bc","-mlink-builtin-bitcode","/opt/rocm-5.4.3/amdgcn/bitcode/oclc_unsafe_math_off.bc","-mlink-builtin-bitcode","/opt/rocm-5.4.3/amdgcn/bitcode/oclc_finite_only_off.bc","-mlink-builtin-bitcode","/opt/rocm-5.4.3/amdgcn/bitcode/oclc_correctly_rounded_sqrt_on.bc","-mlink-builtin-bitcode","/opt/rocm-5.4.3/amdgcn/bitcode/oclc_wavefrontsize64_on.bc","-mlink-builtin-bitcode","/opt/rocm-5.4.3/amdgcn/bitcode/oclc_isa_version_90a.bc","-mlink-builtin-bitcode","/opt/rocm-5.4.3/amdgcn/bitcode/oclc_abi_version_400.bc","-target-cpu","gfx90a","-mllvm","-treat-scalable-fixed-error-as-warning","-debug-info-kind=constructor","-dwarf-version=5","-debugger-tuning=gdb","-mllvm","-amdgpu-spill-cfi-saved-regs","-gheterogeneous-dwarf","-v","-resource-dir","/opt/rocm-5.4.3/llvm/lib/clang/15.0.0","-O3","-std=c++17","-fno-autolink","-fdebug-compilation-dir=/g/g11/osterhou/repos/scabbard","-ferror-limit","19","-fhip-new-launch-api","-fgnuc-version=4.2.1","-no-opaque-pointers","-fcolor-diagnostics","-vectorize-loops","-vectorize-slp","-fpass-plugin=build/instr/libinstr.so","-mllvm","-amdgpu-early-inline-all=true","-mllvm","-amdgpu-function-calls=false","-cuid=29997d6ee2eea65f","-fcuda-allow-variadic-functions","-faddrsig","-D__GCC_HAVE_DWARF2_CFI_ASM=1","-o","test-hip-amdgcn-amd-amdhsa-gfx90a.ll","-x","ir","test-hip-amdgcn-amd-amdhsa-gfx90a.tmp.bc"
-
+                "-cc1",
+                "-triple",
+                "amdgcn-amd-amdhsa",
+                "-aux-triple",
+                "x86_64-unknown-linux-gnu",
+                "-emit-llvm",
+                "-save-temps=cwd",
+                "-disable-free",
+                "-clear-ast-before-backend",
+                "-disable-llvm-verifier",
+                "-discard-value-names",
+                "-main-file-name",
+                "test.cpp",
+                "-mrelocation-model",
+                "pic",
+                "-pic-level",
+                "1",
+                "-fhalf-no-semantic-interposition",
+                "-mframe-pointer=none",
+                "-fno-rounding-math",
+                "-mconstructor-aliases",
+                "-aux-target-cpu",
+                "x86-64",
+                "-mlink-builtin-bitcode",
+                "/var/tmp/osterhou/libbc-trace-amdgcn-gfx90a-6f3a02.a",
+                "-mlink-builtin-bitcode",
+                "/var/tmp/osterhou/libbc-clang_rt.builtins-x86_64-amdgcn-gfx90a-5fc721.a",
+                "-fcuda-is-device",
+                "-mllvm",
+                "-amdgpu-internalize-symbols",
+                "-fcuda-allow-variadic-functions",
+                "-fvisibility",
+                "hidden",
+                "-fapply-global-visibility-to-externs",
+                "-mlink-builtin-bitcode",
+                "/opt/rocm-5.4.3/amdgcn/bitcode/hip.bc",
+                "-mlink-builtin-bitcode",
+                "/opt/rocm-5.4.3/amdgcn/bitcode/ocml.bc",
+                "-mlink-builtin-bitcode",
+                "/opt/rocm-5.4.3/amdgcn/bitcode/ockl.bc",
+                "-mlink-builtin-bitcode",
+                "/opt/rocm-5.4.3/amdgcn/bitcode/oclc_daz_opt_off.bc",
+                "-mlink-builtin-bitcode",
+                "/opt/rocm-5.4.3/amdgcn/bitcode/oclc_unsafe_math_off.bc",
+                "-mlink-builtin-bitcode",
+                "/opt/rocm-5.4.3/amdgcn/bitcode/oclc_finite_only_off.bc",
+                "-mlink-builtin-bitcode",
+                "/opt/rocm-5.4.3/amdgcn/bitcode/oclc_correctly_rounded_sqrt_on.bc",
+                "-mlink-builtin-bitcode",
+                "/opt/rocm-5.4.3/amdgcn/bitcode/oclc_wavefrontsize64_on.bc",
+                "-mlink-builtin-bitcode",
+                "/opt/rocm-5.4.3/amdgcn/bitcode/oclc_isa_version_90a.bc",
+                "-mlink-builtin-bitcode",
+                "/opt/rocm-5.4.3/amdgcn/bitcode/oclc_abi_version_400.bc",
+                "-target-cpu",
+                "gfx90a",
+                "-mllvm",
+                "-treat-scalable-fixed-error-as-warning",
+                "-debug-info-kind=constructor",
+                "-dwarf-version=5",
+                "-debugger-tuning=gdb",
+                "-mllvm",
+                "-amdgpu-spill-cfi-saved-regs",
+                "-gheterogeneous-dwarf",
+                "-v",
+                "-resource-dir",
+                "/opt/rocm-5.4.3/llvm/lib/clang/15.0.0",
+                "-O3",
+                "-std=c++17",
+                "-fno-autolink",
+                "-fdebug-compilation-dir=/g/g11/osterhou/repos/scabbard",
+                "-ferror-limit",
+                "19",
+                "-fhip-new-launch-api",
+                "-fgnuc-version=4.2.1",
+                "-no-opaque-pointers",
+                "-fcolor-diagnostics",
+                "-vectorize-loops",
+                "-vectorize-slp",
+                "-fpass-plugin=build/instr/libinstr.so",
+                "-mllvm",
+                "-amdgpu-early-inline-all=true",
+                "-mllvm",
+                "-amdgpu-function-calls=false",
+                "-cuid=29997d6ee2eea65f",
+                "-fcuda-allow-variadic-functions",
+                "-faddrsig",
+                "-D__GCC_HAVE_DWARF2_CFI_ASM=1",
+                "-o",
+                "test-hip-amdgcn-amd-amdhsa-gfx90a.ll",
+                "-x",
+                "ir",
+                "test-hip-amdgcn-amd-amdhsa-gfx90a.tmp.bc"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [{"name": "SCABBARD_PATH", "value":"${workspaceFolder}/build/libtrace"}],
+            "environment": [
+                {
+                    "name": "SCABBARD_PATH",
+                    "value": "${workspaceFolder}/build/libtrace"
+                }
+            ],
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
@@ -344,47 +484,123 @@
             "request": "launch",
             "program": "/opt/rocm-5.4.3/llvm/bin/clang-15", // point to debug build of opt
             "args": [
-                "-cc1","-triple","x86_64-unknown-linux-gnu","-aux-triple","amdgcn-amd-amdhsa",
-                "-disable-free","-clear-ast-before-backend","-disable-llvm-verifier",
-                "-discard-value-names","-main-file-name","test.cpp","-mrelocation-model","static",
-                "-mframe-pointer=none","-fmath-errno","-fno-rounding-math","-mconstructor-aliases",
-                "-funwind-tables=2","-target-cpu","x86-64","-tune-cpu","generic",
-                "-mllvm","-treat-scalable-fixed-error-as-warning",
-                "-debug-info-kind=constructor","-dwarf-version=5","-debugger-tuning=gdb","-v",
+                "-cc1",
+                "-triple",
+                "x86_64-unknown-linux-gnu",
+                "-aux-triple",
+                "amdgcn-amd-amdhsa",
+                "-disable-free",
+                "-clear-ast-before-backend",
+                "-disable-llvm-verifier",
+                "-discard-value-names",
+                "-main-file-name",
+                "test.cpp",
+                "-mrelocation-model",
+                "static",
+                "-mframe-pointer=none",
+                "-fmath-errno",
+                "-fno-rounding-math",
+                "-mconstructor-aliases",
+                "-funwind-tables=2",
+                "-target-cpu",
+                "x86-64",
+                "-tune-cpu",
+                "generic",
+                "-mllvm",
+                "-treat-scalable-fixed-error-as-warning",
+                "-debug-info-kind=constructor",
+                "-dwarf-version=5",
+                "-debugger-tuning=gdb",
+                "-v",
                 "-fcoverage-compilation-dir=/home/oster/repos/scabbard",
-                "-resource-dir","/opt/rocm-5.4.3/llvm/lib/clang/15.0.0",
-                "-internal-isystem","/opt/rocm-5.4.3/llvm/lib/clang/15.0.0/include/cuda_wrappers",
-                "-idirafter","/opt/rocm-5.4.3/include","-include","__clang_hip_runtime_wrapper.h",
-                "-isystem","/opt/rocm-5.4.3/llvm/lib/clang/15.0.0/include/..",
-                "-isystem","/opt/rocm-5.4.3/hsa/include","-isystem","/opt/rocm-5.4.3/include",
-                "-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12",
-                "-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12",
-                "-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/backward",
-                "-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12","-internal-isystem",
+                "-resource-dir",
+                "/opt/rocm-5.4.3/llvm/lib/clang/15.0.0",
+                "-internal-isystem",
+                "/opt/rocm-5.4.3/llvm/lib/clang/15.0.0/include/cuda_wrappers",
+                "-idirafter",
+                "/opt/rocm-5.4.3/include",
+                "-include",
+                "__clang_hip_runtime_wrapper.h",
+                "-isystem",
+                "/opt/rocm-5.4.3/llvm/lib/clang/15.0.0/include/..",
+                "-isystem",
+                "/opt/rocm-5.4.3/hsa/include",
+                "-isystem",
+                "/opt/rocm-5.4.3/include",
+                "-internal-isystem",
+                "/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12",
+                "-internal-isystem",
                 "/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12",
-                "-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/backward",
-                "-internal-isystem","/opt/rocm-5.4.3/llvm/lib/clang/15.0.0/include",
-                "-internal-isystem","/usr/local/include",
-                "-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../x86_64-linux-gnu/include",
-                "-internal-externc-isystem","/usr/include/x86_64-linux-gnu",
-                "-internal-externc-isystem","/include","-internal-externc-isystem","/usr/include",
-                "-internal-isystem","/opt/rocm-5.4.3/llvm/lib/clang/15.0.0/include",
-                "-internal-isystem","/usr/local/include",
-                "-internal-isystem","/usr/lib/gcc/x86_64-linux-gnu/12/../../../../x86_64-linux-gnu/include",
-                "-internal-externc-isystem","/usr/include/x86_64-linux-gnu",
-                "-internal-externc-isystem","/include","-internal-externc-isystem","/usr/include",
-                "-O3","-std=c++17","-fdeprecated-macro","-fdebug-compilation-dir=/home/oster/repos/scabbard",
-                "-ferror-limit","19","-fhip-new-launch-api","-fgnuc-version=4.2.1","-no-opaque-pointers",
-                "-fcxx-exceptions","-fexceptions","-fcolor-diagnostics","-vectorize-loops","-vectorize-slp",
-                "-mllvm","-amdgpu-early-inline-all=true","-mllvm","-amdgpu-function-calls=false","-cuid=433677c6144bdd1a",
-                "-fcuda-allow-variadic-functions","-faddrsig","-D__GCC_HAVE_DWARF2_CFI_ASM=1",
+                "-internal-isystem",
+                "/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/backward",
+                "-internal-isystem",
+                "/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12",
+                "-internal-isystem",
+                "/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12",
+                "-internal-isystem",
+                "/usr/lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/backward",
+                "-internal-isystem",
+                "/opt/rocm-5.4.3/llvm/lib/clang/15.0.0/include",
+                "-internal-isystem",
+                "/usr/local/include",
+                "-internal-isystem",
+                "/usr/lib/gcc/x86_64-linux-gnu/12/../../../../x86_64-linux-gnu/include",
+                "-internal-externc-isystem",
+                "/usr/include/x86_64-linux-gnu",
+                "-internal-externc-isystem",
+                "/include",
+                "-internal-externc-isystem",
+                "/usr/include",
+                "-internal-isystem",
+                "/opt/rocm-5.4.3/llvm/lib/clang/15.0.0/include",
+                "-internal-isystem",
+                "/usr/local/include",
+                "-internal-isystem",
+                "/usr/lib/gcc/x86_64-linux-gnu/12/../../../../x86_64-linux-gnu/include",
+                "-internal-externc-isystem",
+                "/usr/include/x86_64-linux-gnu",
+                "-internal-externc-isystem",
+                "/include",
+                "-internal-externc-isystem",
+                "/usr/include",
+                "-O3",
+                "-std=c++17",
+                "-fdeprecated-macro",
+                "-fdebug-compilation-dir=/home/oster/repos/scabbard",
+                "-ferror-limit",
+                "19",
+                "-fhip-new-launch-api",
+                "-fgnuc-version=4.2.1",
+                "-no-opaque-pointers",
+                "-fcxx-exceptions",
+                "-fexceptions",
+                "-fcolor-diagnostics",
+                "-vectorize-loops",
+                "-vectorize-slp",
+                "-mllvm",
+                "-amdgpu-early-inline-all=true",
+                "-mllvm",
+                "-amdgpu-function-calls=false",
+                "-cuid=433677c6144bdd1a",
+                "-fcuda-allow-variadic-functions",
+                "-faddrsig",
+                "-D__GCC_HAVE_DWARF2_CFI_ASM=1",
                 "-fpass-plugin=build/instr/libinstr.so",
                 "-WL,-L${workspaceFolder}/build/libtrace",
-                "-o","${workspaceFolder}/test/test.instr.out","-x","hip","test/test.cpp"
+                "-o",
+                "${workspaceFolder}/test/test.instr.out",
+                "-x",
+                "hip",
+                "test/test.cpp"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [{"name": "SCABBARD_PATH", "value":"${workspaceFolder}/build/libtrace"}],
+            "environment": [
+                {
+                    "name": "SCABBARD_PATH",
+                    "value": "${workspaceFolder}/build/libtrace"
+                }
+            ],
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
@@ -407,12 +623,20 @@
             "request": "launch",
             "program": "/opt/rocm/llvm/bin/opt", // point to debug build of opt
             "args": [
-                "-load", "${workspaceFolder}/build/instr/libinstr.so", "-scabbard",
-                "<", "${workspaceFolder}/test/test.bc"
+                "-load",
+                "${workspaceFolder}/build/instr/libinstr.so",
+                "-scabbard",
+                "<",
+                "${workspaceFolder}/test/test.bc"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [{"name": "SCABBARD_PATH", "value":"${workspaceFolder}/build/libtrace"}],
+            "environment": [
+                {
+                    "name": "SCABBARD_PATH",
+                    "value": "${workspaceFolder}/build/libtrace"
+                }
+            ],
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [

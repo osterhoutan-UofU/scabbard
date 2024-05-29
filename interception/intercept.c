@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 
 typedef ssize_t (*execve_func_t)  (const char* filename, char* const argv[], char* const envp[]);
 typedef ssize_t (*execv_func_t)   (const char* path, char* const argv[]);
@@ -129,17 +130,22 @@ void copy_env_variables(char* const envp[], char *** new_envp) {
 void copy_command(const char* filename, char* const argv[], char *** new_argv) {
   char **ptr = (char **)argv;
   size_t elems = 0;
+  // printf("count loop\n"); //DEBUG
   while (ptr != NULL) {
+    // printf("[%ld]\n",elems); //DEBUG
     if (*ptr == NULL)
       break;
     elems++;
     ptr++;
   }
-
-  *new_argv = (char **)malloc(sizeof(char *)*elems+2);
+  *new_argv = (char **)malloc(sizeof(char *)*(elems+2));
+  // printf("name copy\n"); //DEBUG
+  (*new_argv)[0] = (char *)malloc(strlen(filename) * (sizeof(char) + 1));
   strcpy((*new_argv)[0], filename);
+  // printf("copy loop\n"); //DEBUG
   for (size_t i=0; i < elems; ++i) {
-    (*new_argv)[i+1] = (char *)malloc(strlen(argv[i]) * sizeof(char) + 1);
+    // printf("[%ld]\n",i); //DEBUG
+    (*new_argv)[i+1] = (char *)malloc(strlen(argv[i]) * (sizeof(char) + 1));
     strcpy((*new_argv)[i+1], argv[i]);
   }
   (*new_argv)[elems+1] = NULL;
@@ -155,11 +161,14 @@ int execve(const char* filename, char* const argv[], char* const envp[]) {
     // Copy env variables
     char ** new_envp;
     char ** new_argv; 
+    const char* SCABBARD_PATH = getenv("SCABBARD_PATH");
     char SCABBARD_WRAPPER[1024];
+    assert(SCABBARD_PATH != NULL && "SCABBARD_PATH is defined in your environment");
+    // // printf("execve\n"); //DEBUG
     copy_env_variables(envp, &new_envp);
     copy_command(filename, argv, &new_argv);
     snprintf(SCABBARD_WRAPPER, sizeof(SCABBARD_WRAPPER),
-            "%s/driver.py", getenv("SCABBARD_PATH")); // getenv might be unsafe if SCABBARD_PATH is not defined
+            "%s/driver.py", SCABBARD_PATH); // getenv might be unsafe if SCABBARD_PATH is not defined
     old_execve = dlsym(RTLD_NEXT, "execve");
 
     // if (isHIPCC(filename))         return old_execve(hipcc_scabbard, argv, new_envp);
@@ -174,11 +183,14 @@ int execve(const char* filename, char* const argv[], char* const envp[]) {
 }
 
 int execv(const char *path, char *const argv[]) {
-    char ** new_argv; 
+    char ** new_argv;
+    const char* SCABBARD_PATH = getenv("SCABBARD_PATH");
     char SCABBARD_WRAPPER[1024];
+    assert(SCABBARD_PATH != NULL && "SCABBARD_PATH is defined in your environment");
+    // // printf("execv\n"); //DEBUG
     copy_command(path, argv, &new_argv);
     snprintf(SCABBARD_WRAPPER, sizeof(SCABBARD_WRAPPER),
-            "%s/driver.py", getenv("SCABBARD_PATH")); // getenv might be unsafe if SCABBARD_PATH is not defined
+            "%s/driver.py", SCABBARD_PATH); // getenv might be unsafe if SCABBARD_PATH is not defined
     remove_ld_preload();
   // if (isHIPCC(path) || isClang(path) || isClangPP(path))
   //     remove_ld_preload();
@@ -196,33 +208,39 @@ int execv(const char *path, char *const argv[]) {
 
 int execvp (const char *file, char *const argv[]) {
   char ** new_argv; 
-    char SCABBARD_WRAPPER[1024];
-    copy_command(file, argv, &new_argv);
-    snprintf(SCABBARD_WRAPPER, sizeof(SCABBARD_WRAPPER),
-            "%s/driver.py", getenv("SCABBARD_PATH")); // getenv might be unsafe if SCABBARD_PATH is not defined
-    remove_ld_preload();
-    // if (isHIPCC(file) || isClang(file) || isClangPP(file))
-    //   remove_ld_preload();
-    old_execvp = dlsym(RTLD_NEXT, "execvp");
+  const char* SCABBARD_PATH = getenv("SCABBARD_PATH");
+  assert(SCABBARD_PATH != NULL && "SCABBARD_PATH is defined in your environment");
+  char SCABBARD_WRAPPER[1024];
+  // // printf("execvp\n"); //DEBUG
+  copy_command(file, argv, &new_argv);
+  snprintf(SCABBARD_WRAPPER, sizeof(SCABBARD_WRAPPER),
+          "%s/driver.py", SCABBARD_PATH); // getenv might be unsafe if SCABBARD_PATH is not defined
+  remove_ld_preload();
+  // if (isHIPCC(file) || isClang(file) || isClangPP(file))
+  //   remove_ld_preload();
+  old_execvp = dlsym(RTLD_NEXT, "execvp");
 
-    // if (isHIPCC(file))         return old_execvp(hipcc_scabbard, argv);
-    // else if (isClang(file))   return old_execvp(clang_scabbard, argv);
-    // else if (isClangPP(file)) return old_execvp(clangpp_scabbard, argv);
-    // else if (isGCC(file))     return old_execvp(clang_scabbard, argv);
-    // else if (isGPP(file))     return old_execvp(clangpp_scabbard, argv);
-    // return old_execvp(file, argv); // else run original call
+  // if (isHIPCC(file))         return old_execvp(hipcc_scabbard, argv);
+  // else if (isClang(file))   return old_execvp(clang_scabbard, argv);
+  // else if (isClangPP(file)) return old_execvp(clangpp_scabbard, argv);
+  // else if (isGCC(file))     return old_execvp(clang_scabbard, argv);
+  // else if (isGPP(file))     return old_execvp(clangpp_scabbard, argv);
+  // return old_execvp(file, argv); // else run original call
 
-    return old_execvp(SCABBARD_WRAPPER, new_argv);
+  return old_execvp(SCABBARD_WRAPPER, new_argv);
 }
 
 int execvpe(const char *file, char *const argv[], char *const envp[]) {
     char ** new_envp;
-    char ** new_argv; 
+    char ** new_argv;
+    const char* SCABBARD_PATH = getenv("SCABBARD_PATH");
     char SCABBARD_WRAPPER[1024];
+    assert(SCABBARD_PATH != NULL && "SCABBARD_PATH is defined in your environment");
+    // // printf("execvpe\n"); //DEBUG
     copy_env_variables(envp, &new_envp);
     copy_command(file, argv, &new_argv);
     snprintf(SCABBARD_WRAPPER, sizeof(SCABBARD_WRAPPER),
-            "%s/driver.py", getenv("SCABBARD_PATH")); // getenv might be unsafe if SCABBARD_PATH is not defined
+            "%s/driver.py", SCABBARD_PATH); // getenv might be unsafe if SCABBARD_PATH is not defined
     old_execvpe = dlsym(RTLD_NEXT, "execvpe");
 
     // if (isHIPCC(file))         return old_execvpe(hipcc_scabbard, argv, new_envp);
