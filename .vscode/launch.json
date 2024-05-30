@@ -10,7 +10,9 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/scabbard/scabbard.py",
             "console": "integratedTerminal",
-            "args": "build --meta-file=./test.scabbard.meta hipcc -o test.out test.cpp"
+            "env": {"SCABBARD_PATH":"${workspaceFolder}/build/scabbard"},
+            // "args": "verif -h"
+            "args": "build --meta-file=test/basic/test.scabbard.meta hipcc -o test/basic/test.instr.out test/basic/test.cpp"
             // "args": "${command:pickArgs}"
         },
         {

@@ -74,7 +74,7 @@ def runCommandWithFlags(argv: list) -> None:
         env.update({"SCABBARD_PATH": SCABBARD_PATH})
     
     new_cmd: str
-    if any({"clang","hipcc"}, lambda x: x in os.path.basename(argv[0])):
+    if any([x in os.path.basename(argv[0]) for x in {"clang","hipcc"}]):
         new_argv = list(argv)
         new_argv[1:1] = ADDED_FLAGS
         new_cmd = ' '.join(new_argv)
@@ -83,7 +83,7 @@ def runCommandWithFlags(argv: list) -> None:
               "\n                           -> CMake is not supported by the scabbard intercepter!"+
               "\n                              Try directly calling the configured build tool (i.e. `make`, `ninja`, etc.)\n")
         executeOriginalCommand(argv) # might try this for now
-    elif any({"make", "ninja", "MSBuild"}, lambda x: x in os.path.basename(argv[0])):
+    elif any([x in os.path.basename(argv[0]) for x in {"make", "ninja", "MSBuild"}]):
         runBuildCommand(argv)
     else:
         new_cmd = ' '.join(argv)
