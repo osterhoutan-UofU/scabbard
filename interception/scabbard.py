@@ -37,6 +37,7 @@ def runBuildCommand(params: list) -> None:
     try:
         cmdOutput = subprocess.run(' '.join(params), shell=True, check=True, env=env)
     except Exception as e:
+        prRed(e)
         raise RuntimeError('Error when running scabbard.intercept on a build command') from e
 
 #     scabbard.merge_stats_reports('./report/', './', 'output')
@@ -63,6 +64,7 @@ def trace(scabbard_args, args) -> None:
     try:
         cmdOutput = subprocess.run(' '.join(args), shell=True, check=True, env=env)
     except Exception as e:
+        prRed(e)
         raise RuntimeError('Error when running scabbard on a trace command') from e
     prGreen(f"[scabbard.trace:INFO] Trace Finished!\n[scabbard.trace:INFO] Trace-file generated: `{os.environ['SCABBARD_TRACE_FILE']}\n")
 
@@ -75,6 +77,7 @@ def verif(scabbard_args, args) -> None:
     try:
         cmdOutput = subprocess.run(f"{SCABBARD_PATH}/verif {scabbard_args.meta_file[0]} {scabbard_args.trace_file[0]}", shell=True, check=True)
     except Exception as e:
+        prRed(e)
         raise RuntimeError('Error when running scabbard.verif') from e
 
 
@@ -84,6 +87,7 @@ def main(argv:list) -> None:
         scabbard_args, args = parseScabbardArgs(argv[1:])
         if 'mode' not in scabbard_args or scabbard_args.mode is None or not len(scabbard_args.mode)>0:
             prRed("please select a mode (instr|trace|verif) when using the scabbard interface!")
+            print(argv) #DEBUG
             printScabbardHelp()
             exit(1)
         match scabbard_args.mode:

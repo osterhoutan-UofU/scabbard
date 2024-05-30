@@ -15,9 +15,9 @@ add_library(instr MODULE
   )
 # add_dependencies(instr trace-device) # uncommetn to auto build the manually linked GPU module
 
-add_library(testpass MODULE
-    src/TestPass/TestPass.cpp
-  )
+# add_library(testpass MODULE
+#     src/TestPass/TestPass.cpp
+#   )
 
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 # uncomment below to do full datarace checkign between CPU and GPU
@@ -37,7 +37,7 @@ target_include_directories(instr
 target_link_libraries(instr
     PUBLIC
     LLVMSupport
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../lib/libscabbard.so>
+    $<BUILD_INTERFACE:${SCABBARD_PATH}/libscabbard.so>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/libscabbard.so>
   )
 

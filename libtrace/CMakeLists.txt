@@ -29,7 +29,7 @@ target_link_libraries(trace
     PUBLIC
     hip::host
     hip::device
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/lib/libscabbard.so>
+    $<BUILD_INTERFACE:${SCABBARD_PATH}/libscabbard.so>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/libscabbard.so>
     # PRIVATE
     # libscabbard
