@@ -4,7 +4,7 @@ project(intercept)
 find_package(Python 3.10 REQUIRED COMPONENTS Interpreter)
 
 add_custom_target(intercept
-    cc -std=c99 -shared -Wall -fPIC -g -ldl -o ${SCABBARD_PATH}/intercept.so ${CMAKE_CURRENT_SOURCE_DIR}/intercept.c
+    gcc -std=c99 -shared -Wall -fPIC -g -ldl -o ${SCABBARD_PATH}/intercept.so ${CMAKE_CURRENT_SOURCE_DIR}/intercept.c
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/intercept.c
     SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/intercept.c
     BYPRODUCTS ${SCABBARD_PATH}/intercept.so
