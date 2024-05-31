@@ -11,58 +11,84 @@ GPU finished it's work.
 
 
 ## Build:
+
+### Dependencies
+- ROCm >= v5.4.3
+- python >= 3.10
+- cmake >= 3.20
+
 First set your `ROCM_PATH` environment variable to point to your desired install of ROCm.
-If you only have one installed version or the `/opt/rocm` link exists you might be able to skip this step. 
-```
+If you only have one installed version or the `/opt/rocm` sym-link exists you might be able to skip this step. 
+```sh
 mkdir build && cd build
-cmake -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -S../ -B./ -G "Unix Makefiles"
-make trace trace-device scabbard verif instr
+cmake ../
+make scabbard trace trace-device verif instr intercept
 ```
 
-## Run:
+## Using scabbard:
 
-### Instrument source during build
-For now you will have to manually build include the instrumenter in your build script 
-(only hipcc and clang are currently supported), 
-as well as define a few environment variables.
+> #### For Best results
+>  1. Define the `SCABBARD_PATH` environment variable for your situation
+>     | situation:          | `SCABBARD_PATH` value:                   |
+>     |:-------------------:|:----------------------------------------:|
+>     | local build only    | `<path-to-scabbard-repo>/build/scabbard` |
+>     | installed _(alpha)_ | `$ROCM_PATH/scababrd`                    |
+>  2. Add an alias for the scabbard interface. _i.e._
+>     ```sh
+>     alias scabbard=$SCABBARD_PATH/scabbard
+>     ```
 
-|  Env Variable:  | Description:                                             | Example:          |
-|:---------------:|:---------------------------------------------------------|:------------------|
-| `SCABBARD_PATH` | path to the libtrace install directory                   | `build/libtrace`  |
-|   `ROCM_PATH`   | path to desired version of ROCm installed on your system | `/opt/rocm-5.4.3` |
+<br/>
 
-To do this use the `-fpass-plugin` flag, and the `-L` & `-l` flags as follows 
-(the `-g` flag is required if you want file and line number on where races occur at):
-```
-$ROCM_PATH/bin/hipcc -fpass-plugin=<plugin-dynlib-path> -L<path-to-libtrace-dir> -ltrace -g ...
-```
-If you're doing this from the top level of the scabbard project directory with it built into the build dir the command will look something like this:
-```
-# EXAMPLE:
-$ROCM_PATH/bin/hipcc -fpass-plugin=build/instr/libinstr.so -Lbuild/libtrace -ltrace -g -std=c++17 -o test/test.instr.out test/test.cpp
-```
+> **NOTE:**
+> using `scabbard -h` will provide basic instructions on how to use the scabbard interface
 
-You can also look at [`test/test.sh`](./test/test.sh) for an example that is NOT system or shell agnostic.
+### 1. Instrument source during build
 
-
-### Run instrumented executable
-To run an instrumented executable you will want to define a few environment variables to ensure that the
-instrumented code has some context.
-It is technically optional but highly encouraged to provide define these Env Vars
-|          Env Variable:           | Description:                                                                                                                                                                                                                                                                                                                                   | Example:                   |
-|:--------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------------------------|
-| `SCABBARD_INSTRUMENTED_EXE_NAME` | path to the instrumented executable you are about to run (used to give context to outputted trace file)                                                                                                                                                                                                                                        | `test/test.instr.out`      |
-|      `SCABBARD_TRACE_FILE`       | the location the outputted trace file will be written to (if `SCABBARD_INSTRUMENTED_EXE_NAME` is already defined and `SCABBARD_TRACE_FILE` is NOT defined it will output in your **current** directory with a name derived from the base name of your executable, and if neither are defined it will output to `./unknown-exe.scabbard.trace`) | `test/test.scabbard.trace` |
-
-After defining these variables using the `export` directive in your shell or however you decide to do it, execute your instrumeted executable as normal, and the trace file should generate.
-
-
-### Analyze and Verify the trace file
-Use scabbards `verif` tool on your trace file to perform a data race analysis on it.
-
-The `verif` tool only takes one parameter and that is the path to a trace file.
-```
-build/verif/verif <path-to-trace-file>
+Use the scabbard tool to build your project.
+To do this just use the `scabbard instr` tool to launch whatever your build system is.
+```sh
+scabbard instr --meta-file=../\<proj-name\>.scabbard.meta \<your-build command here\>
 ```
 
-It will analyse the trace file and inform you of any data races that occurred AND any places where you have not put in place the proper syncs/guards regardless of if an actual data race occurred.  
+It is recommended to provide a `--meta-file` to scabbard so that you know where scababrd ends up 
+generating teh metadata file that the verify step will use to inform you where in your source code
+the data races are linked to.
+If you don't provide this it will create a file called `anon.scabbard.meta` in your current working directory instead. 
+
+#### For cmake:
+Use scabbard to launch the build not the configuration process.
+(_i.e._ use scabbard on your `make`, `ninja`, `MSBuild` command not the cmake configuration step )
+```sh
+mkdir build ; cd build
+cmake ../ # and whatever else you need to configure your project
+# here is where it is different
+scabbard instr --meta-file=../\<proj-name\>.scabbard.meta make all
+```
+
+
+### 2. Run instrumented executable and generate a trace file
+
+Use `scabbard trace` to configure the launch environment and produce a trace file to analyze in the next step.
+ 
+```sh
+scabbard trace --trace-file=\<proj-name\>.scabbard.trace \<instrumented-exe\> \<whatever-args-your-exe-needs\>
+```
+
+It is recommended to provide a `--trace-file` so you know where the trace file will be generated at.
+If you don't it will default to `\<instrumented-exe\>.scabbard.trace` wherever that is on your machine.
+
+
+
+### 3. Analyze and Verify the trace file
+
+Now to get a list of data races and places in your code where data races didn't occur (this time) 
+but could occur.
+You must run the `scabbard verif` tool on the trace file generated in step 2.
+The tool using the metadata file produced in step 1 will tell you where in your source code
+the data race occurred.
+
+```sh
+scabbard verif \<meta-file\> \<trace-file\>
+```
+
