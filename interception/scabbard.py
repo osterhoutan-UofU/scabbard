@@ -36,7 +36,9 @@ def runBuildCommand(params: list) -> None:
 
     try:
         cmdOutput = subprocess.run(' '.join(params), shell=True, check=True, env=env)
+        os.remove(env['SCABBARD_METADATA_FILE']+".lock")
     except Exception as e:
+        os.remove(env['SCABBARD_METADATA_FILE']+".lock")
         prRed(e)
         raise RuntimeError('Error when running scabbard.intercept on a build command') from e
 

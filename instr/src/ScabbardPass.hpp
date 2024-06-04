@@ -56,7 +56,7 @@ namespace instr {
     // std::vector<std::tuple<llvm::Function*,llvm::Function*,llvm::MDNode*>> to_replace;
     std::vector<std::tuple<llvm::Function*,llvm::Function*>> to_replace;
 
-    MetadataHandler& metadata;
+    MetadataHandler metadata;
 
     struct {
         llvm::FunctionCallee scabbard_init;
@@ -83,7 +83,8 @@ namespace instr {
 
   public:
 
-    ScabbardPassPlugin(MetadataHandler& metadataHandler_);
+    ScabbardPassPlugin();
+    // ScabbardPassPlugin(MetadataHandler& metadataHandler_);
     // ScabbardPassPlugin(const std::string& InstrLibLoc);
     // ~ScabbardPassPlugin() = default;
 

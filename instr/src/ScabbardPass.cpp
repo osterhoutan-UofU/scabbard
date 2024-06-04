@@ -37,9 +37,16 @@
 namespace scabbard {
   namespace instr {
 
+    auto get_meta_file_from_env() -> std::string {
+      const char* _META_FILE = std::getenv("SCABBARD_METADATA_FILE");
+      return ((_META_FILE) 
+                ? std::string(_META_FILE) 
+                : std::string("./anon.scabbard.meta"));
+    }
 
-    ScabbardPassPlugin::ScabbardPassPlugin(MetadataHandler& metadata_)
-      : metadata(metadata_)
+
+    ScabbardPassPlugin::ScabbardPassPlugin()
+      : metadata(get_meta_file_from_env())
     {}
 
     // ScabbardPassPlugin::ScabbardPassPlugin() {}
@@ -227,9 +234,7 @@ namespace scabbard {
               llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
                   llvm::IntegerType::get(M.getContext(), sizeof(InstrData) * 8),
                   llvm::PointerType::get(M.getContext(), 0u), //WARN: This constant 0u might need to be dynamicly decided for host modules
-                  llvm::PointerType::get(M.getContext(), 0u), //WARN: This constant 0u might need to be dynamicly decided for host modules
-                  llvm::IntegerType::get(M.getContext(), 32u),
-                  llvm::IntegerType::get(M.getContext(), 32u)
+                  llvm::IntegerType::get(M.getContext(), 64u)
                 }),
               false
             )
@@ -241,9 +246,7 @@ namespace scabbard {
               llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
                   llvm::IntegerType::get(M.getContext(), sizeof(InstrData) * 8),
                   llvm::PointerType::get(M.getContext(), 0u), //WARN: This constant 0u might need to be dynamicly decided for host modules
-                  llvm::PointerType::get(M.getContext(), 0u), //WARN: This constant 0u might need to be dynamicly decided for host modules
-                  llvm::IntegerType::get(M.getContext(), 32u),
-                  llvm::IntegerType::get(M.getContext(), 32u),
+                  llvm::IntegerType::get(M.getContext(), 64u),
                   llvm::IntegerType::get(M.getContext(), 64u)
                 }),
               false
@@ -265,7 +268,8 @@ namespace scabbard {
               llvm::Type::getVoidTy(M.getContext()),
               llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
                   llvm::PointerType::getUnqual(M.getContext()),
-                  llvm::PointerType::getUnqual(M.getContext())
+                  llvm::PointerType::getUnqual(M.getContext()),
+                  llvm::IntegerType::get(M.getContext(), 64u)
                 }),
               false
             )
@@ -351,7 +355,7 @@ namespace scabbard {
     {
       if (not (data & InstrData::ON_DEVICE)) // make sure this is supposed to be instrumented on device
         return;
-      auto loc = metadata.trace(F, I.getDebugLoc(), true);
+      auto loc = metadata.trace(F, I.getDebugLoc(), ModuleType::DEVICE);
       auto ci = llvm::CallInst::Create(
           device.trace_append$mem,
           llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,6>{
@@ -361,9 +365,7 @@ namespace scabbard {
                   llvm::APInt(sizeof(InstrData)*8, data)
                 ),
               V,
-              loc.src_id_ptr,
-              loc.getLineAsConstant(F.getContext()),
-              loc.getColAsConstant(F.getContext())
+              loc.get_as_constant(F.getContext())
             })
         );
       if (InsertAfter)
@@ -527,7 +529,7 @@ namespace scabbard {
     {
       if (not (data & InstrData::ON_HOST)) // make sure this is supposed to be instrumented on device
         return;
-      auto loc = metadata.trace(F, I.getDebugLoc(), false);
+      auto loc = metadata.trace(F, I.getDebugLoc(), ModuleType::HOST);
       auto ci = llvm::CallInst::Create(
           ((data & InstrData::_RUNTIME_CONDITIONAL) ? host.trace_append$mem$cond : host.trace_append$mem),
           llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,5>{
@@ -536,9 +538,7 @@ namespace scabbard {
                   llvm::APInt(sizeof(InstrData)*8, data)
                 ),
               V,
-              loc.src_id_ptr,
-              loc.getLineAsConstant(F.getContext()),
-              loc.getColAsConstant(F.getContext())
+              loc.get_as_constant(F.getContext())
             })
         );
       if (InsertAfter)
@@ -774,7 +774,8 @@ namespace scabbard {
           host.register_job_callback.getCallee(),
           llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,2>{
               regFn,
-              CI.getArgOperand(7)
+              CI.getArgOperand(7),
+              //TODO get metadata location for kernel launch (tricky since it will often point inside hip lib)
             })
         );
       regCbFn->insertAfter(&CI);

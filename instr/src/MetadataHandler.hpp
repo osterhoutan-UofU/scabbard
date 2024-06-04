@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include <scabbard/MetadataIO.hpp>
+
 #include <llvm/IR/Function.h>
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/IR/Constants.h>
@@ -29,68 +31,35 @@ namespace scabbard {
 
 
     struct LocResult {
-      llvm::GlobalVariable* src_id_ptr = nullptr;
-      std::uint32_t line;
-      std::uint32_t col;
-      llvm::Constant* getLineAsConstant(llvm::LLVMContext& CTX) const;
-      llvm::Constant* getColAsConstant(llvm::LLVMContext& CTX) const;
+      uint64_t srcID;
+      llvm::Constant* get_as_constant(llvm::LLVMContext& CTX) const;
     };
 
-
-    struct MetadataStore {
-      /// @brief the filepath to the src in question
-      const std::string src_path;
-      llvm::StringSet<> in_modules;
-      /// @brief boolean of if this source file is referenced in the host module
-      bool on_host = false;
-      /// @brief boolean of if this source file is referenced in the host module
-      bool on_device = false;
-      /// @brief the id in a hexidecimal string format (omitting the `0x` prefix, min 4 chars)
-      const std::string hex_id_str;
-      /// @brief the src id string
-      const size_t id;
-      MetadataStore(const std::string& src_path_, size_t id_); 
-      /**
-       * @brief Get the hexidecimal string representation of the provided \param val
-       * @param val \c size_t - the unsigned integer version of the number to convert
-       * @return \c std::string - the resulting hexidecimal string
-       */
-      static std::string get_hex_str(size_t val);
-      /**
-       * @brief Get a string containing the variable name for a source id global variable
-       * @param is_device \c bool - if this is for a device module or a host module
-       * @return \c std::string - the name of the variable
-       */
-      std::string get_var_name(bool is_device) const;
-      /**
-       * @brief Get a string containing the name for the variable that contains the string holding the source file data
-       */
-      std::string get_str_var_name() const;
-    };
 
     class MetadataHandler {
 
-      typedef std::unordered_map<std::string,MetadataStore> MetadataMap;
+      const std::string metadata_file;
+      const std::string metadata_file_lock_file;
 
-      MetadataMap traced_files;
+      MetadataJSONFile_t metadata;
       size_t next = 0ul;
-      
-      std::mutex mut;
 
     public:
 
-      LocResult trace(llvm::Function& F, const llvm::DebugLoc& DI, bool is_device);
+      MetadataHandler(const std::string& metadata_file_)
+        : metadata_file(metadata_file_), metadata_file_lock_file(metadata_file_+".lock")
+      {}
 
-      const MetadataMap& getMetadataMap() const { return traced_files; }
+      LocResult trace(llvm::Function& F, const llvm::DebugLoc& DI, const ModuleType MOD_TY);
+
 
     protected:
 
-      llvm::GlobalVariable* _trace_scope(llvm::Function& F, const llvm::DIScope* DI, bool is_device);
-      llvm::GlobalVariable* _trace_file(llvm::Function& F, const llvm::DIFile* DI, bool is_device);
+      LocResult _trace_scope(llvm::Function& F, const llvm::DebugLoc& DIL, const llvm::DIScope* DIS, const ModuleType MOD_TY);
+      LocResult _trace_file(llvm::Function& F, const llvm::DebugLoc& DIL, const llvm::DIFile* DIF, const ModuleType MOD_TY);
 
 
     private:
-      llvm::GlobalVariable* encode_variables(MetadataStore& data, llvm::Module& M, bool is_device);
 
     };
 
