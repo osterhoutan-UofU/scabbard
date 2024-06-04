@@ -151,7 +151,7 @@ inline const T& reading_cast(const char* buffer, const std::size_t index, const 
 
 
 struct TraceData {
-  using LocMData_t = ::scabbard::LocationMetadata;
+
 # ifdef __scabbard_hip_compile
   //DATA TYPE   NAME          DEFAULT VALUE          SIZE       W/PADDING (64b arch)
   std::size_t   time_stamp  = 0ul;                //  8B ( 64b)  8B ( 64b)
@@ -187,7 +187,7 @@ struct TraceData {
   __device__ TraceData(const std::size_t time_stamp_, InstrData data_, 
                         const jobId_t& JOB_ID, const dim3& blockId_, const dim3 threadId_,
                         const void* ptr_, 
-                        const std::size_t src_id,
+                        const std::uint64_t metadata_,
                         const std::size_t size_=0ul)
     : time_stamp(time_stamp_), data(data_), threadId(JOB_ID, blockId_, threadId_),
       ptr(ptr_), metadata(metadata_), _OPT_DATA(size_)

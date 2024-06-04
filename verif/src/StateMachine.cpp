@@ -177,7 +177,7 @@ namespace verif {
     }
   }
 
-  inline bool operator == (const StateMachine::Result& L, const StateMachine::Result& R) const
+  inline bool operator == (const StateMachine::Result& L, const StateMachine::Result& R)
   {
     return ( (L.status == R.status)
         && ((L.read && R.read) ? L.read->metadata == R.read->metadata : L.read == R.read)

@@ -17,7 +17,7 @@
 #endif
 
 #include "TraceWriter.hpp"
-#include "MetadataStrore.hpp"
+// #include "MetadataStrore.hpp"
 #include "calls.hpp"
 #include "DeviceTracker.hpp"
 

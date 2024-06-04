@@ -67,7 +67,7 @@ namespace scabbard {
     {
       // if (__hip_gpubin_handle == nullptr)
       //   __hip_gpubin_handle = __hipRegisterFatBinary(__hip_fatbin_wrapper);
-      scabbard_src_id = metadata_register$src("<scabbard.trace>");
+      // scabbard_src_id = metadata_register$src("<scabbard.trace>");
       const char* _EXE_NAME = std::getenv("SCABBARD_INSTRUMENTED_EXE_NAME");
       const std::string EXE_NAME = ((_EXE_NAME)
                                     ? std::string(_EXE_NAME)
@@ -177,7 +177,7 @@ namespace scabbard {
     namespace host {
 
       __host__ 
-      void trace_append$mem(InstrData data, const void* PTR, const std::uint64_t SRC_ID)
+      void trace_append$mem(const InstrData data, const void* PTR, const std::uint64_t SRC_ID)
       {
         TRACE_LOGGER.append(
             TraceData(
@@ -215,7 +215,7 @@ namespace scabbard {
       }
 
       __host__ 
-      void trace_append$alloc(InstrData data, const void* PTR, const std::uint64_t SRC_ID, std::size_t size)
+      void trace_append$alloc(const InstrData data, const void* PTR, const std::uint64_t SRC_ID, const std::size_t SIZE)
       {
         TRACE_LOGGER.append(
             TraceData(
@@ -225,7 +225,7 @@ namespace scabbard {
                 ThreadId(),
                 PTR,
                 SRC_ID,
-                size
+                SIZE
               )
           );
       }

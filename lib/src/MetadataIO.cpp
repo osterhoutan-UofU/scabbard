@@ -9,7 +9,7 @@
  * 
  */
 
-#include <scabbard/MetaReader.hpp>
+#include <scabbard/MetadataIO.hpp>
 
 #include <nlohmann/json.hpp>
 
@@ -82,7 +82,7 @@ void write_metadata_file(const std::string& filepath, const MetadataJSONFile_t& 
 
   std::ofstream* _output;
   try {
-    _input = new std::ofstream(filepath, std::ios::out | std::ios::trunc);
+    _output = new std::ofstream(filepath, std::ios::out | std::ios::trunc);
   } catch (std::exception ex) {
     std::cerr << "\n[scabbard.lib.meta:ERR] could not open metadata file (`" << filepath <<"`) to write to it!" 
                  "\n[scabbard.lib.meta:ERR]   error msg: `" << ex.what() << "`\n"  << std::flush;

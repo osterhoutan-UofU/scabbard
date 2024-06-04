@@ -41,7 +41,7 @@ namespace scabbard {
 
 
     __host__
-    void TraceWriter::init(const std::string& executable_path, std::time_t time_stamp, const MetadataStore& metadata)
+    void TraceWriter::init(const std::string& executable_path, std::time_t time_stamp)
     {
       if (not out.is_open()) {
         std::cerr << "\n[scabbard::trace::writer::ERROR] could not initiate trace file if it is not open!\n"
@@ -68,18 +68,20 @@ namespace scabbard {
       out.write(executable_path.c_str(), EXE_PATH_LEN);
       out.write(BUF, EXE_PATH_LEN % WORD_LEN); // string end buffer
 
-      // write links to metadata table and end of trace table (recorded in finalize)
-      const auto& srcs = *metadata.get_srcs();
-      std::cerr << "\n[scabbard:trace:dbg] src's registered at this point: " << srcs.size() << std::endl;
-      // record number of entries in the table
-      uint64_t num_buf = srcs.size();
-      out.write(reinterpret_cast<const char*>(&num_buf), sizeof(uint64_t));
-      for (auto src : srcs) {
-        num_buf = src.size()+1;
-        out.write(reinterpret_cast<const char*>(&num_buf), sizeof(uint64_t));
-        out.write(src.c_str(), src.size());
-        out.write(BUF, 1ul); // write null at end of string for separation
-      }
+      // // write links to metadata table and end of trace table (recorded in finalize)
+      // const auto& srcs = *metadata.get_srcs();
+      // std::cerr << "\n[scabbard:trace:dbg] src's registered at this point: " << srcs.size() << std::endl;
+      // // record number of entries in the table
+      // uint64_t num_buf = srcs.size();
+      // out.write(reinterpret_cast<const char*>(&num_buf), sizeof(uint64_t));
+      // for (auto src : srcs) {
+      //   num_buf = src.size()+1;
+      //   out.write(reinterpret_cast<const char*>(&num_buf), sizeof(uint64_t));
+      //   out.write(src.c_str(), src.size());
+      //   out.write(BUF, 1ul); // write null at end of string for separation
+      // }
+      // out.write(BUF, ((std::streamoff)out.tellp()) % WORD_LEN); // word align for next section
+
       // // record the jump table for the source files
       // assert((sizeof(std::streamoff) == WORD_LEN) && "stream offset is the right size to be written");
       // std::streamoff pos = ((std::streamoff)out.tellp()) + (std::streamoff)(WORD_LEN*(srcs.size()+1));
@@ -95,15 +97,15 @@ namespace scabbard {
       //   std::cerr << "\n[scabbard:trace:dbg] encoding src file: `" << src << "`\n";
       // }
       // std::cerr << std::endl;
-      out.write(BUF, ((std::streamoff)out.tellp()) % WORD_LEN); // word align for next section
+      // out.write(BUF, ((std::streamoff)out.tellp()) % WORD_LEN); // word align for next section
       
     }
 
     __host__
-    void TraceWriter::finalize(const MetadataStore& metadata)
+    void TraceWriter::finalize()
     {
-      std::cerr << "\n[scabbard:trace:dbg] scabbard::trace::TraceWriter::finalize() was reached!"
-                   "\n[scabbard:trace:dbg] src's registered at this point: " << metadata.get_srcs()->size() << std::endl;
+      // std::cerr << "\n[scabbard:trace:dbg] scabbard::trace::TraceWriter::finalize() was reached!"
+      //              "\n[scabbard:trace:dbg] src's registered at this point: " << metadata.get_srcs()->size() << std::endl;
       // std::streamoff trace_end = out.tellp();
       // const auto& srcs = *metadata.get_srcs();
       // // record the jump table for the source files

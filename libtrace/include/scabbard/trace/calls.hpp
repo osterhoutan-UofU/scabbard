@@ -42,10 +42,10 @@ namespace scabbard {
     namespace device {
       
       __device__ __noinline__
-      void trace_append$mem(void* deviceTracker, InstrData data, const void* PTR, const std::uint64_t SRC_ID) 
+      void trace_append$mem(void* deviceTracker, const InstrData data, const void* PTR, const std::uint64_t SRC_ID) 
         asm (SCABBARD_DEVICE_CALLBACK_APPEND_MEM_NAME);
       __device__ 
-      void trace_append$alloc(void* deviceTracker, InstrData data, const void* PTR, const std::uint64_t SRC_ID, std::size_t size) 
+      void trace_append$alloc(void* deviceTracker, const InstrData data, const void* PTR, const std::uint64_t SRC_ID, const std::size_t SIZE) 
         asm (SCABBARD_DEVICE_CALLBACK_APPEND_ALLOC_NAME);
 
 
@@ -54,13 +54,13 @@ namespace scabbard {
     namespace host {
 
       __host__ 
-      void trace_append$mem(InstrData data, const void* PTR, const std::uint64_t SRC_ID) 
+      void trace_append$mem(const InstrData data, const void* PTR, const std::uint64_t SRC_ID) 
         asm (SCABBARD_HOST_CALLBACK_APPEND_MEM_NAME);
       __host__ 
       void trace_append$mem$cond(InstrData data, const void* PTR, const std::uint64_t SRC_ID) 
         asm (SCABBARD_HOST_CALLBACK_APPEND_MEM_COND_NAME);
       __host__ 
-      void trace_append$alloc(InstrData data, const void* PTR, const std::uint64_t SRC_ID) 
+      void trace_append$alloc(const InstrData data, const void* PTR, const std::uint64_t SRC_ID, const std::size_t SIZE) 
         asm (SCABBARD_HOST_CALLBACK_APPEND_ALLOC_NAME);
       
     } // namespace host
