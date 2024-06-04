@@ -158,15 +158,15 @@ struct TraceData {
   InstrData     data        = InstrData::NEVER;   //  2B ( 16b)  8B ( 64b)
   ThreadId      threadId    = ((void*)nullptr);   // 24B (192b) 24B (192b)
   const void*   ptr         = nullptr;            //  8B ( 64b)  8B ( 64b)
-  LocMData_t    metadata    = {0ul,0ul,0ul};      // 16B (128b) 16B (128b)
+  std::uint64_t metadata    = 0ul;                //  8B ( 64b)  8B ( 64b)
   std::size_t   _OPT_DATA   = 0ul;                //  8B ( 64b)  8B ( 64b)
-  //                                        TOTALS:  66B (528b) 72B (576b) (91.66% data occupancy)
+  //                                        TOTALS:  58B (464b) 64B (512b) (90.06% data occupancy)
 # else
   std::size_t   time_stamp  = 0ul;
   InstrData     data        = InstrData::NEVER;
   ThreadId      threadId    = ((void*)nullptr);
   std::size_t   ptr         = 0ul;
-  LocMData_t    metadata    = {0ul,0ul,0ul};
+  std::uint64_t metadata    = 0ul;
   std::size_t   _OPT_DATA   = 0ul;
 #endif
   // Constructors
@@ -187,10 +187,10 @@ struct TraceData {
   __device__ TraceData(const std::size_t time_stamp_, InstrData data_, 
                         const jobId_t& JOB_ID, const dim3& blockId_, const dim3 threadId_,
                         const void* ptr_, 
-                        const std::size_t src_id, std::uint32_t line, std::uint32_t col,
+                        const std::size_t src_id,
                         const std::size_t size_=0ul)
     : time_stamp(time_stamp_), data(data_), threadId(JOB_ID, blockId_, threadId_),
-      ptr(ptr_), metadata({src_id,line,col}), _OPT_DATA(size_)
+      ptr(ptr_), metadata(metadata_), _OPT_DATA(size_)
     {}
   // __host__ TraceData(InstrData data_, const void* ptr_, const LocMData_t& metadata_, std::size_t opt_data=0ul)
   //   : time_stamp(std::chrono::high_resolution_clock::now().time_since_epoch().count()),
@@ -198,7 +198,7 @@ struct TraceData {
   // {}
   __host__ 
   TraceData(size_t time_stamp_, InstrData data_, const ThreadId& threadId_,
-                    const void* ptr_, const LocMData_t& metadata_, std::size_t opt_data)
+                    const void* ptr_, const size_t metadata_, std::size_t opt_data)
     : time_stamp(time_stamp_), data(data_), threadId(threadId_),
       ptr(ptr_), metadata(metadata_), _OPT_DATA(opt_data)
   {}

@@ -185,11 +185,11 @@ namespace scabbard {
     }
 
 
-    __host__ 
-    std::uint64_t AsyncQueue::register_src(const char* src)
-    {
-      return metadata.register_src(src);
-    }
+    // __host__ 
+    // std::uint64_t AsyncQueue::register_src(const char* src)
+    // {
+    //   return metadata.register_src(src);
+    // }
 
 
     // << ========================================================================================== >> 

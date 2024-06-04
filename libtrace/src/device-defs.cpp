@@ -43,13 +43,13 @@ namespace scabbard {
       // }
       
       __device__ __noinline__
-      void trace_append$mem(void* deviceTracker, InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col)
+      void trace_append$mem(void* deviceTracker, InstrData data, const void* PTR, const std::uint64_t SRC_ID)
       {
         DeviceTracker& DT = *((DeviceTracker*) deviceTracker);
         DT.buffer[(DT.next++) % SCABBARD_DEVICE_TRACKER_BUFF_LENGTH] = TraceData(DT.vClk++, data,
                                                                                   DT.JOB_ID, blockIdx, threadIdx,
                                                                                   PTR, 
-                                                                                  *src_id, line, col, 
+                                                                                  SRC_ID, 
                                                                                   0ul);
         // const size_t lId = getLaneId();
         // auto& _tmp0 = DEVICE_TRACE_LOGGER->data;
@@ -65,13 +65,13 @@ namespace scabbard {
       }
 
       __device__ __noinline__
-      void trace_append$alloc(void* deviceTracker, InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col, std::size_t size)
+      void trace_append$alloc(void* deviceTracker, InstrData data, const void* PTR, const std::uint64_t SRC_ID, std::size_t size)
       {
         DeviceTracker& DT = *((DeviceTracker*) deviceTracker);
         DT.buffer[(DT.next++) % SCABBARD_DEVICE_TRACKER_BUFF_LENGTH] = TraceData(DT.vClk++, (InstrData)(data | InstrData::_OPT_USED),
                                                                                   DT.JOB_ID, blockIdx, threadIdx,
                                                                                   PTR, 
-                                                                                  *src_id, line, col, 
+                                                                                  SRC_ID, 
                                                                                   size);
       }
 

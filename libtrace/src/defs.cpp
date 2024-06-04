@@ -114,18 +114,18 @@ namespace scabbard {
     }
 
 
-    __host__ 
-    std::uint64_t metadata_register$src(const char* src_file) 
-    {
-      return TRACE_LOGGER.register_src(src_file);
-    }
+    // __host__ 
+    // std::uint64_t metadata_register$src(const char* src_file) 
+    // {
+    //   return TRACE_LOGGER.register_src(src_file);
+    // }
 
 
-    __host__
-    void* register_job(const hipStream_t STREAM)
-    {
-      return ((void*) TRACE_LOGGER.add_job(STREAM));
-    }
+    // __host__
+    // void* register_job(const hipStream_t STREAM)
+    // {
+    //   return ((void*) TRACE_LOGGER.add_job(STREAM));
+    // }
 
     __host__
     void scabbard_stream_callback(hipStream_t stream, hipError_t status, void* dt_)
@@ -140,7 +140,7 @@ namespace scabbard {
     }
 
     __host__
-    void register_job_callback(void* dt_, hipStream_t stream)
+    void register_job_callback(void* dt_, hipStream_t stream, const std::uint64_t SRC_ID)
     {
       //TODO amend this to pass in instrumented src id, line and col metadata
       device::DeviceTracker* dt = (device::DeviceTracker*) dt_;
@@ -153,7 +153,7 @@ namespace scabbard {
       host::trace_append$alloc(
           (InstrData)(InstrData::LAUNCH_EVENT | InstrData::ON_HOST | InstrData::_OPT_USED),
           stream,
-          &scabbard_src_id, 153u,7u,
+          SRC_ID,
           dt->JOB_ID.JOB
         );
     }
@@ -177,7 +177,7 @@ namespace scabbard {
     namespace host {
 
       __host__ 
-      void trace_append$mem(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col)
+      void trace_append$mem(InstrData data, const void* PTR, const std::uint64_t SRC_ID)
       {
         TRACE_LOGGER.append(
             TraceData(
@@ -185,14 +185,14 @@ namespace scabbard {
                 data,
                 ThreadId(), 
                 PTR, 
-                LocationMetadata{*src_id, line,col},
+                SRC_ID,
                 0ul
               )
           );
       }
 
       __host__ 
-      void trace_append$mem$cond(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col)
+      void trace_append$mem$cond(InstrData data, const void* PTR, const std::uint64_t SRC_ID)
       {
         hipPointerAttribute_t attrs;
         const auto status = hipPointerGetAttributes(&attrs,PTR);
@@ -204,7 +204,7 @@ namespace scabbard {
           } else {
             data |= InstrData::DEVICE_HEAP;
           }
-          trace_append$mem(data,PTR, src_id, line,col);
+          trace_append$mem(data, PTR, SRC_ID);
         } else {
           std::cerr << "\n[scabbard::trace::cond::ERROR] could not get the properties of a pointer with `hipPointerGetAttributes()`!\n"
                     << std::endl;
@@ -215,7 +215,7 @@ namespace scabbard {
       }
 
       __host__ 
-      void trace_append$alloc(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col, std::size_t size)
+      void trace_append$alloc(InstrData data, const void* PTR, const std::uint64_t SRC_ID, std::size_t size)
       {
         TRACE_LOGGER.append(
             TraceData(
@@ -224,7 +224,7 @@ namespace scabbard {
                 (data | InstrData::_OPT_USED),
                 ThreadId(),
                 PTR,
-                LocationMetadata{*src_id, line,col},
+                SRC_ID,
                 size
               )
           );

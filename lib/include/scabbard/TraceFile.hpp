@@ -37,8 +37,6 @@ struct TraceFile {
 
   std::multiset<TraceData> trace_data;
 
-  std::vector<std::string> src_files;
-
 };
 
 } //?namespace scabbard

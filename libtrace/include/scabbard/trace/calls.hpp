@@ -42,10 +42,10 @@ namespace scabbard {
     namespace device {
       
       __device__ __noinline__
-      void trace_append$mem(void* deviceTracker, InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col) 
+      void trace_append$mem(void* deviceTracker, InstrData data, const void* PTR, const std::uint64_t SRC_ID) 
         asm (SCABBARD_DEVICE_CALLBACK_APPEND_MEM_NAME);
       __device__ 
-      void trace_append$alloc(void* deviceTracker, InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col, std::size_t size) 
+      void trace_append$alloc(void* deviceTracker, InstrData data, const void* PTR, const std::uint64_t SRC_ID, std::size_t size) 
         asm (SCABBARD_DEVICE_CALLBACK_APPEND_ALLOC_NAME);
 
 
@@ -54,13 +54,13 @@ namespace scabbard {
     namespace host {
 
       __host__ 
-      void trace_append$mem(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col) 
+      void trace_append$mem(InstrData data, const void* PTR, const std::uint64_t SRC_ID) 
         asm (SCABBARD_HOST_CALLBACK_APPEND_MEM_NAME);
       __host__ 
-      void trace_append$mem$cond(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col) 
+      void trace_append$mem$cond(InstrData data, const void* PTR, const std::uint64_t SRC_ID) 
         asm (SCABBARD_HOST_CALLBACK_APPEND_MEM_COND_NAME);
       __host__ 
-      void trace_append$alloc(InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t, std::size_t size) 
+      void trace_append$alloc(InstrData data, const void* PTR, const std::uint64_t SRC_ID) 
         asm (SCABBARD_HOST_CALLBACK_APPEND_ALLOC_NAME);
       
     } // namespace host
@@ -82,7 +82,7 @@ namespace scabbard {
      *        and rebalance the logical vector clock.
      */
     __host__
-    void register_job_callback(void* dt, hipStream_t stream)
+    void register_job_callback(void* dt, hipStream_t stream, const std::uint64_t SRC_ID)
       asm (SCABBARD_CALLBACK_REGISTER_JOB_CALLBACK);
 
 
@@ -90,17 +90,17 @@ namespace scabbard {
      * @brief register a source file at the requested hash key 
      *        to store the metadata in a runtime friendly way
      */
-    __host__
-    std::uint64_t metadata_register$src(const char* src_file)
-        asm (SCABBARD_CALLBACK_REGISTER_SRC_NAME);
+    // __host__
+    // std::uint64_t metadata_register$src(const char* src_file)
+    //     asm (SCABBARD_CALLBACK_REGISTER_SRC_NAME);
     
     /**
      * @brief unregister a source file at the requested hash key 
      *        to store the metadata in a runtime friendly way
      */
-    __host__
-    void metadata_unregister$src(std::size_t src_key) 
-          asm (SCABBARD_CALLBACK_UNREGISTER_SRC_NAME);
+    // __host__
+    // void metadata_unregister$src(std::size_t src_key) 
+    //       asm (SCABBARD_CALLBACK_UNREGISTER_SRC_NAME);
 
     // /**
     //  * @brief register a location in a source file at the requested hash key 

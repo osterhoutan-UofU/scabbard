@@ -19,14 +19,24 @@ namespace verif {
   {}
 
 
-  std::unordered_set<StateMachine::Result> StateMachine::run()
+  inline void add_result(std::map<StateMachine::Result, std::size_t>& results, const StateMachine::Result& res)
+  {
+    auto it = results.find(res);
+    if (it == results.end()) // case not encountered yet
+      results.insert(std::make_pair(res,1ul));
+    else                     // case encountered before
+      results[res] += 1ul;
+  }
+
+
+  std::map<StateMachine::Result, std::size_t> StateMachine::run()
   {
     const InstrData FILTER = (
         InstrData::SYNC_EVENT | InstrData::DESYNC_EVENT
         | InstrData::READ | InstrData::WRITE
         | InstrData::ALLOCATE | InstrData::FREE
       );
-    std::unordered_set<StateMachine::Result> results;
+    std::map<StateMachine::Result, std::size_t> results;
     size_t dbg_i = 0u; //DEBUG
     size_t dbg_j = 0u; //DEBUG
     size_t dbg_k = 0u; //DEBUG
@@ -59,7 +69,7 @@ namespace verif {
           } else if (not (it->second->data & InstrData::READ)) { // OR the last operation on the mem space was a read 
             mem[td.ptr] = &td;
           } else { // This is probably a race  //NOTE: expand this to search for read times compared to last desync event? (after ending mem wipes during free events)
-            return {{ERROR, it->second, &td, "Data Written to after it was Read from"}};
+            add_result(results,{ERROR, it->second, &td, "Data Written to after it was Read from"});
           }
           break;
 
@@ -68,14 +78,14 @@ namespace verif {
           if (it == mem.end()) {// read with no preceding write
             if ((td.data & InstrData::_RUNTIME_CONDITIONAL) && (td.data & InstrData::HOST_HEAP)) // if the memory location was conditional and verified to be on the heap
               break;  // it is not likely to be relevant to the gpu; skip it
-            results.insert({WARNING, &td, nullptr, "Read with no preceding/matching Write"}); // read with no preceding write
+            add_result(results,{WARNING, &td, nullptr, "Read with no preceding/matching Write"}); // read with no preceding write
             mem[td.ptr] = &td;
             break;
           } else if (td.data & InstrData::_OPT_USED) { // bulk read (memcpy device to host)
             for (; it != mem.end() && it->second->ptr < td.ptr+td._OPT_DATA; ++it) {
               auto res = check_race_read(td, *it->second);
               if (res != GOOD) {
-                results.insert({res, &td, it->second, "Bulk Read/MemCpyAsync occurs before any identifiably relevant sync event"});
+                add_result(results,{res, &td, it->second, "Bulk Read/MemCpyAsync occurs before any identifiably relevant sync event"});
                 mem[it->second->ptr] = &td;
                 break; // goto switch_exit;
               }
@@ -83,7 +93,7 @@ namespace verif {
           } else { // single read
             auto res = check_race_read(td, *it->second);
               if (res != GOOD) {
-                results.insert({res, &td, it->second, "Read occurs before any identifiably relevant sync event"});
+                add_result(results,{res, &td, it->second, "Read occurs before any identifiably relevant sync event"});
                 mem[it->second->ptr] = &td;
                 break;
               }
@@ -98,7 +108,7 @@ namespace verif {
         case InstrData::FREE: {
           auto r = allocs.find(td.ptr);
           if (r == allocs.end())
-            return {{INTERNAL_ERROR, nullptr, nullptr, "\n[scabbard.verif:ERR] bad alloc data (could not find hipMalloc associated with hipFree in trace history)"}};
+            return {{{INTERNAL_ERROR, nullptr, nullptr, "\n[scabbard.verif:ERR] bad alloc data (could not find hipMalloc associated with hipFree in trace history)"}, 1ul}};
           for (it = mem.find(td.ptr); it != mem.end() && it->second->ptr < td.ptr+r->second; ++it)
             it = mem.erase(it);
             // mem.erase(it);
@@ -114,7 +124,7 @@ namespace verif {
       dbg_i++; //DEBUG
     }
     if (results.size() == 0)
-      return {{GOOD, nullptr, nullptr, std::to_string(dbg_i)}};
+      return {{{GOOD, nullptr, nullptr, std::to_string(dbg_i)},1ul}};
     return results;
   }
 
@@ -167,11 +177,21 @@ namespace verif {
     }
   }
 
-  inline bool operator == (const StateMachine::Result& L, const StateMachine::Result& R)
+  inline bool operator == (const StateMachine::Result& L, const StateMachine::Result& R) const
   {
     return ( (L.status == R.status)
         && ((L.read && R.read) ? L.read->metadata == R.read->metadata : L.read == R.read)
         && ((L.write && R.write) ? L.write->metadata == R.write->metadata : L.write == R.write)
+      );
+  }
+
+  inline bool StateMachine::Result::operator < (const StateMachine::Result& other) const
+  {
+    if (status > other.status)
+      return false;
+    return ( (status < other.status)
+        || ((read && other.read) && read->metadata < other.read->metadata)
+        || ((write && other.write) && write->metadata < other.write->metadata)
       );
   }
 
