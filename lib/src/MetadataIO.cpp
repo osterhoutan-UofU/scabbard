@@ -15,8 +15,20 @@
 
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 namespace scabbard {
+
+
+std::string to_string(const SrcMetadata& meta)
+{
+  std::stringstream out;
+  out << '[' << meta.modType << "] \"" << meta.srcFile << ':' << meta.line << ',' << meta.col << "\"";
+  return out.str();
+}
+
+
+// << ------------------------------------------------------------------------------------------ >> 
 
 
 MetadataJSONFile_t read_metadata_file(const std::string& filepath)

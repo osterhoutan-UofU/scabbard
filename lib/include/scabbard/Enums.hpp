@@ -27,7 +27,7 @@ namespace instr {
     NLOHMANN_JSON_SERIALIZE_ENUM( ModuleType, {
         {ModuleType::HOST, "HOST"},
         {ModuleType::DEVICE, "DEVICE"},
-        {ModuleType::UNKNOWN_MODULE, nullptr}
+        {ModuleType::UNKNOWN_MODULE, "<UNKNOWN_MODULE_TYPE>"}
     })
 
 } //?namespace instr

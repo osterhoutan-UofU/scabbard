@@ -52,7 +52,7 @@ static llvm::cl::opt<std::string> ScabbardLibOpt("scabbard-lib", llvm::cl::init(
 // <<                           NEW PASS-MANAGER PASS PLUGIN REGISTRY                            >> 
 // << ========================================================================================== >> 
 
-scabbard::instr::MetadataHandler metadata;
+// scabbard::instr::MetadataHandler metadata;
 
 /* New PM Registration */
 llvm::PassPluginLibraryInfo getScabbardPassPluginInfo() {

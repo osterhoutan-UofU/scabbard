@@ -581,13 +581,13 @@ namespace scabbard {
       const auto fnName = fn->getName();
       if (fnName == "hipStreamSynchronize" || fnName == "hipDeviceSynchronize") // make sure this is supposed to be instrumented on device
       {
-      auto loc = metadata.trace(F, CI->getDebugLoc(), false);
+      auto loc = metadata.trace(F, CI->getDebugLoc(), ModuleType::HOST);
       // auto ptrtoint = llvm::CastInst::Create(llvm::CastInst::CastOps::PtrToInt, 
       //                                         CI->getArgOperand(0), 
       //                                         llvm::IntegerType::getInt64PtrTy(F.getContext()));
       auto ci = llvm::CallInst::Create(
           host.trace_append$mem,
-          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,5>{
+          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,3>{
               llvm::ConstantInt::get(
                   llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
                   llvm::APInt(sizeof(InstrData)*8, InstrData::SYNC_EVENT)
@@ -595,29 +595,25 @@ namespace scabbard {
               ((fnName == "hipDeviceSynchronize") 
                 ? llvm::ConstantPointerNull::get(llvm::PointerType::get(F.getContext(), 0u))
                 : CI->getArgOperand(0u)), // ptrtoint
-              loc.src_id_ptr,
-              loc.getLineAsConstant(F.getContext()),
-              loc.getColAsConstant(F.getContext())
+              loc.get_as_constant(F.getContext())
             })
         );
         ci->insertAfter(CI);
       }
       else if (fnName == "hipMalloc")
       {
-        auto loc = metadata.trace(F, CI->getDebugLoc(), false);
+        auto loc = metadata.trace(F, CI->getDebugLoc(), ModuleType::HOST);
         if (auto _mem_loc = get_ptr_from_ptr(CI->getArgOperand(0u))) {
           auto mem_loc = new llvm::LoadInst(llvm::PointerType::get(F.getContext(),0u), _mem_loc, llvm::Twine(""), CI->getNextNode());
           auto ci = llvm::CallInst::Create(
               host.trace_append$alloc,
-              llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,6>{
+              llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,4>{
                   llvm::ConstantInt::get(
                       llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
                       llvm::APInt(sizeof(InstrData)*8, InstrData::ALLOCATE | InstrData::UNKNOWN_HEAP)
                     ),
                   mem_loc, // ptrtoint
-                  loc.src_id_ptr,
-                  loc.getLineAsConstant(F.getContext()),
-                  loc.getColAsConstant(F.getContext()),
+                  loc.get_as_constant(F.getContext()),
                   CI->getArgOperand(1u)
                 })
             );
@@ -627,18 +623,16 @@ namespace scabbard {
       }
       else if (fnName == "hipFree")
       {
-        auto loc = metadata.trace(F, CI->getDebugLoc(), false);
+        auto loc = metadata.trace(F, CI->getDebugLoc(), ModuleType::HOST);
         auto ci = llvm::CallInst::Create(
           host.trace_append$alloc,
-          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,6>{
+          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,4>{
               llvm::ConstantInt::get(
                   llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
                   llvm::APInt(sizeof(InstrData)*8, InstrData::FREE | InstrData::DEVICE_HEAP)
                 ),
               CI->getArgOperand(0u),
-              loc.src_id_ptr,
-              loc.getLineAsConstant(F.getContext()),
-              loc.getColAsConstant(F.getContext()),
+              loc.get_as_constant(F.getContext()),
               llvm::ConstantInt::get( // we can't contextually know how much is being free'd inline, but we can keep track like a normal allocator does 
                   llvm::IntegerType::get(F.getContext(), 64u),
                   llvm::APInt(64u, 0ul)
@@ -654,12 +648,12 @@ namespace scabbard {
       }
       else if (fnName == "hipMemcpy" || fnName == "hipMemcpyAsync")
       {
-        auto loc = metadata.trace(F, CI->getDebugLoc(), false);
+        auto loc = metadata.trace(F, CI->getDebugLoc(), ModuleType::HOST);
         // hipMemCpy performs a hipStreamSync(0) unless it's async so we must also register the sync event
         if (not fnName.contains("Async")) {
           auto cis = llvm::CallInst::Create(
             host.trace_append$mem,
-            llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,5>{
+            llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,3>{
                 llvm::ConstantInt::get(
                     llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
                     llvm::APInt(sizeof(InstrData)*8, InstrData::SYNC_EVENT)
@@ -667,9 +661,7 @@ namespace scabbard {
                 ((fnName == "hipMemcpyWithStream") 
                   ? CI->getArgOperand(0)
                   : llvm::ConstantPointerNull::get(llvm::PointerType::get(F.getContext(), 0u))),
-                loc.src_id_ptr,
-                loc.getLineAsConstant(F.getContext()),
-                loc.getColAsConstant(F.getContext())
+                loc.get_as_constant(F.getContext())
               })
           );
           cis->insertBefore(CI);
@@ -688,7 +680,7 @@ namespace scabbard {
         }
         auto ci = llvm::CallInst::Create(
           host.trace_append$alloc,
-          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,6>{
+          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,4>{
               llvm::ConstantInt::get(
                   llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
                   llvm::APInt(sizeof(InstrData)*8, InstrData::READ | InstrData::DEVICE_HEAP | InstrData::ON_HOST | InstrData::_OPT_USED)
@@ -696,9 +688,7 @@ namespace scabbard {
               ((fnName == "hipDeviceSynchronize") 
                 ? llvm::ConstantPointerNull::get(llvm::PointerType::get(F.getContext(), 0u))
                 : CI->getArgOperand(0)), // ptrtoint
-              loc.src_id_ptr,
-              loc.getLineAsConstant(F.getContext()),
-              loc.getColAsConstant(F.getContext()),
+              loc.get_as_constant(F.getContext()),
               CI->getArgOperand(2)
             })
         );
@@ -757,6 +747,14 @@ namespace scabbard {
               );
     }
 
+    // inline const LocResult& backtrace_DebugLoc_from_hip_lib(const llvm::Instruction& I, const MetadataHandler& metadata)
+    // {
+    //    //TODO when using <<<>>> launch syntax you might need to backtrack out to find where a launch actually occurs
+    //   const auto prev_block 
+    //   return {0ul};
+    //   return metadata.trace(F, , ModuleType::HOST);
+    // }
+
 
     void ScabbardPassPlugin::instr_launch_func_host(llvm::Function& F, llvm::CallInst& CI)
     {
@@ -769,13 +767,14 @@ namespace scabbard {
             })
         );
       regFn->insertBefore(&CI);
+      auto loc = metadata.trace(F, CI.getDebugLoc(), ModuleType::HOST);
       auto regCbFn = llvm::CallInst::Create(
           host.register_job_callback.getFunctionType(),
           host.register_job_callback.getCallee(),
-          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,2>{
+          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,3>{
               regFn,
               CI.getArgOperand(7),
-              //TODO get metadata location for kernel launch (tricky since it will often point inside hip lib)
+              loc.get_as_constant(F.getContext())
             })
         );
       regCbFn->insertAfter(&CI);

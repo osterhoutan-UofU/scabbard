@@ -47,6 +47,8 @@ namespace scabbard {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(SrcMetadata, srcID, srcFile, line, col, modType)
   };
 
+  std::string to_string(const SrcMetadata& meta);
+
 } //?namespace scabbard
 
 // namespace std {

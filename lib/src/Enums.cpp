@@ -15,7 +15,7 @@
 namespace scabbard {
 
 
-  std::ostream& operator << (std::ostream& out, const InstrData& data) noexcept
+  inline std::ostream& operator << (std::ostream& out, const InstrData& data) noexcept
   {
     std::bitset<16> bs(data);
     return (out << std::string((data & InstrData::_RUNTIME_CONDITIONAL) ? "RT_COND, " : "")
@@ -32,6 +32,30 @@ namespace scabbard {
          << std::string((data & InstrData::FREE) ? "FREE, " : "")
          << "(0b" << bs << ")");
   }
+
+
+namespace instr {
+
+  inline std::string to_string(const ModuleType& modTy)
+  {
+    switch (modTy) {
+      case ModuleType::HOST:
+        return "HOST";
+      case ModuleType::DEVICE:
+        return "DEVICE";
+      case ModuleType::UNKNOWN_MODULE:
+      default:
+        return "<UNKNOWN_MODULE_TYPE>";
+    }
+  }
+
+  inline std::ostream& operator << (std::ostream& out, const ModuleType& modTy) noexcept
+  {
+    return (out << ::scabbard::instr::to_string(modTy));
+  }
+
+
+} //?namespace instr
 
 
 } //?namespace scabbard
