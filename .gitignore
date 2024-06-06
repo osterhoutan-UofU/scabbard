@@ -41,6 +41,9 @@
 
 # scabbard trace files
 *.trace
+*.scabbard.meta.lock
+*.scabbard.meta
+!test/**/*.man.scabbard.meta
 
 #python stuff
 **/__pycache__/**

@@ -167,7 +167,7 @@ namespace scabbard {
       int lfd = -1;
       size_t tries = 0ul;
       // open the lock file
-      while (-1 == (lfd = open(filepath.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644))) {
+      while (-1 == (lfd = open(filepath.c_str(), O_WRONLY | O_CREAT | O_APPEND, 00766))) {
         tries++;
         if (tries > ATTEMPT_LIMIT) {
           llvm::errs() << "\n[scabbard.instr.meta:ERR] failed to open teh metadata lock file " << tries << "x times!\n"
@@ -191,36 +191,36 @@ namespace scabbard {
             assert(false && "[scabbard.instr.meta:ERR] unrecoverable error occurred while acquiring metadata file lock file.");
             break;
         }
-        tries = 0ul;
-        // initiate a POSIX lock on the lock file
-        while (-1 == flock(lfd, LOCK_EX)) {
-          if (tries > ATTEMPT_LIMIT) {
-            llvm::errs() << "\n[scabbard.instr.meta:ERR] failed to acquire lock for metadata file " << tries << "x times!\n"
-                            "\n[scabbard.instr.meta:ERR]        last error: `" << strerror(errno) << "`: \"" << str_flock_errno_msg(errno) << "\""
+      }
+      tries = 0ul;
+      // initiate a POSIX lock on the lock file
+      while (-1 == flock(lfd, LOCK_EX)) {
+        if (tries > ATTEMPT_LIMIT) {
+          llvm::errs() << "\n[scabbard.instr.meta:ERR] failed to acquire lock for metadata file " << tries << "x times!\n"
+                          "\n[scabbard.instr.meta:ERR]        last error: `" << strerror(errno) << "`: \"" << str_flock_errno_msg(errno) << "\""
+                          "\n[scabbard.instr.meta:ERR]    recommendation: IF issue persists AND you are building multithreaded (`-j` flag == multithreaded);"
+                          "\n[scabbard.instr.meta:ERR]                      try switch to single threaded build.\n";
+          assert(tries <= ATTEMPT_LIMIT && "[scabbard.instr.meta:ERR] too many attempts to acquire metadata file lock.");
+        }
+        switch (errno) {
+          case EWOULDBLOCK: // The file is locked and the LOCK_NB flag was selected.
+          case EINTR:   // While waiting to acquire a lock, the call was interrupted by delivery of a signal caught by a handler; see signal(7).
+            std::this_thread::sleep_for(std::chrono::milliseconds(10u)); // wait and try again
+            break;
+          case EINVAL:  // operation is invalid.
+          case ENOLCK:  // The kernel ran out of memory for allocating lock records.
+          case EBADF:   // fd is not an open file descriptor.
+          default:
+            close(lfd); // don't care about close exceptions rn (might be a mistake)
+            llvm::errs() << "\n[scabbard.instr.meta:ERR] Error occurred while acquiring the lock for the metadata file's lock file."
+                            "\n[scabbard.instr.meta:ERR]             error: `" << strerror(errno) << "`: \"" << str_open_errno_msg(errno) << "\""
                             "\n[scabbard.instr.meta:ERR]    recommendation: IF issue persists AND you are building multithreaded (`-j` flag == multithreaded);"
                             "\n[scabbard.instr.meta:ERR]                      try switch to single threaded build.\n";
-            assert(tries <= ATTEMPT_LIMIT && "[scabbard.instr.meta:ERR] too many attempts to acquire metadata file lock.");
-          }
-          switch (errno) {
-            case EWOULDBLOCK: // The file is locked and the LOCK_NB flag was selected.
-            case EINTR:   // While waiting to acquire a lock, the call was interrupted by delivery of a signal caught by a handler; see signal(7).
-              std::this_thread::sleep_for(std::chrono::milliseconds(10u)); // wait and try again
-              break;
-            case EINVAL:  // operation is invalid.
-            case ENOLCK:  // The kernel ran out of memory for allocating lock records.
-            case EBADF:   // fd is not an open file descriptor.
-            default:
-              close(lfd); // don't care about close exceptions rn (might be a mistake)
-              llvm::errs() << "\n[scabbard.instr.meta:ERR] Error occurred while acquiring the lock for the metadata file's lock file."
-                              "\n[scabbard.instr.meta:ERR]             error: `" << strerror(errno) << "`: \"" << str_open_errno_msg(errno) << "\""
-                              "\n[scabbard.instr.meta:ERR]    recommendation: IF issue persists AND you are building multithreaded (`-j` flag == multithreaded);"
-                              "\n[scabbard.instr.meta:ERR]                      try switch to single threaded build.\n";
-              assert(false && "[scabbard.instr.meta:ERR] unrecoverable error occurred while acquiring the lock for the metadata file's lock file.");
-              break;
-          }
+            assert(false && "[scabbard.instr.meta:ERR] unrecoverable error occurred while acquiring the lock for the metadata file's lock file.");
+            break;
         }
-        return lfd;
       }
+      return lfd;
     }
 
     inline void release_file_lock(int LFD)

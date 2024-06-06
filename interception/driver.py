@@ -80,7 +80,7 @@ def runCommandWithFlags(argv: list) -> None:
         new_cmd = ' '.join(new_argv)
     elif "cmake" in os.path.basename(argv[0]):
         prRed("\n[scabbard.intercept:WARN] Intercepted a CMake command!"+
-              "\n                           -> CMake is not supported by the scabbard intercepter!"+
+              "\n                           -> CMake is not supported by the scabbard interceptor!"+
               "\n                              Try directly calling the configured build tool (i.e. `make`, `ninja`, etc.)\n")
         executeOriginalCommand(argv) # might try this for now
     elif any([x in os.path.basename(argv[0]) for x in {"make", "ninja", "MSBuild"}]):
@@ -89,7 +89,8 @@ def runCommandWithFlags(argv: list) -> None:
         new_cmd = ' '.join(argv)
     
     try:
-        cmdOutput = subprocess.run(new_cmd, shell=True, check=True, env=env)
+        cmdOutput = subprocess.run(new_cmd, shell=True, check=True, env=env, 
+                                    stdout=subprocess.STDOUT, stderr=subprocess.STDOUT)
     except Exception as e:
         prRed(e)
         raise Exception(new_cmd) from e

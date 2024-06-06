@@ -67,10 +67,13 @@ namespace scabbard {
       // archBit = ((target.isArch64Bit()) ? 64 //ASSUMING for now this will only be used on 64 bit machines
       //             : ((target.isArch32Bit()) ? 32 
       //               : (target.isArch16Bit()) ? 16 : 0))
-      if (target.isAMDGPU())  // checks for both amdgcn & r600 arch(s) (might need to restrict this to just amdgcn with `isAMDGCN()`)
+      if (target.isAMDGPU()) { // checks for both amdgcn & r600 arch(s) (might need to restrict this to just amdgcn with `isAMDGCN()`)
         run_device(M, MAM);    //                                        To support hip on Nvidia GPUs we might need to also run this for nvptx arch(s) (this might be the same as supporting CUDA though)
-      else
+        llvm::errs() << "\n[scabbard.instr.device:INFO] pass ran on: `" << M.getSourceFileName() << "`\n"; //DEBUG
+      } else {
         run_host(M, MAM);
+        llvm::errs() << "\n[scabbard.instr.host:INFO] pass ran on: `" << M.getSourceFileName() << "`\n"; //DEBUG
+      }
       //TODO process analysis invalidations and return the Preserved analysis of all changes
       return llvm::PreservedAnalyses::none(); // this will have to change after transforms are performed
       // create custom implementation of Fn llvm::PreservedAnalysis::invalidate : ( -> llvm::PreservedAnalysis) to do so

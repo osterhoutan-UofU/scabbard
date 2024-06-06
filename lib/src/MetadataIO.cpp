@@ -35,35 +35,39 @@ MetadataJSONFile_t read_metadata_file(const std::string& filepath)
 {
   using json = nlohmann::json;
 
-  std::ifstream* _input;
+  std::ifstream input;
   try {
-    _input = new std::ifstream(filepath, std::ios::in);
+    input.open(filepath, std::ios::in);
+    if (not input.is_open())
+      throw std::runtime_error("file failed to open");
   } catch (std::exception ex) {
     std::cerr << "\n[scabbard.lib.meta:ERR] could not open metadata file (`" << filepath <<"`) to read from it!" 
                  "\n[scabbard.lib.meta:ERR]   error msg: `" << ex.what() << "`\n"  << std::flush;
+    input.close();
     exit(EXIT_FAILURE);
   } catch (...) {
     std::cerr << "\n[scabbard.lib.meta:ERR] could not open metadata file (`" << filepath <<"`) to read from it!" 
                  "\n[scabbard.lib.meta:ERR]   error msg: `<UNKNOWN_ERROR>`\n"  << std::flush;
+    input.close();
     exit(EXIT_FAILURE);
   }
   json data;
   try {
-    data = json::parse(*_input);
+    data = json::parse(input);
   } catch (std::exception ex) {
     std::cerr << "\n[scabbard.lib.meta:ERR] error reading file!" 
                  "\n[scabbard.lib.meta:ERR]        file: \"" << filepath <<"\"" 
                  "\n[scabbard.lib.meta:ERR]   error msg: `" << ex.what() << "`\n"  << std::flush;
-    _input->close();
+    input.close();
     exit(EXIT_FAILURE);
   } catch (...) {
     std::cerr << "\n[scabbard.lib.meta:ERR] error reading file!" 
                  "\n[scabbard.lib.meta:ERR]        file: \"" << filepath <<"\"" 
                  "\n[scabbard.lib.meta:ERR]   error msg: `<UNKOWN_ERROR>`\n" << std::flush;
-    _input->close();
+    input.close();
     exit(EXIT_FAILURE);
   }
-  _input->close();
+  input.close();
 
   MetadataJSONFile_t metadata;
   for (auto entry : data) {
@@ -92,41 +96,47 @@ void write_metadata_file(const std::string& filepath, const MetadataJSONFile_t& 
 {
   using json = nlohmann::json;
 
-  std::ofstream* _output;
+  std::ofstream output;
   try {
-    _output = new std::ofstream(filepath, std::ios::out | std::ios::trunc);
+    output.open(filepath, std::ios::out | std::ios::trunc);
+    if (not output.is_open())
+      throw std::runtime_error("file failed to open");
   } catch (std::exception ex) {
     std::cerr << "\n[scabbard.lib.meta:ERR] could not open metadata file (`" << filepath <<"`) to write to it!" 
                  "\n[scabbard.lib.meta:ERR]   error msg: `" << ex.what() << "`\n"  << std::flush;
+    output.close();
     exit(EXIT_FAILURE);
   } catch (...) {
     std::cerr << "\n[scabbard.lib.meta:ERR] could not open metadata file (`" << filepath <<"`) to write to it!" 
                  "\n[scabbard.lib.meta:ERR]   error msg: `<UNKNOWN_ERROR>`\n"  << std::flush;
+    output.close();
     exit(EXIT_FAILURE);
   }
 
   try {
-    *_output << '[';
+    output << '[';
     std::string sep = "";
     for (const auto entry : contents) {
       json data;
       to_json(data,entry.second);
-      *_output << sep << data << std::flush;
+      output << sep << data << std::flush;
       sep = ",\n  ";
     }
-    *_output << "\n]\n" << std::flush;
+    output << "\n]\n" << std::flush;
   } catch (std::exception ex) {
     std::cerr << "\n[scabbard.lib.meta:ERR] error writing to file!" 
                  "\n[scabbard.lib.meta:ERR]        file: \"" << filepath <<"\"" 
                  "\n[scabbard.lib.meta:ERR]   error msg: `" << ex.what() << "`\n"  << std::flush;
+    output.close();
     exit(EXIT_FAILURE);
   } catch (...) {
     std::cerr << "\n[scabbard.lib.meta:ERR] error writing to file!" 
                  "\n[scabbard.lib.meta:ERR]        file: \"" << filepath <<"\"" 
                  "\n[scabbard.lib.meta:ERR]   error msg: `<UNKOWN_ERROR>`\n" << std::flush;
+    output.close();
     exit(EXIT_FAILURE);
   }
-  _output->close();
+  output.close();
 }
 
 } //?namespace scabbard

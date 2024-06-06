@@ -13,6 +13,7 @@
 import subprocess
 import sys
 import os
+import pathlib
 from colors import *
 from argconfig import parseScabbardArgs, printScabbardHelp
 
@@ -22,7 +23,7 @@ SCABBARD_PATH:str = os.environ['SCABBARD_PATH'] if 'SCABBARD_PATH' in os.environ
 
 INTERCEPT_LIB:str = SCABBARD_PATH+"/intercept.so"
 
-def runBuildCommand(params: list) -> None:
+def runBuildCommand(params: list, isRoot:bool=False) -> None:
     prGreen('*** SCABBARD ***')
     prGreen('Intercepting commands in: ' + ' '.join(params))
     params.insert(0, 'LD_PRELOAD='+INTERCEPT_LIB)
@@ -32,11 +33,14 @@ def runBuildCommand(params: list) -> None:
     if 'SCABBARD_PATH' not in env:
         env.update({'SCABBARD_PATH':os.path.dirname(os.path.abspath(__file__))})
     if 'SCABBARD_METADATA_FILE' not in env:
-        env.update({'SCABBARD_METADATA_FILE':f"{os.path.abspath(os.getcwd())}/scabbard.metadata"})
+        env.update({'SCABBARD_METADATA_FILE':f"{os.path.abspath(os.getcwd())}/anon.scabbard.metadata"})
 
     try:
-        cmdOutput = subprocess.run(' '.join(params), shell=True, check=True, env=env)
+        cmdOutput = subprocess.run(' '.join(params), shell=True, check=True, env=env, 
+                                    stdout=subprocess.STDOUT, stderr=subprocess.STDOUT)
         os.remove(env['SCABBARD_METADATA_FILE']+".lock")
+        if isRoot:
+            prGreen(f"\n[scabbard.instr:INFO] Build Finished!\n[scabbard.instr:INFO] Meta-file generated: {os.environ['SCABBARD_METADATA_FILE']}\n")
     except Exception as e:
         os.remove(env['SCABBARD_METADATA_FILE']+".lock")
         prRed(e)
@@ -51,20 +55,21 @@ def instr(scabbard_args, args) -> None:
         os.environ.update({'SCABBARD_METADATA_FILE':scabbard_args.meta_file[0]})
     else:
         os.environ.update({'SCABBARD_METADATA_FILE':f"{os.path.abspath(os.getcwd())}/anon.scabbard.meta"})
-    runBuildCommand(args)
-    prGreen(f"\n[scabbard.instr:INFO] Build Finished!\n[scabbard.instr:INFO] Meta-file generated: {os.environ['SCABBARD_METADATA_FILE']}\n")
+    pathlib.Path(os.environ['SCABBARD_METADATA_FILE']+".lock").touch()
+    runBuildCommand(args, isRoot=True)
     
 
 def trace(scabbard_args, args) -> None:
     env = dict(os.environ)
     if 'trace-file' not in scabbard_args or scabbard_args.trace_file is not None and len(scabbard_args.trace_file) > 0:
-        env.update({'SCABBARD_TRACE_FILE':scabbard_args.meta_file[0]})
+        env.update({'SCABBARD_TRACE_FILE':scabbard_args.trace_file[0]})
     else:
         env.update({'SCABBARD_TRACE_FILE':f"{os.path.abspath(args[0])}.scabbard.trace"})
     if 'SCABBARD_INSTRUMENTED_EXE_NAME' not in env:
         env.update({'SCABBARD_INSTRUMENTED_EXE_NAME':os.path.abspath(args[0])})
     try:
-        cmdOutput = subprocess.run(' '.join(args), shell=True, check=True, env=env)
+        cmdOutput = subprocess.run(' '.join(args), shell=True, check=True, env=env, 
+                                    stdout=subprocess.STDOUT, stderr=subprocess.STDOUT)
     except Exception as e:
         prRed(e)
         raise RuntimeError('Error when running scabbard on a trace command') from e
@@ -72,12 +77,13 @@ def trace(scabbard_args, args) -> None:
 
 
 def verif(scabbard_args, args) -> None:
-    if 'trace-file' not in scabbard_args or scabbard_args.trace_file is None or not len(scabbard_args.trace_file) > 0:
+    if 'trace_file' not in scabbard_args or scabbard_args.trace_file is None or not len(scabbard_args.trace_file) > 0:
         raise RuntimeError("scabbard trace expected a trace file as an argument but found none!")
-    if 'meta-file' not in scabbard_args or scabbard_args.meta_file is None or not len(scabbard_args.meta_file) > 0:
+    if 'meta_file' not in scabbard_args or scabbard_args.meta_file is None or not len(scabbard_args.meta_file) > 0:
         raise RuntimeError("scabbard trace expected a trace file as an argument but found none!")
     try:
-        cmdOutput = subprocess.run(f"{SCABBARD_PATH}/verif {scabbard_args.meta_file[0]} {scabbard_args.trace_file[0]}", shell=True, check=True)
+        cmdOutput = subprocess.run(f"{SCABBARD_PATH}/verif {scabbard_args.meta_file[0]} {scabbard_args.trace_file[0]}", 
+                                    shell=True, check=True, stdout=subprocess.STDOUT, stderr=subprocess.STDOUT)
     except Exception as e:
         prRed(e)
         raise RuntimeError('Error when running scabbard.verif') from e
@@ -104,6 +110,7 @@ def main(argv:list) -> None:
                 printScabbardHelp()
     except Exception as e:
         prRed(e)
+        exit(-1)
 
 
 
