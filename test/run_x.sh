@@ -41,8 +41,10 @@ alias scabbard="$SCABBARD_PATH/scabbard"
 FILE=$(realpath $1)
 FILE_BASE=$(echo "$FILE" | awk 'match($0, /^(.+)\.cpp$/, arr) { print arr[1]}')
 
-SCABBARD_METADATA_FILE="$FILE_BASE.scabbard.meta"
+export SCABBARD_METADATA_FILE="$FILE_BASE.scabbard.meta"
 rm $SCABBARD_METADATA_FILE 1> /dev/null 2> /dev/null
+rm ./anon.scababrd.meta 1> /dev/null 2> /dev/null
+rm ./anon.scababrd.meta.lock 1> /dev/null 2> /dev/null
 
 # determine if this should be compiled as a manual or instrumented test
 if [[ $FILE_BASE == *".man" ]]; then # this is a manual file
@@ -64,7 +66,8 @@ else # this is a file that needs to be instrumented
 
   echo "$HIP_EXE -fpass-plugin=$SCABBARD_PATH/libinstr.so -L$SCABBARD_PATH -ltrace -lpthread -std=c++17 -x hip -g -O2 -o$FILE_BASE.instr.out $FILE"
   $HIP_EXE -fpass-plugin=$SCABBARD_PATH/libinstr.so -L$SCABBARD_PATH -ltrace -lpthread -std=c++17 -x hip -g -O2 -o$FILE_BASE.instr.out $FILE || \
-    { printf "\n\e[31m[run_x.sh] ERROR: durring instrumented build\e[0m\n"; exit -1; }
+    { printf "\n\e[31m[run_x.sh] ERROR: durring instrumented build\e[0m\n"; rm $SCABBARD_METADATA_FILE.lock 1> /dev/null 2> /dev/null; exit -1; }
+  rm $SCABBARD_METADATA_FILE.lock 1> /dev/null 2> /dev/null
 
   # echo "scabbard instr --meta-file=$SCABBARD_METADATA_FILE $HIP_EXE -std=c++17 -x hip -g -O2 -o$FILE_BASE.instr.out $FILE"
   # scabbard instr --meta-file=$SCABBARD_METADATA_FILE $HIP_EXE -std=c++17 -x hip -g -O2 -o$FILE_BASE.instr.out $FILE || \
@@ -82,7 +85,7 @@ export SCABBARD_INSTRUMENTED_EXE_NAME="$FILE_BASE.instr.out"
 export SCABBARD_TRACE_FILE="$FILE_BASE.scabbard.trace"
 
 # run the built executable
-echo -e "\n\n==== RUNNING the executable ====\n\n$SCABBARD_INSTRUMENTED_EXE_NAME\n"
+echo -e "\n\n==== RUNNING the executable ====\n\nthe executable: $SCABBARD_INSTRUMENTED_EXE_NAME\n"
 echo "scabbard trace --trace-file=$SCABBARD_TRACE_FILE $SCABBARD_INSTRUMENTED_EXE_NAME"
 scabbard trace --trace-file=$SCABBARD_TRACE_FILE $SCABBARD_INSTRUMENTED_EXE_NAME || \
   { printf "\n\e[31m[run_x.sh] ERROR: durring trace\e[0m\n"; exit -1; }
@@ -95,7 +98,7 @@ test -f $SCABBARD_METADATA_FILE || \
 
 
 # run the verifier
-echo -e "\n\n==== VERIFYING generated trace file ====\n\n./build/verif/verif $SCABBARD_TRACE_FILE\n"
+echo -e "\n\n==== VERIFYING generated trace file ====\n\n"
 echo "scabbard verif $SCABBARD_METADATA_FILE $SCABBARD_TRACE_FILE"
 scabbard verif $SCABBARD_METADATA_FILE $SCABBARD_TRACE_FILE || \
   { printf "\n\e[31m[run_x.sh] ERROR: durring verify\e[0m\n"; exit -1; }

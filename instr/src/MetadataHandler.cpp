@@ -44,8 +44,12 @@ namespace scabbard {
 
     // << ------------------------------------------------------------------------------------------ >> 
 
+    const uint64_t MetadataHandler::default_srcID = 0ul;
+    const uint64_t MetadataHandler::libtrace_srcID = 1ul;
+    const uint64_t MetadataHandler::hipAPI_srcID = 2ul;
+
     inline bool file_exists(const std::string& name);
-    inline MetadataJSONFile_t initial_metadata();
+    // inline MetadataJSONFile_t initial_metadata();
 
     inline int acquire_file_lock(const std::string& filepath);
     inline void release_file_lock(int LFD);
@@ -62,19 +66,21 @@ namespace scabbard {
       const int LFD = acquire_file_lock(metadata_file_lock_file);
 
       // read in metadata file to update
-      auto metadata = ((file_exists(metadata_file)) ? read_metadata_file(metadata_file) : initial_metadata());
+      auto metadata = ((file_exists(metadata_file)) ? read_metadata_file(metadata_file) : MetadataHandler::initial_metadata());
       const auto stored = convert_to_str_ref_set(metadata);
 
       // check to see if src location is already registered
       const auto it = stored.find(get_str_rep(DIL,DIF,MOD_TY));
       if (it != stored.end()) { // if so release metadata file lock and return the relevant source id srcID
         release_file_lock(LFD);
+        llvm::errs() << "\n[scabbard.instr.meta:DBG] reusing metadata entry!\n[scabbard.instr.meta:DBG]    repr: `" << repr(metadata[it->second]) << "`\n\n"; //DEBUG
         return {it->second};
       }
       
       // add new SrcMetadata to metadata object
       const uint64_t srcID = stored.size();
-      metadata.insert(std::make_pair(srcID, (SrcMetadata){srcID, get_full_file_path(DIF), DIL.getLine(), DIL.getCol(), MOD_TY}));
+      auto dbg = metadata.insert(std::make_pair(srcID, (SrcMetadata){srcID, get_full_file_path(DIF), DIL.getLine(), DIL.getCol(), MOD_TY}));
+      llvm::errs() << "\n[scabbard.instr.meta:DBG] added a new metadata entry!\n[scabbard.instr.meta:DBG]    repr: `" << repr(dbg.first->second) << "`\n\n"; //DEBUG
 
       // update the metadata file
       write_metadata_file(metadata_file, metadata);
@@ -117,11 +123,12 @@ namespace scabbard {
       return (stat(name.c_str(), &buffer) == 0); 
     }
 
-    inline MetadataJSONFile_t initial_metadata()
+    inline MetadataJSONFile_t MetadataHandler::initial_metadata()
     {
       return (MetadataJSONFile_t){
-        {0ul,(SrcMetadata){0ul, "<UNKNOWN_SRC_FILE>", 0ul, 0ul, ModuleType::UNKNOWN_MODULE}},
-        {1ul,(SrcMetadata){1ul, "<SCABBARD_TRACE>", 0ul, 0ul, ModuleType::HOST}}
+        {default_srcID,(SrcMetadata){default_srcID, "<UNKNOWN_SRC_FILE>", 0ul, 0ul, ModuleType::UNKNOWN_MODULE}},
+        {libtrace_srcID,(SrcMetadata){libtrace_srcID, "<SCABBARD_TRACE>", 0ul, 0ul, ModuleType::HOST}},
+        {hipAPI_srcID,(SrcMetadata){hipAPI_srcID, "<HIP_API>", 0ul, 0ul, ModuleType::HOST}}
       };
     }
     

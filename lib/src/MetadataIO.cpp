@@ -27,6 +27,19 @@ std::string to_string(const SrcMetadata& meta)
   return out.str();
 }
 
+std::string repr(const SrcMetadata& meta)
+{
+  std::stringstream out;
+  out << "(SrcMetadata){"
+         "srcID=" << meta.srcID << ", "
+         "srcFile=\"" << meta.srcFile << "\", "
+         "line=" << meta.line << ", "
+         "col=" << meta.col << ", "
+         "modType=" << meta.modType
+      << '}';
+  return out.str();
+}
+
 
 // << ------------------------------------------------------------------------------------------ >> 
 
@@ -115,7 +128,7 @@ void write_metadata_file(const std::string& filepath, const MetadataJSONFile_t& 
 
   try {
     output << '[';
-    std::string sep = "";
+    std::string sep = "\n  ";
     for (const auto entry : contents) {
       json data;
       to_json(data,entry.second);

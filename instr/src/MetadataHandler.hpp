@@ -38,6 +38,10 @@ namespace scabbard {
 
     class MetadataHandler {
 
+      static const uint64_t default_srcID; // = 0ul;
+      static const uint64_t libtrace_srcID; // = 1ul;
+      static const uint64_t hipAPI_srcID; // = 2ul;
+
       const std::string metadata_file;
       const std::string metadata_file_lock_file;
 
@@ -52,12 +56,15 @@ namespace scabbard {
 
       LocResult trace(llvm::Function& F, const llvm::DebugLoc& DI, const ModuleType MOD_TY) const;
 
+      static constexpr LocResult get_default_loc() { return {default_srcID}; }
+      static constexpr LocResult get_libtrace_loc() { return {libtrace_srcID}; }
+      static constexpr LocResult get_hipAPI_loc() { return {hipAPI_srcID}; }
 
     protected:
 
       LocResult _trace_scope(llvm::Function& F, const llvm::DebugLoc& DIL, const llvm::DIScope& DIS, const ModuleType MOD_TY) const;
       LocResult _trace_file(llvm::Function& F, const llvm::DebugLoc& DIL, const llvm::DIFile& DIF, const ModuleType MOD_TY) const;
-
+      static inline MetadataJSONFile_t initial_metadata();
 
     private:
 

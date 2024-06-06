@@ -62,23 +62,23 @@ namespace scabbard {
       // InstrData __getInstrData_inst(const llvm::Instruction& I) const;
       InstrData __getInstrData_inst(const llvm::Instruction& i) const
       {
-        if (const auto* _i = llvm::dyn_cast<llvm::StoreInst>(&i)) {
+        if (const auto* _i = llvm::dyn_cast_or_null<llvm::StoreInst>(&i)) {
           return __getInstrData_rec(*_i);
-        } else if (const auto* _i = llvm::dyn_cast<llvm::LoadInst>(&i)) {
+        } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::LoadInst>(&i)) {
           return __getInstrData_rec(*_i);
-        } else if (const auto* _i = llvm::dyn_cast<llvm::CallInst>(&i)) {
+        } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::CallInst>(&i)) {
           return __getInstrData_rec(*_i);
-        } else if (const auto* _i = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
+        } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::AtomicRMWInst>(&i)) {
           return __getInstrData_rec(*_i);
-        } else if (const auto* _i = llvm::dyn_cast<llvm::AddrSpaceCastInst>(&i)) {
+        } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::AddrSpaceCastInst>(&i)) {
           return __getInstrData_rec(*_i);
-        } else if (const auto* _i = llvm::dyn_cast<llvm::GetElementPtrInst>(&i)) {
+        } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::GetElementPtrInst>(&i)) {
           return __getInstrData_rec(*_i);
-        } else if (const auto* _i = llvm::dyn_cast<llvm::BitCastInst>(&i)) {
+        } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::BitCastInst>(&i)) {
           return __getInstrData_rec(*_i);
-        } else if (const auto* _i = llvm::dyn_cast<llvm::AllocaInst>(&i)) {
+        } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::AllocaInst>(&i)) {
           return __getInstrData_rec(*_i);
-        } else if (const auto* _i = llvm::dyn_cast<llvm::PHINode>(&i)) {
+        } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::PHINode>(&i)) {
           return __getInstrData_phi(*_i);
         }
         return InstrData::NEVER;
@@ -90,12 +90,12 @@ namespace scabbard {
         static llvm::SmallPtrSet<const llvm::BasicBlock*, 32u> phiVisited; //lets hope static lets me get around the const function issue
         phiVisited.insert(PHI.getParent());
         for (const auto& _U : PHI.incoming_values()) {
-          if (auto U = llvm::dyn_cast<llvm::Instruction>(_U.get())) {
+          if (auto U = llvm::dyn_cast_or_null<llvm::Instruction>(_U.get())) {
             if (not phiVisited.contains(U->getParent())) {
               phiVisited.insert(U->getParent());
               res |= __getInstrData_val(*U);
             }
-          } else if (auto A = llvm::dyn_cast<llvm::Argument>(_U.get())) {
+          } else if (auto A = llvm::dyn_cast_or_null<llvm::Argument>(_U.get())) {
             res |= __getInstrData_rec(*U);
           }
         }
@@ -106,8 +106,8 @@ namespace scabbard {
       InstrData __getInstrData_val(const llvm::Value& V) const
       {
         // handle globals
-        // if (const auto* _g = llvm::dyn_cast<llvm::GlobalVariable>(&V)) {
-        if (const auto* _g = llvm::dyn_cast<llvm::GlobalValue>(&V)) {
+        // if (const auto* _g = llvm::dyn_cast_or_null<llvm::GlobalVariable>(&V)) {
+        if (const auto* _g = llvm::dyn_cast_or_null<llvm::GlobalValue>(&V)) {
           const auto name = V.getName();
           if (globalDeviceMem.find(name) != globalDeviceMem.end()) {
             return InstrData::DEVICE_HEAP | ((MT == HOST) ? InstrData::ON_HOST : InstrData::ON_DEVICE);
@@ -117,11 +117,11 @@ namespace scabbard {
           }
         } else
           // handle local function args/registers
-          if (const auto* _A = llvm::dyn_cast<llvm::Argument>(&V)) {
+          if (const auto* _A = llvm::dyn_cast_or_null<llvm::Argument>(&V)) {
             return __getInstrData_rec(*_A); //NOTE: this might cause issues for the host
           }
         // handle derived values (aka instructions)
-        if (const auto* _I = llvm::dyn_cast<llvm::Instruction>(&V)) {
+        if (const auto* _I = llvm::dyn_cast_or_null<llvm::Instruction>(&V)) {
           return __getInstrData_inst(*_I);
         }
         // unknown Value type...

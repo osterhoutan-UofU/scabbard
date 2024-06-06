@@ -23,6 +23,41 @@ SCABBARD_PATH:str = os.environ['SCABBARD_PATH'] if 'SCABBARD_PATH' in os.environ
 
 INTERCEPT_LIB:str = SCABBARD_PATH+"/intercept.so"
 
+ADDED_FLAGS: list = [
+        f'-fpass-plugin={SCABBARD_PATH}/libinstr.so', 
+        f'-L{SCABBARD_PATH}',
+        '-ltrace',
+        '-lpthread',
+        '-g'
+    ]
+
+def runCommandWithFlags(argv: list, env: dict) -> None:
+    if "SCABBARD_PATH" not in env:
+        env.update({"SCABBARD_PATH": SCABBARD_PATH})
+        
+    if 'SCABBARD_METADATA_FILE' not in env:
+        raise Exception("[scabbard.intercept.driver:ERR] `SCABBARD_METADATA_FILE` was not defined! [dev-error]")
+    
+    new_argv = list(argv)
+    new_argv[1:1] = ADDED_FLAGS
+    new_cmd = ' '.join(new_argv)
+    
+    try:
+        cmdOutput = subprocess.run(new_cmd, shell=True, check=True, env=env, 
+                                    stdout=subprocess.STDOUT, stderr=subprocess.STDOUT)
+    except Exception as e:
+        prRed(e)
+        raise Exception(new_cmd) from e
+
+
+
+def executeOriginalCommand(argv: list) -> None:
+    try:
+        subprocess.run(' '.join(argv), shell=True, check=True)
+    except subprocess.CalledProcessError as e:
+        prRed(e)
+        
+
 def runBuildCommand(params: list, isRoot:bool=False) -> None:
     prGreen('*** SCABBARD ***')
     prGreen('Intercepting commands in: ' + ' '.join(params))
@@ -36,8 +71,12 @@ def runBuildCommand(params: list, isRoot:bool=False) -> None:
         env.update({'SCABBARD_METADATA_FILE':f"{os.path.abspath(os.getcwd())}/anon.scabbard.metadata"})
 
     try:
-        cmdOutput = subprocess.run(' '.join(params), shell=True, check=True, env=env, 
-                                    stdout=subprocess.STDOUT, stderr=subprocess.STDOUT)
+        if any([x in os.path.basename(params[1]) for x in {"clang","hipcc"}]) \
+            or any([x in params[1] for x in {"clang","hipcc"}]):
+            runCommandWithFlags(params[1:], env)
+        else:
+            cmdOutput = subprocess.run(' '.join(params), shell=True, check=True, env=env, 
+                                        stdout=subprocess.STDOUT, stderr=subprocess.STDOUT)
         os.remove(env['SCABBARD_METADATA_FILE']+".lock")
         if isRoot:
             prGreen(f"\n[scabbard.instr:INFO] Build Finished!\n[scabbard.instr:INFO] Meta-file generated: {os.environ['SCABBARD_METADATA_FILE']}\n")

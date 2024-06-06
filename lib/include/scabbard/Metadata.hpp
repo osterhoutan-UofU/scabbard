@@ -48,6 +48,7 @@ namespace scabbard {
   };
 
   std::string to_string(const SrcMetadata& meta);
+  std::string repr(const SrcMetadata& meta);
 
 } //?namespace scabbard
 

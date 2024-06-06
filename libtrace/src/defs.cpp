@@ -121,11 +121,11 @@ namespace scabbard {
     // }
 
 
-    // __host__
-    // void* register_job(const hipStream_t STREAM)
-    // {
-    //   return ((void*) TRACE_LOGGER.add_job(STREAM));
-    // }
+    __host__
+    void* register_job(const hipStream_t STREAM)
+    {
+      return ((void*) TRACE_LOGGER.add_job(STREAM));
+    }
 
     __host__
     void scabbard_stream_callback(hipStream_t stream, hipError_t status, void* dt_)

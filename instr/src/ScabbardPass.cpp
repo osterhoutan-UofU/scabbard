@@ -39,9 +39,11 @@ namespace scabbard {
 
     auto get_meta_file_from_env() -> std::string {
       const char* _META_FILE = std::getenv("SCABBARD_METADATA_FILE");
-      return ((_META_FILE) 
-                ? std::string(_META_FILE) 
-                : std::string("./anon.scabbard.meta"));
+      std::string r = ((_META_FILE) 
+                        ? std::string(_META_FILE) 
+                        : std::string("./anon.scabbard.meta"));
+      llvm::errs() << "\n[scabbard.instr:DBG] `SCABBARD_METADATA_FILE` was set to: \"" << r << "\"\n";
+      return r;
     }
 
 
@@ -361,7 +363,7 @@ namespace scabbard {
       auto loc = metadata.trace(F, I.getDebugLoc(), ModuleType::DEVICE);
       auto ci = llvm::CallInst::Create(
           device.trace_append$mem,
-          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,6>{
+          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,4>{
               F.getArg(F.arg_size()-1),
               llvm::ConstantInt::get(
                   llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
@@ -371,6 +373,7 @@ namespace scabbard {
               loc.get_as_constant(F.getContext())
             })
         );
+      // llvm::errs() << "\n[scabbard.instr.device:DBG] inserted trace call:\n[scabbard.instr.device:DBG]    repr: `"; ci->print(llvm::errs()); llvm::errs() << "`\n\n"; //DEBUG
       if (InsertAfter)
         ci->insertAfter(&I);
       else
@@ -535,7 +538,7 @@ namespace scabbard {
       auto loc = metadata.trace(F, I.getDebugLoc(), ModuleType::HOST);
       auto ci = llvm::CallInst::Create(
           ((data & InstrData::_RUNTIME_CONDITIONAL) ? host.trace_append$mem$cond : host.trace_append$mem),
-          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,5>{
+          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,3>{
               llvm::ConstantInt::get(
                   llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
                   llvm::APInt(sizeof(InstrData)*8, data)
@@ -544,6 +547,7 @@ namespace scabbard {
               loc.get_as_constant(F.getContext())
             })
         );
+      // llvm::errs() << "\n[scabbard.instr.host:DBG] inserted trace call:\n[scabbard.instr.host:DBG]    repr: `"; ci->print(llvm::errs()); llvm::errs() << "`\n\n"; //DEBUG
       if (InsertAfter)
         ci->insertAfter(&I);
       else
@@ -770,7 +774,9 @@ namespace scabbard {
             })
         );
       regFn->insertBefore(&CI);
-      auto loc = metadata.trace(F, CI.getDebugLoc(), ModuleType::HOST);
+      auto loc = ((CI.getDebugLoc()) // hip generated device stubs have no debug location data so must accommodate
+                    ? metadata.trace(F, CI.getDebugLoc(), ModuleType::HOST) 
+                    : MetadataHandler::get_hipAPI_loc());
       auto regCbFn = llvm::CallInst::Create(
           host.register_job_callback.getFunctionType(),
           host.register_job_callback.getCallee(),
