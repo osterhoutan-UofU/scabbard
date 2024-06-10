@@ -17,7 +17,7 @@ import sys
 from colors import prGreen, prCyan, prRed
 # from exceptions import CompileException
 from builtins import Exception
-from scabbard import executeOriginalCommand, ADDED_FLAGS, runBuildCommand
+from scabbard import executeOriginalCommand, ADDED_FLAGS, runBuildCommand, SCABBARD_PATH
 
 # --------------------------------------------------------------------------- #
 # --- Installation Paths ---------------------------------------------------- #
@@ -76,11 +76,15 @@ def runCommandWithFlags(argv: list) -> None:
         new_cmd = ' '.join(argv)
     
     try:
-        cmdOutput = subprocess.run(new_cmd, shell=True, check=True, env=env, 
-                                    stdout=subprocess.STDOUT, stderr=subprocess.STDOUT)
+        cmdOutput = subprocess.run(new_cmd, shell=True, check=True, env=env) #, text=True,
+                                    # stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        # print(cmdOutput.stdout)
+    except subprocess.CalledProcessError as cpe:
+        prRed(str(cpe.stderr) if cpe.stderr is not None else str(cpe.stdout))
+        raise RuntimeError('Error when running scabbard.intercept on a build command') from cpe
     except Exception as e:
         prRed(e)
-        raise Exception(new_cmd) from e
+        raise RuntimeError("Error when running scabbard.intercept on a build command") from e
 
 
 

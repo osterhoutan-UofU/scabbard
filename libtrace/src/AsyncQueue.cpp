@@ -92,8 +92,32 @@ namespace scabbard {
         tw->close();
         delete tw;
       }
-      tw = new TraceWriter(file_path);
-      tw->init(exe_path, start_time);
+      try {
+        tw = new TraceWriter(file_path);
+      } catch (std::exception ex) {
+        std::cerr << "\n[scabbard.trace:ERR] Could not open trace file!"
+                     "\n[scabbard.trace:ERR]          error: \"" << ex.what() << "\"" 
+                     "\n[scabbard.trace:ERR]     trace file: \"" << file_path << "\"\n";
+        exit(EXIT_FAILURE);
+      } catch (...) {
+        std::cerr << "\n[scabbard.trace:ERR] Could not open trace file!"
+                     "\n[scabbard.trace:ERR]          error: \"<UNKNOWN_ERROR>\"" 
+                     "\n[scabbard.trace:ERR]     trace file: \"" << file_path << "\"\n";
+        exit(EXIT_FAILURE);
+      }
+      try {
+        tw->init(exe_path, start_time);
+      } catch (std::exception ex) {
+        std::cerr << "\n[scabbard.trace:ERR] Could not write header for trace file!"
+                     "\n[scabbard.trace:ERR]          error: \"" << ex.what() << "\"" 
+                     "\n[scabbard.trace:ERR]     trace file: \"" << file_path << "\"\n";
+        exit(EXIT_FAILURE);
+      } catch (...) {
+        std::cerr << "\n[scabbard.trace:ERR] Could not write header for trace file!"
+                     "\n[scabbard.trace:ERR]          error: \"<UNKNOWN_ERROR>\"" 
+                     "\n[scabbard.trace:ERR]     trace file: \"" << file_path << "\"\n";
+        exit(EXIT_FAILURE);
+      }
     }
 
     // __host__ 

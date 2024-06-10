@@ -73,14 +73,14 @@ namespace scabbard {
       const auto it = stored.find(get_str_rep(DIL,DIF,MOD_TY));
       if (it != stored.end()) { // if so release metadata file lock and return the relevant source id srcID
         release_file_lock(LFD);
-        llvm::errs() << "\n[scabbard.instr.meta:DBG] reusing metadata entry!\n[scabbard.instr.meta:DBG]    repr: `" << repr(metadata[it->second]) << "`\n\n"; //DEBUG
+        // llvm::errs() << "\n[scabbard.instr.meta:DBG] reusing metadata entry!\n[scabbard.instr.meta:DBG]    repr: `" << repr(metadata[it->second]) << "`\n\n"; //DEBUG
         return {it->second};
       }
       
       // add new SrcMetadata to metadata object
       const uint64_t srcID = stored.size();
       auto dbg = metadata.insert(std::make_pair(srcID, (SrcMetadata){srcID, get_full_file_path(DIF), DIL.getLine(), DIL.getCol(), MOD_TY}));
-      llvm::errs() << "\n[scabbard.instr.meta:DBG] added a new metadata entry!\n[scabbard.instr.meta:DBG]    repr: `" << repr(dbg.first->second) << "`\n\n"; //DEBUG
+      // llvm::errs() << "\n[scabbard.instr.meta:DBG] added a new metadata entry!\n[scabbard.instr.meta:DBG]    repr: `" << repr(dbg.first->second) << "`\n\n"; //DEBUG
 
       // update the metadata file
       write_metadata_file(metadata_file, metadata);

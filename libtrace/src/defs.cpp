@@ -76,6 +76,9 @@ namespace scabbard {
       const std::string TRACE_FILE = ((_TRACE_FILE) 
                                       ? std::string(_TRACE_FILE) 
                                       : "./" + EXE_NAME + ".scabbard.trace");
+      // std::cerr << "\n[scabbard.trace:DBG] initiating scabbard trace system with details as follows"    //DEBUG
+      //              "\n[scabbard.trace:DBG]   'SCABBARD_INSTRUMENTED_EXE_NAME': `" << EXE_NAME << "`"    //DEBUG
+      //              "\n[scabbard.trace:DBG]              'SCABBARD_TRACE_FILE': `" << TRACE_FILE << "`"; //DEBUG
       TRACE_LOGGER.set_trace_writer(TRACE_FILE, EXE_NAME, 
                                     std::chrono::system_clock::now().time_since_epoch().count());
       // hipError_t hipRes;

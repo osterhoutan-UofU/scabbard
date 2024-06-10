@@ -64,15 +64,16 @@ else # this is a file that needs to be instrumented
 
   echo -e "\n\n==== INSTRUMENTING and BUILDING the executable ====\n\n"
 
-  echo "$HIP_EXE -fpass-plugin=$SCABBARD_PATH/libinstr.so -L$SCABBARD_PATH -ltrace -lpthread -std=c++17 -x hip -g -O2 -o$FILE_BASE.instr.out $FILE"
-  $HIP_EXE -fpass-plugin=$SCABBARD_PATH/libinstr.so -L$SCABBARD_PATH -ltrace -lpthread -std=c++17 -x hip -g -O2 -o$FILE_BASE.instr.out $FILE || \
+  # echo "$HIP_EXE -fpass-plugin=$SCABBARD_PATH/libinstr.so -L$SCABBARD_PATH -ltrace -lpthread -std=c++17 -x hip -g -O2 -o$FILE_BASE.instr.out $FILE"
+  # $HIP_EXE -fpass-plugin=$SCABBARD_PATH/libinstr.so -L$SCABBARD_PATH -ltrace -lpthread -std=c++17 -x hip -g -O2 -o$FILE_BASE.instr.out $FILE || \
+  #   { printf "\n\e[31m[run_x.sh] ERROR: durring instrumented build\e[0m\n"; rm $SCABBARD_METADATA_FILE.lock 1> /dev/null 2> /dev/null; exit -1; }
+
+  echo "scabbard instr --meta-file=$SCABBARD_METADATA_FILE $HIP_EXE -std=c++17 -x hip -g -O2 -o$FILE_BASE.instr.out $FILE"
+  scabbard instr --meta-file=$SCABBARD_METADATA_FILE $HIP_EXE -std=c++17 -x hip -g -O2 -o$FILE_BASE.instr.out $FILE || \
     { printf "\n\e[31m[run_x.sh] ERROR: durring instrumented build\e[0m\n"; rm $SCABBARD_METADATA_FILE.lock 1> /dev/null 2> /dev/null; exit -1; }
+
+  # remove lock file regardless of the outcome
   rm $SCABBARD_METADATA_FILE.lock 1> /dev/null 2> /dev/null
-
-  # echo "scabbard instr --meta-file=$SCABBARD_METADATA_FILE $HIP_EXE -std=c++17 -x hip -g -O2 -o$FILE_BASE.instr.out $FILE"
-  # scabbard instr --meta-file=$SCABBARD_METADATA_FILE $HIP_EXE -std=c++17 -x hip -g -O2 -o$FILE_BASE.instr.out $FILE || \
-  #   { printf "\n\e[31m[run_x.sh] ERROR: durring instrumented build\e[0m\n"; exit -1; }
-
   # make sure that a metadata file exists after instrumentation
   test -f $SCABBARD_METADATA_FILE || 
     { printf "\n\e[31m[run_x.sh] ERROR: metadata file \"$SCABBARD_METADATA_FILE\" was not created durring the instrumentation/build process\e[0m\n"; exit -1; }
@@ -93,8 +94,8 @@ scabbard trace --trace-file=$SCABBARD_TRACE_FILE $SCABBARD_INSTRUMENTED_EXE_NAME
 # $ROCM_PATH/bin/rocgdb $SCABBARD_INSTRUMENTED_EXE_NAME
 
 # make sure that a trace file exists after instrumentation
-test -f $SCABBARD_METADATA_FILE || \ 
-  { printf "\n\e[31m[run_x.sh] ERROR: the trace file \"$SCABBARD_TRACE_FILE\" was not created durring the traceing/running step\e[0m\n"; exit -1; }
+test -e $SCABBARD_TRACE_FILE || \ 
+  { printf "\n\e[31m[run_x.sh] ERROR: the trace file \"$SCABBARD_TRACE_FILE\" was not created durring the trace/running step\e[0m\n"; exit -1; }
 
 
 # run the verifier

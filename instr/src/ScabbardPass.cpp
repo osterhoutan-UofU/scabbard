@@ -42,7 +42,7 @@ namespace scabbard {
       std::string r = ((_META_FILE) 
                         ? std::string(_META_FILE) 
                         : std::string("./anon.scabbard.meta"));
-      llvm::errs() << "\n[scabbard.instr:DBG] `SCABBARD_METADATA_FILE` was set to: \"" << r << "\"\n";
+      // llvm::errs() << "\n[scabbard.instr:DBG] `SCABBARD_METADATA_FILE` was set to: \"" << r << "\"\n"; //DEBUG
       return r;
     }
 
@@ -71,10 +71,10 @@ namespace scabbard {
       //               : (target.isArch16Bit()) ? 16 : 0))
       if (target.isAMDGPU()) { // checks for both amdgcn & r600 arch(s) (might need to restrict this to just amdgcn with `isAMDGCN()`)
         run_device(M, MAM);    //                                        To support hip on Nvidia GPUs we might need to also run this for nvptx arch(s) (this might be the same as supporting CUDA though)
-        llvm::errs() << "\n[scabbard.instr.device:INFO] pass ran on: `" << M.getSourceFileName() << "`\n"; //DEBUG
+        // llvm::errs() << "\n[scabbard.instr.device:INFO] pass ran on: `" << M.getSourceFileName() << "`\n"; //DEBUG
       } else {
         run_host(M, MAM);
-        llvm::errs() << "\n[scabbard.instr.host:INFO] pass ran on: `" << M.getSourceFileName() << "`\n"; //DEBUG
+        // llvm::errs() << "\n[scabbard.instr.host:INFO] pass ran on: `" << M.getSourceFileName() << "`\n"; //DEBUG
       }
       //TODO process analysis invalidations and return the Preserved analysis of all changes
       return llvm::PreservedAnalyses::none(); // this will have to change after transforms are performed

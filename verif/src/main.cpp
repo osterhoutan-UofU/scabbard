@@ -43,12 +43,12 @@ int main(int argc, char *argv[]) {
     switch (result.first.status)
     {
       case StateMachine::ResultStatus::ERROR:
-        std::cout << '\n' << result.second << "x data race(s) were detected deriving; from the following src locs!\n";
+        std::cout << '\n' << result.second << "x DATA RACE(S) were detected; deriving from the following src locs!\n";
         printResult(std::cout, mf, tf, result.first);
         break;
 
       case StateMachine::ResultStatus::WARNING:
-        std::cout << '\n' << result.second << "x POSSIBLE data race was detected; from the following src locs!\n";
+        std::cout << '\n' << result.second << "x POSSIBLE data race(s) were detected; deriving from the following src locs!\n";
         printResult(std::cout, mf, tf, result.first);
         break;
 
@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
         std::cerr << "!unknown result code!" << std::endl;
         return EXIT_FAILURE;
     }
-    sep = "\n========";
+    sep = "\n========\n";
   }
   return 0;
 }
