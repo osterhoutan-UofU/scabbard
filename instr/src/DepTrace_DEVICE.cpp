@@ -140,7 +140,7 @@ namespace scabbard {
     {
       //check if this is used in a hipMalloc
       // for (const auto& U : I.users()) {
-      //   if (const auto& CI = llvm::dyn_cast<llvm::CallInst>(U)) {
+      //   if (const auto& CI = llvm::dyn_cast_or_null<llvm::CallInst>(U)) {
       //     const auto p = funcsOfInterest.find(CI.getName().str());
       //     if (p != funcsOfInterest.end()) {
       //       if (p.second(I,CI))
@@ -168,13 +168,13 @@ namespace scabbard {
     template<>
     InstrData DepTrace<DEVICE>::getInstrData(const llvm::Instruction& i) const
     {
-      if (auto* _i = llvm::dyn_cast<llvm::StoreInst>(&i)) {
+      if (auto* _i = llvm::dyn_cast_or_null<llvm::StoreInst>(&i)) {
         return getInstrData(*_i);
-      } else if (auto* _i = llvm::dyn_cast<llvm::LoadInst>(&i)) {
+      } else if (auto* _i = llvm::dyn_cast_or_null<llvm::LoadInst>(&i)) {
         return getInstrData(*_i);
-      // } else if (auto* _i = llvm::dyn_cast<llvm::CallInst>(&i)) {
+      // } else if (auto* _i = llvm::dyn_cast_or_null<llvm::CallInst>(&i)) {
       //   return getInstrData(*_i);
-      } else if (auto _i = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
+      } else if (auto _i = llvm::dyn_cast_or_null<llvm::AtomicRMWInst>(&i)) {
         return getInstrData(*_i);
       }
       return InstrData::NEVER;
