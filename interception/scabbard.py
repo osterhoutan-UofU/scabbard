@@ -10,12 +10,13 @@
  * 
  *"""
 
-import subprocess
-import sys
 import os
 import pathlib
-from colors import *
+import subprocess
+import sys
+
 from argconfig import parseScabbardArgs, printScabbardHelp
+from colors import *
 
 SCABBARD_PATH:str = os.environ['SCABBARD_PATH'] if 'SCABBARD_PATH' in os.environ else os.path.dirname(os.path.abspath(__file__))
 # sys.path.append(SCABBARD_PATH)
