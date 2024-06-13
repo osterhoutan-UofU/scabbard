@@ -17,19 +17,12 @@ import sys
 from colors import prGreen, prCyan, prRed
 # from exceptions import CompileException
 from builtins import Exception
-from scabbard import runBuildCommand, SCABBARD_PATH
+from scabbard import executeOriginalCommand, ADDED_FLAGS, runBuildCommand, SCABBARD_PATH
 
 # --------------------------------------------------------------------------- #
 # --- Installation Paths ---------------------------------------------------- #
 # --------------------------------------------------------------------------- #
 
-ADDED_FLAGS: list = [
-        f'-fpass-plugin={SCABBARD_PATH}/libinstr.so', 
-        f'-L{SCABBARD_PATH}',
-        '-ltrace',
-        '-lpthread',
-        '-g'
-    ]
 
 # --------------------------------------------------------------------------- #
 # --- Classes --------------------------------------------------------------- #
@@ -60,18 +53,12 @@ ADDED_FLAGS: list = [
 #       raise CompileException(new_cmd) from e
 
 def runCommandWithFlags(argv: list) -> None:
-    """
-    _summary_
-
-    Args:
-        argv (_type_): _description_
-
-    Raises:
-        CompileException: _description_
-    """
     env: dict = dict(os.environ)
     if "SCABBARD_PATH" not in env:
         env.update({"SCABBARD_PATH": SCABBARD_PATH})
+        
+    if 'SCABBARD_METADATA_FILE' not in env:
+        raise Exception("[scabbard.intercept.driver:ERR] `SCABBARD_METADATA_FILE` was not defined! [dev-error]")
     
     new_cmd: str
     if any([x in os.path.basename(argv[0]) for x in {"clang","hipcc"}]):
@@ -79,8 +66,8 @@ def runCommandWithFlags(argv: list) -> None:
         new_argv[1:1] = ADDED_FLAGS
         new_cmd = ' '.join(new_argv)
     elif "cmake" in os.path.basename(argv[0]):
-        prRed("\n[scabbard.intercept:WARN] Intercepted a CMake command!"+
-              "\n                           -> CMake is not supported by the scabbard intercepter!"+
+        prRed("\n[scabbard.intercept.driver:WARN] Intercepted a CMake command!"+
+              "\n                           -> CMake is not supported by the scabbard interceptor!"+
               "\n                              Try directly calling the configured build tool (i.e. `make`, `ninja`, etc.)\n")
         executeOriginalCommand(argv) # might try this for now
     elif any([x in os.path.basename(argv[0]) for x in {"make", "ninja", "MSBuild"}]):
@@ -89,18 +76,15 @@ def runCommandWithFlags(argv: list) -> None:
         new_cmd = ' '.join(argv)
     
     try:
-        cmdOutput = subprocess.run(new_cmd, shell=True, check=True, env=env)
+        cmdOutput = subprocess.run(new_cmd, shell=True, check=True, env=env) #, text=True,
+                                    # stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        # print(cmdOutput.stdout)
+    except subprocess.CalledProcessError as cpe:
+        prRed(str(cpe.stderr) if cpe.stderr is not None else str(cpe.stdout))
+        raise RuntimeError('Error when running scabbard.intercept on a build command') from cpe
     except Exception as e:
         prRed(e)
-        raise Exception(new_cmd) from e
-
-
-
-def executeOriginalCommand(argv: list) -> None:
-    try:
-        subprocess.run(' '.join(argv), shell=True, check=True)
-    except subprocess.CalledProcessError as e:
-        prRed(e)
+        raise RuntimeError("Error when running scabbard.intercept on a build command") from e
 
 
 

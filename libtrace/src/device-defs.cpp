@@ -43,13 +43,13 @@ namespace scabbard {
       // }
       
       __device__ __noinline__
-      void trace_append$mem(void* deviceTracker, InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col)
+      void trace_append$mem(void* deviceTracker, const InstrData data, const void* PTR, const std::uint64_t SRC_ID)
       {
         DeviceTracker& DT = *((DeviceTracker*) deviceTracker);
         DT.buffer[(DT.next++) % SCABBARD_DEVICE_TRACKER_BUFF_LENGTH] = TraceData(DT.vClk++, data,
                                                                                   DT.JOB_ID, blockIdx, threadIdx,
                                                                                   PTR, 
-                                                                                  *src_id, line, col, 
+                                                                                  SRC_ID, 
                                                                                   0ul);
         // const size_t lId = getLaneId();
         // auto& _tmp0 = DEVICE_TRACE_LOGGER->data;
@@ -65,13 +65,13 @@ namespace scabbard {
       }
 
       __device__ __noinline__
-      void trace_append$alloc(void* deviceTracker, InstrData data, const void* PTR, const std::uint64_t* src_id, std::uint32_t line, std::uint32_t col, std::size_t size)
+      void trace_append$alloc(void* deviceTracker, const InstrData data, const void* PTR, const std::uint64_t SRC_ID, const std::size_t size)
       {
         DeviceTracker& DT = *((DeviceTracker*) deviceTracker);
         DT.buffer[(DT.next++) % SCABBARD_DEVICE_TRACKER_BUFF_LENGTH] = TraceData(DT.vClk++, (InstrData)(data | InstrData::_OPT_USED),
                                                                                   DT.JOB_ID, blockIdx, threadIdx,
                                                                                   PTR, 
-                                                                                  *src_id, line, col, 
+                                                                                  SRC_ID, 
                                                                                   size);
       }
 
@@ -86,11 +86,6 @@ namespace scabbard {
 
     namespace {
 
-      // place filler for the metadata tag in this required piece to get device functions to not be optimized out
-      __device__ uint64_t src_id_reg_tmp = 0x54; 
-      __device__ uint64_t src_id_reg_tmp2 = 0x54; 
-      __device__ uint64_t src_id_reg_tmp3 = 0x54; 
-
       /**
        * @brief waisted space used to that the device side function does not optimized out
        *        from not being called from inside the llvm device module pre-instrumentation
@@ -103,12 +98,12 @@ namespace scabbard {
       {
         fTy *= intTy;
         *((float*) dt) = fTy;
-        ::scabbard::trace::device::trace_append$mem(dt,tmp,ptr,&src_id_reg_tmp,19u,9u);
-        ::scabbard::trace::device::trace_append$mem(dt,tmp,ptr,&src_id_reg_tmp2,1024u,4u);
-        ::scabbard::trace::device::trace_append$mem(dt,tmp,ptr,src_id,10240u,40u);
-        ::scabbard::trace::device::trace_append$alloc(dt,tmp,ptr,&src_id_reg_tmp2,88u,256u,7ul);
-        ::scabbard::trace::device::trace_append$alloc(dt,tmp,ptr,&src_id_reg_tmp3,98u,6u,23ul);
-        ::scabbard::trace::device::trace_append$alloc(dt,tmp,ptr,src_id,980u,60u,230ul);
+        ::scabbard::trace::device::trace_append$mem(dt,tmp,ptr,101ul);
+        ::scabbard::trace::device::trace_append$mem(dt,tmp,ptr,102ul);
+        ::scabbard::trace::device::trace_append$mem(dt,tmp,ptr,103ul);
+        ::scabbard::trace::device::trace_append$alloc(dt,tmp,ptr,104ul,7ul);
+        ::scabbard::trace::device::trace_append$alloc(dt,tmp,ptr,105ul,23ul);
+        ::scabbard::trace::device::trace_append$alloc(dt,tmp,ptr,106ul,230ul);
       }
 
       // __global__ void call_for_differentiation(InstrData tmp, void* ptr, void* meta)

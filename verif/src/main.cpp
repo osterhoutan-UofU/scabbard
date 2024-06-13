@@ -12,22 +12,27 @@
 #include "TraceReader.hpp"
 #include "StateMachine.hpp"
 
+#include <scabbard/MetadataIO.hpp>
+
 #include <iostream>
 
 
-void printResult(std::ostream& out, 
+void printResult(std::ostream& out,
+                  const scabbard::MetadataJSONFile_t& MF,
                   const scabbard::TraceFile& TF, 
                   const scabbard::verif::StateMachine::Result& res);
 
 int main(int argc, char *argv[]) {
   using namespace ::scabbard::verif;
-  if (argc != 2) {
-    std::cerr << "incorrect input provided, please provide a file path to a scabbard trace file" 
+  if (argc != 3) {
+    std::cerr << "incorrect input provided, please provide a file path to a scabbard metadata file "
+                 "AND to a scabbard trace file (in that order)"
               << std::endl;
     exit(EXIT_FAILURE);
   }
 
-  auto tf = scabbard::verif::readTraceFile(std::string(argv[1]));
+  auto mf = scabbard::read_metadata_file(std::string(argv[1]));
+  auto tf = scabbard::verif::readTraceFile(std::string(argv[2]));
 
   scabbard::verif::StateMachine sm(tf.trace_data);
   auto results = sm.run();
@@ -35,16 +40,16 @@ int main(int argc, char *argv[]) {
   std::string sep = "";
   for (auto result : results) {
     std::cout << sep; 
-    switch (result.status)
+    switch (result.first.status)
     {
       case StateMachine::ResultStatus::ERROR:
-        std::cout << "\nA data race was detected!\n";
-        printResult(std::cout, tf, result);
+        std::cout << '\n' << result.second << "x DATA RACE(S) were detected; deriving from the following src locs!\n";
+        printResult(std::cout, mf, tf, result.first);
         break;
 
       case StateMachine::ResultStatus::WARNING:
-        std::cout << "\nA POSSIBLE data race was detected!\n";
-        printResult(std::cout, tf, result);
+        std::cout << '\n' << result.second << "x POSSIBLE data race(s) were detected; deriving from the following src locs!\n";
+        printResult(std::cout, mf, tf, result.first);
         break;
 
       case StateMachine::ResultStatus::GOOD:
@@ -52,19 +57,20 @@ int main(int argc, char *argv[]) {
         break;
 
       case StateMachine::ResultStatus::INTERNAL_ERROR:
-        std::cout << result.err_msg << std::endl;
+        std::cout << result.first.err_msg << std::endl;
         return EXIT_FAILURE;
       default:
         std::cerr << "!unknown result code!" << std::endl;
         return EXIT_FAILURE;
     }
-    sep = "\n========";
+    sep = "\n========\n";
   }
   return 0;
 }
 
 void printResult(std::ostream& out, 
-                  const scabbard::TraceFile& TF, 
+                  const scabbard::MetadataJSONFile_t& MF,
+                  const scabbard::TraceFile& TF,
                   const scabbard::verif::StateMachine::Result& res)
 {
   using namespace ::scabbard::verif;
@@ -72,15 +78,20 @@ void printResult(std::ostream& out,
     out << res.status;
     return;
   }
+  const scabbard::SrcMetadata UNKNOWN_METADATA{UINT64_MAX,"<UNKNOWN_SRC_FILE>",0ul,0ul,scabbard::instr::ModuleType::UNKNOWN_MODULE};
   auto printRead = [&]() -> void {
+    auto it = MF.find(res.read->metadata);
+    const scabbard::SrcMetadata& meta = ((it != MF.end()) ? it->second : UNKNOWN_METADATA);
     out << "   READ: {\n" 
            "         time (logical): " << res.read->time_stamp << ",\n"
            "                 device: CPU\n"
            "              thread id: 0x" << std::hex << std::hash<std::thread::id>{}(res.read->threadId.host) << std::dec << "\n"
-           "                src loc: \"" << TF.src_files[res.read->metadata.src_id] << ':' << res.read->metadata.line << ',' << res.read->metadata.col << "\"\n"
+           "                src loc: \"" << meta.srcFile << ':' << meta.line << ',' << meta.col << "\"\n"
            "    }\n";
   };
   auto printWrite = [&]() -> void {
+    auto it = MF.find(res.write->metadata);
+    const scabbard::SrcMetadata& meta = ((it != MF.end()) ? it->second : UNKNOWN_METADATA);
     out << "  WRITE: {\n" 
            "    time (logical): " << res.write->time_stamp << ",\n"
            "            device: GPU\n"
@@ -93,7 +104,7 @@ void printResult(std::ostream& out,
                                     ", y:" << res.write->threadId.device.thread.y << 
                                     ", z:"<< res.write->threadId.device.thread.z <<"}\n"
            "            }\n"
-           "           src loc: \"" << TF.src_files[res.write->metadata.src_id] << ':' << res.write->metadata.line << ',' << res.write->metadata.col << "\"\n"
+           "           src loc: \"" << meta.srcFile << ':' << meta.line << ',' << meta.col << "\"\n"
            "    }\n";
   };
   out << " RESULT: `" << res.status << "`\n";

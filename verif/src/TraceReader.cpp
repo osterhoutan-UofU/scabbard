@@ -149,16 +149,18 @@ namespace verif {
       if (std::streamoff diff2 = exe_l % tf.WORD_LEN)
         in.seekg(in.tellg() + diff2);
 
-      // read in src file metadata
-      uint64_t srcs_len = 0ul;
-      in.read(reinterpret_cast<char*>(&srcs_len), sizeof(uint64_t));
-      for (size_t i=0; i < srcs_len; ++i) {
-        uint64_t src_len = 0ul;
-        in.read(reinterpret_cast<char*>(&src_len), sizeof(uint64_t));
-        std::string dbg_tmp = readStringL(in, src_len);
-        tf.src_files.push_back(dbg_tmp);
-        // std::cout << "[scabbard.verif:DBG] read in metadata for src file: `" << dbg_tmp << "`\n"; //DEBUG
-      }
+      // // read in src file metadata
+      // uint64_t srcs_len = 0ul;
+      // in.read(reinterpret_cast<char*>(&srcs_len), sizeof(uint64_t));
+      // for (size_t i=0; i < srcs_len; ++i) {
+      //   uint64_t src_len = 0ul;
+      //   in.read(reinterpret_cast<char*>(&src_len), sizeof(uint64_t));
+      //   std::string dbg_tmp = readStringL(in, src_len);
+      //   tf.src_files.push_back(dbg_tmp);
+      //   // std::cout << "[scabbard.verif:DBG] read in metadata for src file: `" << dbg_tmp << "`\n"; //DEBUG
+      // }
+      // if (std::streamoff diff3 = in.tellg() % tf.WORD_LEN)
+      //   in.seekg(in.tellg() + diff3);
 
       // // read in the metadata jump table
       // std::vector<std::streamoff> jmpTbl;
@@ -176,8 +178,6 @@ namespace verif {
       //   tf.src_files.push_back(dbg_tmp);
       //   std::cout << "[scabbard.verif:DBG] read in metadata for src file: `" << dbg_tmp << "`\n";
       // }
-      if (std::streamoff diff3 = in.tellg() % tf.WORD_LEN)
-        in.seekg(in.tellg() + diff3);
 
       // based upon trace file decide how to interpret trace data
       std::function<TraceData(std::ifstream&)> readTraceData;

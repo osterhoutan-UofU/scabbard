@@ -19,7 +19,7 @@ if (DEFINED ENV{ROCM_PATH} OR DEFINED ENV{HIP_PATH})
 elseif (EXISTS "/opt/rocm") # if both are not defined define them if possible
         set(ENV{ROCM_PATH} "/opt/rocm")
         set(ENV{HIP_PATH} "$ENV{ROCM_PATH}/hip")
-        # set(ENV{LLVM_HOME} $ENV{ROCM_PATH}/llvm)
+        set(ENV{LLVM_HOME} $ENV{ROCM_PATH}/llvm)
 else ()
     message(FATAL_ERROR "[ERROR] hip/rocm could not be found try defining $HIP_PATH and $ROCM_PATH\n")
 endif()

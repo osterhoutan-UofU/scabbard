@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include <nlohmann/json.hpp>
 
 #include <cstdint>
 #include <ostream>
@@ -21,9 +22,19 @@
 namespace scabbard {
 namespace instr {
 
-    enum ModuleType { HOST=0, DEVICE=1, UNKNOWN_MODULE=-1 };
+  enum ModuleType { HOST=0, DEVICE=1, UNKNOWN_MODULE=-1 };
+
+  NLOHMANN_JSON_SERIALIZE_ENUM( ModuleType, {
+      {ModuleType::HOST, "HOST"},
+      {ModuleType::DEVICE, "DEVICE"},
+      {ModuleType::UNKNOWN_MODULE, "<UNKNOWN_MODULE_TYPE>"}
+  })
+
+  inline std::string to_string(const ModuleType& MOD_TY);
 
 } //?namespace instr
+
+std::ostream& operator << (std::ostream& out, const instr::ModuleType& modTy) noexcept;
 
    /**
     * @brief ENUM BYTE MAP\n

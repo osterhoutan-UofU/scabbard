@@ -17,7 +17,7 @@
 #endif
 
 #include "TraceWriter.hpp"
-#include "MetadataStrore.hpp"
+// #include "MetadataStrore.hpp"
 #include "calls.hpp"
 #include "DeviceTracker.hpp"
 
@@ -135,7 +135,7 @@ namespace scabbard {
       std::chrono::high_resolution_clock::duration delay = std::chrono::milliseconds(2);
 
       /// @brief where we store an manage metadata about where data comes from
-      MetadataStore metadata;
+      // MetadataStore metadata;
       
       
     public:
@@ -203,7 +203,7 @@ namespace scabbard {
        * @param src - the src file being registered
        * @return \c std::uint64_t - the id that this src file should be registered with
        */
-      __host__ std::uint64_t register_src(const char* src);
+      // __host__ std::uint64_t register_src(const char* src);
 
 
     protected:

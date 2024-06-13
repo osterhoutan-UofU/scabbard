@@ -37,9 +37,18 @@
 namespace scabbard {
   namespace instr {
 
+    auto get_meta_file_from_env() -> std::string {
+      const char* _META_FILE = std::getenv("SCABBARD_METADATA_FILE");
+      std::string r = ((_META_FILE) 
+                        ? std::string(_META_FILE) 
+                        : std::string("./anon.scabbard.meta"));
+      // llvm::errs() << "\n[scabbard.instr:DBG] `SCABBARD_METADATA_FILE` was set to: \"" << r << "\"\n"; //DEBUG
+      return r;
+    }
 
-    ScabbardPassPlugin::ScabbardPassPlugin(MetadataHandler& metadata_)
-      : metadata(metadata_)
+
+    ScabbardPassPlugin::ScabbardPassPlugin()
+      : metadata(get_meta_file_from_env())
     {}
 
     // ScabbardPassPlugin::ScabbardPassPlugin() {}
@@ -60,10 +69,13 @@ namespace scabbard {
       // archBit = ((target.isArch64Bit()) ? 64 //ASSUMING for now this will only be used on 64 bit machines
       //             : ((target.isArch32Bit()) ? 32 
       //               : (target.isArch16Bit()) ? 16 : 0))
-      if (target.isAMDGPU())  // checks for both amdgcn & r600 arch(s) (might need to restrict this to just amdgcn with `isAMDGCN()`)
+      if (target.isAMDGPU()) { // checks for both amdgcn & r600 arch(s) (might need to restrict this to just amdgcn with `isAMDGCN()`)
         run_device(M, MAM);    //                                        To support hip on Nvidia GPUs we might need to also run this for nvptx arch(s) (this might be the same as supporting CUDA though)
-      else
+        // llvm::errs() << "\n[scabbard.instr.device:INFO] pass ran on: `" << M.getSourceFileName() << "`\n"; //DEBUG
+      } else {
         run_host(M, MAM);
+        // llvm::errs() << "\n[scabbard.instr.host:INFO] pass ran on: `" << M.getSourceFileName() << "`\n"; //DEBUG
+      }
       //TODO process analysis invalidations and return the Preserved analysis of all changes
       return llvm::PreservedAnalyses::none(); // this will have to change after transforms are performed
       // create custom implementation of Fn llvm::PreservedAnalysis::invalidate : ( -> llvm::PreservedAnalysis) to do so
@@ -227,9 +239,7 @@ namespace scabbard {
               llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
                   llvm::IntegerType::get(M.getContext(), sizeof(InstrData) * 8),
                   llvm::PointerType::get(M.getContext(), 0u), //WARN: This constant 0u might need to be dynamicly decided for host modules
-                  llvm::PointerType::get(M.getContext(), 0u), //WARN: This constant 0u might need to be dynamicly decided for host modules
-                  llvm::IntegerType::get(M.getContext(), 32u),
-                  llvm::IntegerType::get(M.getContext(), 32u)
+                  llvm::IntegerType::get(M.getContext(), 64u)
                 }),
               false
             )
@@ -241,9 +251,7 @@ namespace scabbard {
               llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
                   llvm::IntegerType::get(M.getContext(), sizeof(InstrData) * 8),
                   llvm::PointerType::get(M.getContext(), 0u), //WARN: This constant 0u might need to be dynamicly decided for host modules
-                  llvm::PointerType::get(M.getContext(), 0u), //WARN: This constant 0u might need to be dynamicly decided for host modules
-                  llvm::IntegerType::get(M.getContext(), 32u),
-                  llvm::IntegerType::get(M.getContext(), 32u),
+                  llvm::IntegerType::get(M.getContext(), 64u),
                   llvm::IntegerType::get(M.getContext(), 64u)
                 }),
               false
@@ -265,7 +273,8 @@ namespace scabbard {
               llvm::Type::getVoidTy(M.getContext()),
               llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
                   llvm::PointerType::getUnqual(M.getContext()),
-                  llvm::PointerType::getUnqual(M.getContext())
+                  llvm::PointerType::getUnqual(M.getContext()),
+                  llvm::IntegerType::get(M.getContext(), 64u)
                 }),
               false
             )
@@ -351,21 +360,20 @@ namespace scabbard {
     {
       if (not (data & InstrData::ON_DEVICE)) // make sure this is supposed to be instrumented on device
         return;
-      auto loc = metadata.trace(F, I.getDebugLoc(), true);
+      auto loc = metadata.trace(F, I.getDebugLoc(), ModuleType::DEVICE);
       auto ci = llvm::CallInst::Create(
           device.trace_append$mem,
-          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,6>{
+          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,4>{
               F.getArg(F.arg_size()-1),
               llvm::ConstantInt::get(
                   llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
                   llvm::APInt(sizeof(InstrData)*8, data)
                 ),
               V,
-              loc.src_id_ptr,
-              loc.getLineAsConstant(F.getContext()),
-              loc.getColAsConstant(F.getContext())
+              loc.get_as_constant(F.getContext())
             })
         );
+      // llvm::errs() << "\n[scabbard.instr.device:DBG] inserted trace call:\n[scabbard.instr.device:DBG]    repr: `"; ci->print(llvm::errs()); llvm::errs() << "`\n\n"; //DEBUG
       if (InsertAfter)
         ci->insertAfter(&I);
       else
@@ -527,20 +535,19 @@ namespace scabbard {
     {
       if (not (data & InstrData::ON_HOST)) // make sure this is supposed to be instrumented on device
         return;
-      auto loc = metadata.trace(F, I.getDebugLoc(), false);
+      auto loc = metadata.trace(F, I.getDebugLoc(), ModuleType::HOST);
       auto ci = llvm::CallInst::Create(
           ((data & InstrData::_RUNTIME_CONDITIONAL) ? host.trace_append$mem$cond : host.trace_append$mem),
-          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,5>{
+          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,3>{
               llvm::ConstantInt::get(
                   llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
                   llvm::APInt(sizeof(InstrData)*8, data)
                 ),
               V,
-              loc.src_id_ptr,
-              loc.getLineAsConstant(F.getContext()),
-              loc.getColAsConstant(F.getContext())
+              loc.get_as_constant(F.getContext())
             })
         );
+      // llvm::errs() << "\n[scabbard.instr.host:DBG] inserted trace call:\n[scabbard.instr.host:DBG]    repr: `"; ci->print(llvm::errs()); llvm::errs() << "`\n\n"; //DEBUG
       if (InsertAfter)
         ci->insertAfter(&I);
       else
@@ -581,13 +588,13 @@ namespace scabbard {
       const auto fnName = fn->getName();
       if (fnName == "hipStreamSynchronize" || fnName == "hipDeviceSynchronize") // make sure this is supposed to be instrumented on device
       {
-      auto loc = metadata.trace(F, CI->getDebugLoc(), false);
+      auto loc = metadata.trace(F, CI->getDebugLoc(), ModuleType::HOST);
       // auto ptrtoint = llvm::CastInst::Create(llvm::CastInst::CastOps::PtrToInt, 
       //                                         CI->getArgOperand(0), 
       //                                         llvm::IntegerType::getInt64PtrTy(F.getContext()));
       auto ci = llvm::CallInst::Create(
           host.trace_append$mem,
-          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,5>{
+          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,3>{
               llvm::ConstantInt::get(
                   llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
                   llvm::APInt(sizeof(InstrData)*8, InstrData::SYNC_EVENT)
@@ -595,29 +602,25 @@ namespace scabbard {
               ((fnName == "hipDeviceSynchronize") 
                 ? llvm::ConstantPointerNull::get(llvm::PointerType::get(F.getContext(), 0u))
                 : CI->getArgOperand(0u)), // ptrtoint
-              loc.src_id_ptr,
-              loc.getLineAsConstant(F.getContext()),
-              loc.getColAsConstant(F.getContext())
+              loc.get_as_constant(F.getContext())
             })
         );
         ci->insertAfter(CI);
       }
       else if (fnName == "hipMalloc")
       {
-        auto loc = metadata.trace(F, CI->getDebugLoc(), false);
+        auto loc = metadata.trace(F, CI->getDebugLoc(), ModuleType::HOST);
         if (auto _mem_loc = get_ptr_from_ptr(CI->getArgOperand(0u))) {
           auto mem_loc = new llvm::LoadInst(llvm::PointerType::get(F.getContext(),0u), _mem_loc, llvm::Twine(""), CI->getNextNode());
           auto ci = llvm::CallInst::Create(
               host.trace_append$alloc,
-              llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,6>{
+              llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,4>{
                   llvm::ConstantInt::get(
                       llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
                       llvm::APInt(sizeof(InstrData)*8, InstrData::ALLOCATE | InstrData::UNKNOWN_HEAP)
                     ),
                   mem_loc, // ptrtoint
-                  loc.src_id_ptr,
-                  loc.getLineAsConstant(F.getContext()),
-                  loc.getColAsConstant(F.getContext()),
+                  loc.get_as_constant(F.getContext()),
                   CI->getArgOperand(1u)
                 })
             );
@@ -627,18 +630,16 @@ namespace scabbard {
       }
       else if (fnName == "hipFree")
       {
-        auto loc = metadata.trace(F, CI->getDebugLoc(), false);
+        auto loc = metadata.trace(F, CI->getDebugLoc(), ModuleType::HOST);
         auto ci = llvm::CallInst::Create(
           host.trace_append$alloc,
-          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,6>{
+          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,4>{
               llvm::ConstantInt::get(
                   llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
                   llvm::APInt(sizeof(InstrData)*8, InstrData::FREE | InstrData::DEVICE_HEAP)
                 ),
               CI->getArgOperand(0u),
-              loc.src_id_ptr,
-              loc.getLineAsConstant(F.getContext()),
-              loc.getColAsConstant(F.getContext()),
+              loc.get_as_constant(F.getContext()),
               llvm::ConstantInt::get( // we can't contextually know how much is being free'd inline, but we can keep track like a normal allocator does 
                   llvm::IntegerType::get(F.getContext(), 64u),
                   llvm::APInt(64u, 0ul)
@@ -654,12 +655,12 @@ namespace scabbard {
       }
       else if (fnName == "hipMemcpy" || fnName == "hipMemcpyAsync")
       {
-        auto loc = metadata.trace(F, CI->getDebugLoc(), false);
+        auto loc = metadata.trace(F, CI->getDebugLoc(), ModuleType::HOST);
         // hipMemCpy performs a hipStreamSync(0) unless it's async so we must also register the sync event
         if (not fnName.contains("Async")) {
           auto cis = llvm::CallInst::Create(
             host.trace_append$mem,
-            llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,5>{
+            llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,3>{
                 llvm::ConstantInt::get(
                     llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
                     llvm::APInt(sizeof(InstrData)*8, InstrData::SYNC_EVENT)
@@ -667,9 +668,7 @@ namespace scabbard {
                 ((fnName == "hipMemcpyWithStream") 
                   ? CI->getArgOperand(0)
                   : llvm::ConstantPointerNull::get(llvm::PointerType::get(F.getContext(), 0u))),
-                loc.src_id_ptr,
-                loc.getLineAsConstant(F.getContext()),
-                loc.getColAsConstant(F.getContext())
+                loc.get_as_constant(F.getContext())
               })
           );
           cis->insertBefore(CI);
@@ -688,7 +687,7 @@ namespace scabbard {
         }
         auto ci = llvm::CallInst::Create(
           host.trace_append$alloc,
-          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,6>{
+          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,4>{
               llvm::ConstantInt::get(
                   llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
                   llvm::APInt(sizeof(InstrData)*8, InstrData::READ | InstrData::DEVICE_HEAP | InstrData::ON_HOST | InstrData::_OPT_USED)
@@ -696,9 +695,7 @@ namespace scabbard {
               ((fnName == "hipDeviceSynchronize") 
                 ? llvm::ConstantPointerNull::get(llvm::PointerType::get(F.getContext(), 0u))
                 : CI->getArgOperand(0)), // ptrtoint
-              loc.src_id_ptr,
-              loc.getLineAsConstant(F.getContext()),
-              loc.getColAsConstant(F.getContext()),
+              loc.get_as_constant(F.getContext()),
               CI->getArgOperand(2)
             })
         );
@@ -757,6 +754,14 @@ namespace scabbard {
               );
     }
 
+    // inline const LocResult& backtrace_DebugLoc_from_hip_lib(const llvm::Instruction& I, const MetadataHandler& metadata)
+    // {
+    //    //TODO when using <<<>>> launch syntax you might need to backtrack out to find where a launch actually occurs
+    //   const auto prev_block 
+    //   return {0ul};
+    //   return metadata.trace(F, , ModuleType::HOST);
+    // }
+
 
     void ScabbardPassPlugin::instr_launch_func_host(llvm::Function& F, llvm::CallInst& CI)
     {
@@ -769,12 +774,16 @@ namespace scabbard {
             })
         );
       regFn->insertBefore(&CI);
+      auto loc = ((CI.getDebugLoc()) // hip generated device stubs have no debug location data so must accommodate
+                    ? metadata.trace(F, CI.getDebugLoc(), ModuleType::HOST) 
+                    : MetadataHandler::get_hipAPI_loc());
       auto regCbFn = llvm::CallInst::Create(
           host.register_job_callback.getFunctionType(),
           host.register_job_callback.getCallee(),
-          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,2>{
+          llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,3>{
               regFn,
-              CI.getArgOperand(7)
+              CI.getArgOperand(7),
+              loc.get_as_constant(F.getContext())
             })
         );
       regCbFn->insertAfter(&CI);

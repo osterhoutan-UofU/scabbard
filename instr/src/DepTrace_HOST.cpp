@@ -25,13 +25,13 @@ namespace scabbard {
   namespace instr {
 
     const llvm::Value* throughConstExpr(const llvm::Value* V) {
-      if (const auto* CE = llvm::dyn_cast<llvm::ConstantExpr>(V)) {
+      if (const auto* CE = llvm::dyn_cast_or_null<llvm::ConstantExpr>(V)) {
         for (const auto& U : CE->operands()) {
           const llvm::Value* res = throughConstExpr(U.get());
           if (res != nullptr)
             return res;
         }
-      } else if (const auto* I = llvm::dyn_cast<llvm::Instruction>(V)) {
+      } else if (const auto* I = llvm::dyn_cast_or_null<llvm::Instruction>(V)) {
         return I;
       }
       return nullptr;
@@ -53,7 +53,7 @@ namespace scabbard {
           "hipMemcpy", 
           [](const llvm::Value& V, const llvm::CallInst& C) -> bool {
             const llvm::Value* _V = &V;
-            if (auto* TrTy = llvm::dyn_cast<llvm::ConstantInt>(C.getArgOperand(3))) {
+            if (auto* TrTy = llvm::dyn_cast_or_null<llvm::ConstantInt>(C.getArgOperand(3))) {
               // get which 
               switch (TrTy->getSExtValue()) {
                 case 1: // H->D
@@ -82,13 +82,13 @@ namespace scabbard {
       // llvm::dbgs() << "\n[scabbard::host::DBG_INFO] traversing `";
       // V->print(llvm::dbgs());
       // llvm::dbgs() << "`\n";
-      if (const auto* CE = llvm::dyn_cast<llvm::ConstantExpr>(V)) {
+      if (const auto* CE = llvm::dyn_cast_or_null<llvm::ConstantExpr>(V)) {
         for (const auto& U : CE->operands()) {
           const llvm::Value* res = get_next(U.get());
           if (res != nullptr)
             return res;
         }
-      } else if (const auto* GV = llvm::dyn_cast<llvm::GlobalValue>(V)) {
+      } else if (const auto* GV = llvm::dyn_cast_or_null<llvm::GlobalValue>(V)) {
         // llvm::dbgs() << "\n[scabbard::host::DBG_INFO] traversing SUCCESS found a global !!\n";
         return GV;
       }
@@ -100,11 +100,11 @@ namespace scabbard {
     DepTrace<HOST>::DepTrace(const llvm::Module& M)
       : DepTrace()
     {
-      if (const auto* F = llvm::dyn_cast<llvm::Function>(M.getFunction("__hip_module_ctor"))) {
+      if (const auto* F = llvm::dyn_cast_or_null<llvm::Function>(M.getFunction("__hip_module_ctor"))) {
         // llvm::dbgs() << "\n[scabbard::host::DBG_INFO] this module contains a __hip_module_ctor ctor function\n\n";
         for (const auto& bb : *F)
           for (const auto& i : bb)
-            if (const auto* call = llvm::dyn_cast<llvm::CallInst>(&i)) {
+            if (const auto* call = llvm::dyn_cast_or_null<llvm::CallInst>(&i)) {
               if (call->getCalledFunction()->getName() == "__hipRegisterVar") {
                 // llvm::dbgs() << "\n[scabbard::host::DBG_INFO] found a `__hipRegisterVar` call!\n";
                 if (const auto* global = llvm::dyn_cast_or_null<llvm::GlobalVariable>(get_next(call->getArgOperand(1)))) {
@@ -150,7 +150,7 @@ namespace scabbard {
     template<>
     InstrData DepTrace<HOST>::getInstrData(const llvm::LoadInst& I) const
     {
-      if (const auto alloca = llvm::dyn_cast<llvm::AllocaInst>(I.getPointerOperand()))
+      if (const auto alloca = llvm::dyn_cast_or_null<llvm::AllocaInst>(I.getPointerOperand()))
         return InstrData::NEVER;  // skip all loads direct from local memory
       InstrData res = __getInstrData_val(*I.getPointerOperand());
       if (res == InstrData::NEVER)
@@ -219,7 +219,7 @@ namespace scabbard {
     {
       //check if this is used in a hipMalloc
       for (const auto& U : I.uses()) {
-        if (const auto* CI = llvm::dyn_cast<llvm::CallInst>(U.getUser())) {
+        if (const auto* CI = llvm::dyn_cast_or_null<llvm::CallInst>(U.getUser())) {
           auto p = funcsOfInterest.find(CI->getCalledFunction()->getName().str());
           if (p != funcsOfInterest.end() && p->second(I,*CI))
             return InstrData::ON_HOST;
@@ -255,13 +255,13 @@ namespace scabbard {
     template<>
     InstrData DepTrace<HOST>::getInstrData(const llvm::Instruction& i) const
     {
-      if (auto* _i = llvm::dyn_cast<llvm::StoreInst>(&i)) {
+      if (auto* _i = llvm::dyn_cast_or_null<llvm::StoreInst>(&i)) {
         return getInstrData(*_i);
-      } else if (auto* _i = llvm::dyn_cast<llvm::LoadInst>(&i)) {
+      } else if (auto* _i = llvm::dyn_cast_or_null<llvm::LoadInst>(&i)) {
         return getInstrData(*_i);
-      // } else if (auto* _i = llvm::dyn_cast<llvm::CallInst>(&i)) {
+      // } else if (auto* _i = llvm::dyn_cast_or_null<llvm::CallInst>(&i)) {
       //   return getInstrData(*_i);
-      } else if (auto _i = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
+      } else if (auto _i = llvm::dyn_cast_or_null<llvm::AtomicRMWInst>(&i)) {
         return getInstrData(*_i);
       }
       return InstrData::NEVER;

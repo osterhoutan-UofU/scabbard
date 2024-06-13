@@ -30,8 +30,36 @@ namespace scabbard {
          << std::string((data & InstrData::WRITE) ? "WRITE, " : "")
          << std::string((data & InstrData::ALLOCATE) ? "ALLOCATE, " : "")
          << std::string((data & InstrData::FREE) ? "FREE, " : "")
+         << std::string((data & InstrData::LAUNCH_EVENT) ? "KERNEL_LAUNCH, " : "")
+         << std::string((data & InstrData::SYNC_EVENT) ? "SYNC_EVENT, " : "")
+         << std::string((data & InstrData::FREE) ? "FREE, " : "")
+         << std::string((data & InstrData::_OPT_USED) ? "OPT_DATA, " : "")
          << "(0b" << bs << ")");
   }
 
+
+namespace instr {
+
+  inline std::string to_string(const ModuleType& modTy)
+  {
+    switch (modTy) {
+      case ModuleType::HOST:
+        return "HOST";
+      case ModuleType::DEVICE:
+        return "DEVICE";
+      case ModuleType::UNKNOWN_MODULE:
+      default:
+        return "<UNKNOWN_MODULE_TYPE>";
+    }
+  }
+
+
+
+} //?namespace instr
+
+std::ostream& operator << (std::ostream& out, const instr::ModuleType& modTy) noexcept
+{
+  return (out << ::scabbard::instr::to_string(modTy));
+}
 
 } //?namespace scabbard

@@ -5,14 +5,47 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "(gdb) Launch tmp",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/device/def-race.instr.out",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [
+                {"name": "SCABBARD_PATH", "value": "${workspaceFolder}/build/scababrd"},
+                {"name": "SCABBARD_INSTRUMENTED_EXE_NAME", "value": "${workspaceFolder}/test/device/def-race.instr.out"},
+                {"name": "SCABBARD_TRACE_FILE", "value": "${workspaceFolder}/test/device/def-race.scabbard.trace"}
+            ],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
             "name": "Python Debugger: scababrd interrface with test args",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/build/scabbard/scabbard.py",
             "console": "integratedTerminal",
-            "env": {"SCABBARD_PATH":"${workspaceFolder}/build/scabbard"},
+            "env": {
+                "SCABBARD_PATH":"${workspaceFolder}/build/scabbard"
+            },
             // "args": "verif -h"
-            "args": "build --meta-file=test/basic/test.scabbard.meta hipcc -o test/basic/test.instr.out test/basic/test.cpp"
+            // "args": "instr --meta-file=${workspaceFolder}/test/device/def-race.scabbard.meta hipcc -std=c++17 -x hip -O2 -o${workspaceFolder}/test/device/def-race.instr.out ${workspaceFolder}/test/device/def-race.cpp"
+            // "args": "trace --trace-file=${workspaceFolder}/test/device/def-race.scabbard.trace ${workspaceFolder}/test/device/def-race.instr.out"
+            "args": "verif ${workspaceFolder}/test/device/def-race.scabbard.meta ${workspaceFolder}/test/device/def-race.scabbard.trace"
+            // "args": "trace ${workspaceFolder}/test/device/def-race.instr.out"
             // "args": "${command:pickArgs}"
         },
         {

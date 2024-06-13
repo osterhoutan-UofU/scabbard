@@ -16,7 +16,7 @@
 #endif
 #include <scabbard/TraceData.hpp>
 
-#include <scabbard/trace/MetadataStrore.hpp>
+// #include <scabbard/trace/MetadataStrore.hpp>
 
 #include <fstream>
 #include <string>
@@ -54,8 +54,7 @@ namespace scabbard {
        *        trace file.
        */
       __host__ void init(const std::string& executable_path, 
-                          std::time_t time_stamp,
-                          const MetadataStore& metadata);
+                          std::time_t time_stamp);
 
       /**
        * @brief Writes the footer of the trace file \n 
@@ -63,7 +62,7 @@ namespace scabbard {
        *        \b WARNING: does NOT close the trace file! 
        *        You will have to call \c close() after calling this!
        */
-      __host__ void finalize(const MetadataStore& metadata);
+      __host__ void finalize();
 
       /**
        * @brief closes the trace file on the filesystem

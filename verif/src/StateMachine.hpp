@@ -33,16 +33,17 @@ namespace verif {
   public:
     StateMachine(const std::multiset<TraceData>& trace_);
     
-    enum ResultStatus { GOOD, ERROR, WARNING, INTERNAL_ERROR };
+    enum ResultStatus { GOOD=0, ERROR=2, WARNING=1, INTERNAL_ERROR=-1 };
     struct Result {
       ResultStatus status;
       const TraceData* read = nullptr; 
       const TraceData* write = nullptr;
       std::string err_msg = "";
       friend inline bool operator == (const Result& L, const Result& R);
+      inline bool operator < (const Result& other) const;
     };
 
-    std::unordered_set<StateMachine::Result> run();
+    std::map<StateMachine::Result, std::size_t> run();
 
     void reset();
 
@@ -72,19 +73,19 @@ namespace verif {
 } //?namespace scabbard
 
 
-namespace std {
+// namespace std {
 
-template<>
-struct hash<scabbard::verif::StateMachine::Result> {
-  uint64_t operator () (const scabbard::verif::StateMachine::Result& res) const
-  {
-    return ((
-            std::hash<int>()(res.status)
-            ^ (((res.read) ? std::hash<scabbard::LocationMetadata>()(res.read->metadata) : 0ul) << 1u) >> 1u)
-          ^ (((res.write) ? std::hash<scabbard::LocationMetadata>()(res.write->metadata) : 0ul) << 1u
-        )
-      );
-  }
-};
+// template<>
+// struct hash<scabbard::verif::StateMachine::Result> {
+//   uint64_t operator () (const scabbard::verif::StateMachine::Result& res) const
+//   {
+//     return ((
+//             std::hash<int>()(res.status)
+//             ^ (((res.read) ? std::hash<scabbard::LocationMetadata>()(res.read->metadata) : 0ul) << 1u) >> 1u)
+//           ^ (((res.write) ? std::hash<scabbard::LocationMetadata>()(res.write->metadata) : 0ul) << 1u
+//         )
+//       );
+//   }
+// };
 
-} //?namespace std
+// } //?namespace std

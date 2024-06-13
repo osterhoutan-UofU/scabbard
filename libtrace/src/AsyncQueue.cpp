@@ -46,7 +46,7 @@ namespace scabbard {
             std::cerr << "\n[scabbard::trace::dtor::ERROR] could not deallocate device side buffer!\n" 
                       << std::endl;
       if (tw != nullptr) {
-        tw->finalize(metadata);
+        tw->finalize();
         tw->close();
         delete tw;
       }
@@ -88,12 +88,36 @@ namespace scabbard {
     void AsyncQueue::set_trace_writer(const std::string& file_path, const std::string& exe_path, std::time_t start_time)
     {
       if (tw != nullptr) {
-        tw->finalize(metadata);
+        tw->finalize();
         tw->close();
         delete tw;
       }
-      tw = new TraceWriter(file_path);
-      tw->init(exe_path, start_time, metadata);
+      try {
+        tw = new TraceWriter(file_path);
+      } catch (std::exception ex) {
+        std::cerr << "\n[scabbard.trace:ERR] Could not open trace file!"
+                     "\n[scabbard.trace:ERR]          error: \"" << ex.what() << "\"" 
+                     "\n[scabbard.trace:ERR]     trace file: \"" << file_path << "\"\n";
+        exit(EXIT_FAILURE);
+      } catch (...) {
+        std::cerr << "\n[scabbard.trace:ERR] Could not open trace file!"
+                     "\n[scabbard.trace:ERR]          error: \"<UNKNOWN_ERROR>\"" 
+                     "\n[scabbard.trace:ERR]     trace file: \"" << file_path << "\"\n";
+        exit(EXIT_FAILURE);
+      }
+      try {
+        tw->init(exe_path, start_time);
+      } catch (std::exception ex) {
+        std::cerr << "\n[scabbard.trace:ERR] Could not write header for trace file!"
+                     "\n[scabbard.trace:ERR]          error: \"" << ex.what() << "\"" 
+                     "\n[scabbard.trace:ERR]     trace file: \"" << file_path << "\"\n";
+        exit(EXIT_FAILURE);
+      } catch (...) {
+        std::cerr << "\n[scabbard.trace:ERR] Could not write header for trace file!"
+                     "\n[scabbard.trace:ERR]          error: \"<UNKNOWN_ERROR>\"" 
+                     "\n[scabbard.trace:ERR]     trace file: \"" << file_path << "\"\n";
+        exit(EXIT_FAILURE);
+      }
     }
 
     // __host__ 
@@ -185,11 +209,11 @@ namespace scabbard {
     }
 
 
-    __host__ 
-    std::uint64_t AsyncQueue::register_src(const char* src)
-    {
-      return metadata.register_src(src);
-    }
+    // __host__ 
+    // std::uint64_t AsyncQueue::register_src(const char* src)
+    // {
+    //   return metadata.register_src(src);
+    // }
 
 
     // << ========================================================================================== >> 

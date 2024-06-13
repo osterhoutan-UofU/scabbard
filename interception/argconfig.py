@@ -6,14 +6,8 @@
  * 
  *"""
  
-import os
-from pathlib import Path
+from argparse import ArgumentParser
 from typing import List
-# from enum import Enum
-from dataclasses import dataclass
-from argparse import ArgumentParser, ArgumentError, ArgumentTypeError
-import shutil
-
 
 __all__ = ['ScabbardArgParser','parseScabbardArgs','printScabbardHelp']
 
@@ -113,7 +107,7 @@ InstrArgParser.add_argument('--meta-file',
         required=False,
         help="filepath to where the metadata file to be generated will be written to (this is used by the verify step so remember it)"                           
     )
-VerifArgParser.add_argument('meta-file',
+VerifArgParser.add_argument('meta_file',
         nargs=1,
         default=None,
         metavar='<meta-file-path>',
@@ -130,7 +124,7 @@ TraceArgParser.add_argument('--trace-file','-t','-o',
               "(remember this as it will be used in the verify step) "
               "[WARNING: this file can be large in size]"
     )
-VerifArgParser.add_argument('trace-file',
+VerifArgParser.add_argument('trace_file',
         nargs=1,
         default=None,
         metavar='<trace-file-path>',
