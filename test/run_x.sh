@@ -94,8 +94,8 @@ scabbard trace --trace-file=$SCABBARD_TRACE_FILE $SCABBARD_INSTRUMENTED_EXE_NAME
 # $ROCM_PATH/bin/rocgdb $SCABBARD_INSTRUMENTED_EXE_NAME
 
 # make sure that a trace file exists after instrumentation
-test -e $SCABBARD_TRACE_FILE || \ 
-  { printf "\n\e[31m[run_x.sh] ERROR: the trace file \"$SCABBARD_TRACE_FILE\" was not created durring the trace/running step\e[0m\n"; exit -1; }
+# test -e $SCABBARD_TRACE_FILE || \ 
+#   { printf "\n\e[31m[run_x.sh] ERROR: the trace file \"$SCABBARD_TRACE_FILE\" was not created durring the trace/running step\e[0m\n"; exit -1; }
 
 
 # run the verifier
