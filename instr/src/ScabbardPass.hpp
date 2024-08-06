@@ -21,10 +21,10 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/PassManager.h>
-#include <llvm/Transforms/IPO/PassManagerBuilder.h>
 
 #include <string>
 #include <memory>
+#include <unordered_set>
 
 namespace scabbard {
 namespace instr {
@@ -78,6 +78,16 @@ namespace instr {
         llvm::FunctionCallee trace_append$alloc;
         const std::string trace_append$alloc_name = SCABBARD_DEVICE_CALLBACK_APPEND_ALLOC_NAME;
         llvm::FunctionCallee dummyFunc;
+        const std::unordered_set<std::string> NO_INSTR_FNS{
+                SCABBARD_DEVICE_CALLBACK_APPEND_MEM_NAME,
+                SCABBARD_DEVICE_CALLBACK_APPEND_ALLOC_NAME,
+                SCABBARD_DEVICE_DUMMY_FUNC_NAME,
+                "__ockl_hostcall_internal",
+                "__cxa_pure_virtual",
+                "__cxa_deleted_virtual", 
+                "__assertfail",
+                "__assert_fail"
+              };
       } device;
 
 
@@ -142,12 +152,12 @@ namespace instr {
      */
     auto run_host(llvm::Function& F, llvm::FunctionAnalysisManager &FAM, const DepTraceHost& DT) -> void;
 
-    // /**
-    //  * @brief Instrument device module to have all necessary callback functions
-    //  * @param M \c llvm::Module& - The device side Module to instrument
-    //  * @param MAM \c llvm::ModuleAnalysisManager& - The Analysis Manager for the Module
-    //  */
-    // auto instrCallbacks_device(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
+    /**
+     * @brief Instrument device module to have all necessary callback functions
+     * @param M \c llvm::Module& - The device side Module to instrument
+     * @param MAM \c llvm::ModuleAnalysisManager& - The Analysis Manager for the Module
+     */
+    auto instrCallbacks_device(llvm::Module& M, llvm::ModuleAnalysisManager &MAM) -> void;
     /**
      * @brief Instrument host module to have all necessary callback functions
      * @param M \c llvm::Module& - The host side Module to instrument

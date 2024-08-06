@@ -136,7 +136,8 @@ namespace scabbard {
     InstrData DepTrace<HOST>::getInstrData(const llvm::StoreInst& I) const
     {
 #     ifdef __SCABBARD_TRACE_HOST_WRITE_TO_GPU_READ
-      InstrData res = __getInstrData_val(*I.getPointerOperand());
+      llvm::SmallSet<llvm::StringRef, 8u> phiBBVisited;
+      InstrData res = __getInstrData_val(*I.getPointerOperand(), phiBBVisited);
       if (res == InstrData::NEVER)
         return InstrData::NEVER;
       res |= (I.isAtomic()) ? InstrData::ATOMIC_MEM : InstrData::NEVER;
@@ -150,9 +151,10 @@ namespace scabbard {
     template<>
     InstrData DepTrace<HOST>::getInstrData(const llvm::LoadInst& I) const
     {
+      llvm::SmallSet<llvm::StringRef, 8u> phiBBVisited;
       if (const auto alloca = llvm::dyn_cast_or_null<llvm::AllocaInst>(I.getPointerOperand()))
         return InstrData::NEVER;  // skip all loads direct from local memory
-      InstrData res = __getInstrData_val(*I.getPointerOperand());
+      InstrData res = __getInstrData_val(*I.getPointerOperand(), phiBBVisited);
       if (res == InstrData::NEVER)
         return InstrData::NEVER;
       res |= (I.isAtomic()) ? InstrData::ATOMIC_MEM : InstrData::NEVER;
@@ -170,30 +172,31 @@ namespace scabbard {
     template<>
     InstrData DepTrace<HOST>::getInstrData(const llvm::AtomicRMWInst& I) const
     {
-      return __getInstrData_val(I);
+      llvm::SmallSet<llvm::StringRef, 8u> phiBBVisited;
+      return __getInstrData_val(I, phiBBVisited);
     }
 
     // << ------------------------------------------------------------------------------------------ >> 
 
     template<> 
     template<>
-    InstrData DepTrace<HOST>::__getInstrData_rec(const llvm::LoadInst& I) const
+    InstrData DepTrace<HOST>::__getInstrData_rec(const llvm::LoadInst& I, llvm::SmallSet<llvm::StringRef, 8u>& phiBBVisited) const
     {
-      return __getInstrData_val(*I.getPointerOperand());
+      return __getInstrData_val(*I.getPointerOperand(), phiBBVisited);
     }
 
     template<> 
     template<>
-    InstrData DepTrace<HOST>::__getInstrData_rec(const llvm::CallInst& I) const
+    InstrData DepTrace<HOST>::__getInstrData_rec(const llvm::CallInst& I, llvm::SmallSet<llvm::StringRef, 8u>& phiBBVisited) const
     {
       return InstrData::NEVER;
     }
 
     template<> 
     template<>
-    InstrData DepTrace<HOST>::__getInstrData_rec(const llvm::AtomicRMWInst& I) const
+    InstrData DepTrace<HOST>::__getInstrData_rec(const llvm::AtomicRMWInst& I, llvm::SmallSet<llvm::StringRef, 8u>& phiBBVisited) const
     {
-      auto res = __getInstrData_val(*I.getPointerOperand());
+      auto res = __getInstrData_val(*I.getPointerOperand(), phiBBVisited);
       if (res == InstrData::NEVER)
         return InstrData::NEVER;
       return (InstrData)(InstrData::ATOMIC_MEM | res);
@@ -201,21 +204,21 @@ namespace scabbard {
 
     template<> 
     template<>
-    InstrData DepTrace<HOST>::__getInstrData_rec(const llvm::AddrSpaceCastInst& I) const
+    InstrData DepTrace<HOST>::__getInstrData_rec(const llvm::AddrSpaceCastInst& I, llvm::SmallSet<llvm::StringRef, 8u>& phiBBVisited) const
     {
-      return __getInstrData_val(*I.getPointerOperand());
+      return __getInstrData_val(*I.getPointerOperand(), phiBBVisited);
     }
 
     template<> 
     template<>
-    InstrData DepTrace<HOST>::__getInstrData_rec(const llvm::GetElementPtrInst& I) const
+    InstrData DepTrace<HOST>::__getInstrData_rec(const llvm::GetElementPtrInst& I, llvm::SmallSet<llvm::StringRef, 8u>& phiBBVisited) const
     {
-      return __getInstrData_val(*I.getPointerOperand());
+      return __getInstrData_val(*I.getPointerOperand(), phiBBVisited);
     }
 
     template<> 
     template<>
-    InstrData DepTrace<HOST>::__getInstrData_rec(const llvm::AllocaInst& I) const
+    InstrData DepTrace<HOST>::__getInstrData_rec(const llvm::AllocaInst& I, llvm::SmallSet<llvm::StringRef, 8u>& phiBBVisited) const
     {
       //check if this is used in a hipMalloc
       for (const auto& U : I.uses()) {
@@ -230,14 +233,14 @@ namespace scabbard {
 
     template<> 
     template<>
-    InstrData DepTrace<HOST>::__getInstrData_rec(const llvm::BitCastInst& I) const
+    InstrData DepTrace<HOST>::__getInstrData_rec(const llvm::BitCastInst& I, llvm::SmallSet<llvm::StringRef, 8u>& phiBBVisited) const
     {
-      return __getInstrData_val(*I.getOperand(0));
+      return __getInstrData_val(*I.getOperand(0), phiBBVisited);
     }
 
     template<> 
     template<>
-    InstrData DepTrace<HOST>::__getInstrData_rec(const llvm::Argument& A) const
+    InstrData DepTrace<HOST>::__getInstrData_rec(const llvm::Argument& A, llvm::SmallSet<llvm::StringRef, 8u>& phiBBVisited) const
     {
       const auto& TY = *A.getType();
       if (A.hasByRefAttr() || TY.isPointerTy() /* || TY.isArrayTy() || TY.isPtrOrPtrVectorTy() */) {
@@ -260,7 +263,7 @@ namespace scabbard {
       } else if (auto* _i = llvm::dyn_cast_or_null<llvm::LoadInst>(&i)) {
         return getInstrData(*_i);
       // } else if (auto* _i = llvm::dyn_cast_or_null<llvm::CallInst>(&i)) {
-      //   return getInstrData(*_i);
+      //   return getInstrData(*_i, phiBBVisited);
       } else if (auto _i = llvm::dyn_cast_or_null<llvm::AtomicRMWInst>(&i)) {
         return getInstrData(*_i);
       }

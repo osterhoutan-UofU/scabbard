@@ -107,7 +107,9 @@ void printEnvironment(char* const envp[]) {
 void copy_env_variables(char* const envp[], char *** new_envp) {
   char **ptr = (char **)envp;
   size_t elems = 0;
+  printf("[intercept.copy_env:DBG] count loop\n"); //DEBUG
   while (ptr != NULL) {
+    printf("[intercept.copy_env:DBG] #%ld\n",elems); //DEBUG
     if (*ptr == NULL)
       break;
     elems++;
@@ -115,40 +117,48 @@ void copy_env_variables(char* const envp[], char *** new_envp) {
   }
 
   *new_envp = (char **)malloc(sizeof(char *)*elems+1); 
+  printf("[intercept.copy_env:DBG] copy loop\n"); //DEBUG
   for (size_t i=0; i < elems; ++i) {
     (*new_envp)[i] = (char *)malloc(strlen(envp[i]) * sizeof(char) + 1);
+    printf("[intercept.copy_env:DBG] #%ld\n",i); //DEBUG
     if (strstr (envp[i], "LD_PRELOAD=") == NULL) { // do not copy ld_preload
       strcpy((*new_envp)[i], envp[i]);
     } else {
       strcpy((*new_envp)[i], "LD_PRELOAD=");
     }
   }
+  printf("[intercept.copy_env:DBG] terminate list with NULL\n"); //DEBUG
   (*new_envp)[elems] = NULL;
+  printf("[intercept.copy_env:DBG] END\n"); //DEBUG
 }
 
 /* Copy the old argv with the filename inserted as the first element */
 void copy_command(const char* filename, char* const argv[], char *** new_argv) {
+  printf("[intercept.copy_cmd:DBG] START\n"); //DEBUG
   char **ptr = (char **)argv;
   size_t elems = 0;
-  // printf("count loop\n"); //DEBUG
+  printf("[intercept.copy_cmd:DBG] count loop\n"); //DEBUG
   while (ptr != NULL) {
-    // printf("[%ld]\n",elems); //DEBUG
+    printf("[intercept.copy_cmd:DBG] #%ld\n",elems); //DEBUG
     if (*ptr == NULL)
       break;
     elems++;
     ptr++;
   }
+
   *new_argv = (char **)malloc(sizeof(char *)*(elems+2));
-  // printf("name copy\n"); //DEBUG
+  printf("[intercept.copy_cmd:DBG] name copy\n"); //DEBUG
   (*new_argv)[0] = (char *)malloc(strlen(filename) * (sizeof(char) + 1));
   strcpy((*new_argv)[0], filename);
-  // printf("copy loop\n"); //DEBUG
+  printf("[intercept.copy_cmd:DBG] copy loop\n"); //DEBUG
   for (size_t i=0; i < elems; ++i) {
-    // printf("[%ld]\n",i); //DEBUG
+    printf("[intercept.copy_cmd:DBG] #%ld\n",i); //DEBUG
     (*new_argv)[i+1] = (char *)malloc(strlen(argv[i]) * (sizeof(char) + 1));
     strcpy((*new_argv)[i+1], argv[i]);
   }
+  printf("[intercept.copy_cmd:DBG] terminate list with NULL\n"); //DEBUG
   (*new_argv)[elems+1] = NULL;
+  printf("[intercept.copy_cmd:DBG] END\n"); //DEBUG
 }
 
 /* Remove LD_PRELOAD library to avoid a cycle in pre-loading */
@@ -158,17 +168,21 @@ void remove_ld_preload() {
 }
 
 int execve(const char* filename, char* const argv[], char* const envp[]) {
+    printf("[intercept.c:DBG] intercepted `execve`\n"); //DEBUG
     // Copy env variables
-    char ** new_envp;
-    char ** new_argv; 
+    char ** new_envp = NULL;
+    char ** new_argv = NULL; 
     const char* SCABBARD_PATH = getenv("SCABBARD_PATH");
     char SCABBARD_WRAPPER[1024];
     assert(SCABBARD_PATH != NULL && "SCABBARD_PATH is defined in your environment");
-    // // printf("execve\n"); //DEBUG
     copy_env_variables(envp, &new_envp);
+    printf("[intercept.c:DBG] copy env done\n"); //DEBUG
+    printf("[intercept.c:DBG] copy cmd done\n"); //DEBUG
+    printf("[intercept.c:DBG]    old: `%s %s`\n"); //DEBUG
     copy_command(filename, argv, &new_argv);
     snprintf(SCABBARD_WRAPPER, sizeof(SCABBARD_WRAPPER),
             "%s/driver.py", SCABBARD_PATH); // getenv might be unsafe if SCABBARD_PATH is not defined
+    printf("[intercept.c:DBG] `%s %s ...`\n", SCABBARD_WRAPPER, new_argv[0]); //DEBUG
     old_execve = dlsym(RTLD_NEXT, "execve");
 
     // if (isHIPCC(filename))         return old_execve(hipcc_scabbard, argv, new_envp);
@@ -183,14 +197,15 @@ int execve(const char* filename, char* const argv[], char* const envp[]) {
 }
 
 int execv(const char *path, char *const argv[]) {
+    printf("[intercept.c:DBG] intercepted `execv`\n");  //DEBUG
     char ** new_argv;
     const char* SCABBARD_PATH = getenv("SCABBARD_PATH");
     char SCABBARD_WRAPPER[1024];
     assert(SCABBARD_PATH != NULL && "SCABBARD_PATH is defined in your environment");
-    // // printf("execv\n"); //DEBUG
     copy_command(path, argv, &new_argv);
     snprintf(SCABBARD_WRAPPER, sizeof(SCABBARD_WRAPPER),
             "%s/driver.py", SCABBARD_PATH); // getenv might be unsafe if SCABBARD_PATH is not defined
+    printf("[intercept.c:DBG] `%s %s ...`\n", SCABBARD_WRAPPER, new_argv[0]); //DEBUG
     remove_ld_preload();
   // if (isHIPCC(path) || isClang(path) || isClangPP(path))
   //     remove_ld_preload();
@@ -207,14 +222,15 @@ int execv(const char *path, char *const argv[]) {
 }
 
 int execvp (const char *file, char *const argv[]) {
+  printf("[intercept.c:DBG] intercepted `execvp`\n"); //DEBUG
   char ** new_argv; 
   const char* SCABBARD_PATH = getenv("SCABBARD_PATH");
   assert(SCABBARD_PATH != NULL && "SCABBARD_PATH is defined in your environment");
   char SCABBARD_WRAPPER[1024];
-  // // printf("execvp\n"); //DEBUG
   copy_command(file, argv, &new_argv);
   snprintf(SCABBARD_WRAPPER, sizeof(SCABBARD_WRAPPER),
           "%s/driver.py", SCABBARD_PATH); // getenv might be unsafe if SCABBARD_PATH is not defined
+  printf("[intercept.c:DBG] `%s %s ...`\n", SCABBARD_WRAPPER, new_argv[0]); //DEBUG
   remove_ld_preload();
   // if (isHIPCC(file) || isClang(file) || isClangPP(file))
   //   remove_ld_preload();
@@ -231,16 +247,17 @@ int execvp (const char *file, char *const argv[]) {
 }
 
 int execvpe(const char *file, char *const argv[], char *const envp[]) {
+    printf("[intercept.c:DBG] intercepted `execvpe`\n"); //DEBUG
     char ** new_envp;
     char ** new_argv;
     const char* SCABBARD_PATH = getenv("SCABBARD_PATH");
     char SCABBARD_WRAPPER[1024];
     assert(SCABBARD_PATH != NULL && "SCABBARD_PATH is defined in your environment");
-    // // printf("execvpe\n"); //DEBUG
     copy_env_variables(envp, &new_envp);
     copy_command(file, argv, &new_argv);
     snprintf(SCABBARD_WRAPPER, sizeof(SCABBARD_WRAPPER),
             "%s/driver.py", SCABBARD_PATH); // getenv might be unsafe if SCABBARD_PATH is not defined
+    printf("[intercept.c:DBG] `%s %s ...`\n", SCABBARD_WRAPPER, new_argv[0]); //DEBUG
     old_execvpe = dlsym(RTLD_NEXT, "execvpe");
 
     // if (isHIPCC(file))         return old_execvpe(hipcc_scabbard, argv, new_envp);

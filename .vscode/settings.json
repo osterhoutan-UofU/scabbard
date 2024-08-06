@@ -3,7 +3,10 @@
     "doxdocgen.generic.authorEmail": "osterhoutan+scabbard@gmail.com",
     // "cmake.generator": "Ninja",
     "cmake.parallelJobs": 6,
-    // "cmake.environment": {"ROCM_PATH":"/opt/rocm-6.0.0"},
+    "cmake.environment": {
+        // "ROCM_PATH":"/opt/rocm-6.0.0",
+        "LLVM_HOME": "/mnt/e/tmp/llvm17-dbg"
+    },
     // "cmake.cmakePath": "${workspaceFolder}/.vscode/cmake_fix.sh"
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "C_Cpp.formatting": "vcFormat",
@@ -122,7 +125,10 @@
         "codecvt": "cpp",
         "ranges": "cpp",
         "typeindex": "cpp",
-        "any": "cpp"
+        "any": "cpp",
+        "forward_list": "cpp",
+        "future": "cpp",
+        "__availability": "cpp"
     },
     "cSpell.words": [
         "amdgcn",

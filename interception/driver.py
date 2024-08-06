@@ -19,6 +19,9 @@ from colors import prGreen, prCyan, prRed
 from builtins import Exception
 from scabbard import executeOriginalCommand, ADDED_FLAGS, runBuildCommand, SCABBARD_PATH
 
+
+DEBUG: bool = True
+
 # --------------------------------------------------------------------------- #
 # --- Installation Paths ---------------------------------------------------- #
 # --------------------------------------------------------------------------- #
@@ -61,7 +64,7 @@ def runCommandWithFlags(argv: list) -> None:
         raise Exception("[scabbard.intercept.driver:ERR] `SCABBARD_METADATA_FILE` was not defined! [dev-error]")
     
     new_cmd: str
-    if any([x in os.path.basename(argv[0]) for x in {"clang","hipcc"}]):
+    if any([x in os.path.basename(argv[0]) for x in ["clang","hipcc"]]):
         new_argv = list(argv)
         new_argv[1:1] = ADDED_FLAGS
         new_cmd = ' '.join(new_argv)
@@ -71,20 +74,29 @@ def runCommandWithFlags(argv: list) -> None:
               "\n                              Try directly calling the configured build tool (i.e. `make`, `ninja`, etc.)\n")
         executeOriginalCommand(argv) # might try this for now
     elif any([x in os.path.basename(argv[0]) for x in {"make", "ninja", "MSBuild"}]):
-        runBuildCommand(argv)
+        try:
+            executeOriginalCommand(argv)
+        except Exception as e:
+            prRed(f"[scabbard.intercept.driver:ERR] {e}")
+            raise RuntimeError("failed to run the build command [driver.py]") from e
+        except:
+            raise RuntimeError("failed to run the build command [driver.py]")
+        return
     else:
         new_cmd = ' '.join(argv)
     
+    if DEBUG:
+        prCyan(f"[driver.py] instrumented cmd: {new_cmd}")
     try:
         cmdOutput = subprocess.run(new_cmd, shell=True, check=True, env=env) #, text=True,
                                     # stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         # print(cmdOutput.stdout)
     except subprocess.CalledProcessError as cpe:
         prRed(str(cpe.stderr) if cpe.stderr is not None else str(cpe.stdout))
-        raise RuntimeError('Error when running scabbard.intercept on a build command') from cpe
+        raise RuntimeError('Error when running scabbard.intercept on a build command [driver.py]') from cpe
     except Exception as e:
         prRed(e)
-        raise RuntimeError("Error when running scabbard.intercept on a build command") from e
+        raise RuntimeError("Error when running scabbard.intercept on a build command [driver.py]") from e
 
 
 

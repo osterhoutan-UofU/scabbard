@@ -11,6 +11,7 @@ add_library(trace STATIC
     src/AsyncQueue.cpp
     src/TraceWriter.cpp
     # src/MetadataStore.cpp
+    src/device-defs.cpp
   )
 
 set_property(TARGET trace PROPERTY HIP_STANDARD 17)

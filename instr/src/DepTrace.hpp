@@ -16,7 +16,10 @@
 #include <llvm/IR/SymbolTableListTraits.h>
 #include <llvm/ADT/StringMap.h>
 #include<llvm/ADT/SmallPtrSet.h>
+#include<llvm/ADT/SmallSet.h>
 #include <llvm/IR/Instructions.h>
+#include <llvm/IR/DebugInfoMetadata.h>
+#include <llvm/IR/DebugLoc.h>
 
 #include <unordered_set>
 #include <unordered_map>
@@ -60,51 +63,72 @@ namespace scabbard {
 
     private:
       // InstrData __getInstrData_inst(const llvm::Instruction& I) const;
-      InstrData __getInstrData_inst(const llvm::Instruction& i) const
+      InstrData __getInstrData_inst(const llvm::Instruction& i, llvm::SmallSet<llvm::StringRef, 8u>& phiBBVisited) const
       {
-        if (const auto* _i = llvm::dyn_cast_or_null<llvm::StoreInst>(&i)) {
-          return __getInstrData_rec(*_i);
-        } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::LoadInst>(&i)) {
-          return __getInstrData_rec(*_i);
-        } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::CallInst>(&i)) {
-          return __getInstrData_rec(*_i);
-        } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::AtomicRMWInst>(&i)) {
-          return __getInstrData_rec(*_i);
-        } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::AddrSpaceCastInst>(&i)) {
-          return __getInstrData_rec(*_i);
-        } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::GetElementPtrInst>(&i)) {
-          return __getInstrData_rec(*_i);
-        } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::BitCastInst>(&i)) {
-          return __getInstrData_rec(*_i);
-        } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::AllocaInst>(&i)) {
-          return __getInstrData_rec(*_i);
-        } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::PHINode>(&i)) {
-          return __getInstrData_phi(*_i);
+        try {
+          if (const auto* _i = llvm::dyn_cast_or_null<llvm::StoreInst>(&i)) {
+            return __getInstrData_rec(*_i, phiBBVisited);
+          } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::LoadInst>(&i)) {
+            return __getInstrData_rec(*_i, phiBBVisited);
+          } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::CallInst>(&i)) {
+            return __getInstrData_rec(*_i, phiBBVisited);
+          } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::AtomicRMWInst>(&i)) {
+            return __getInstrData_rec(*_i, phiBBVisited);
+          } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::AddrSpaceCastInst>(&i)) {
+            return __getInstrData_rec(*_i, phiBBVisited);
+          } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::GetElementPtrInst>(&i)) {
+            return __getInstrData_rec(*_i, phiBBVisited);
+          } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::BitCastInst>(&i)) {
+            return __getInstrData_rec(*_i, phiBBVisited);
+          } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::AllocaInst>(&i)) {
+            return __getInstrData_rec(*_i, phiBBVisited);
+          } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::PHINode>(&i)) {
+            return __getInstrData_phi(*_i, phiBBVisited);
+          }
+        } catch(...) {
+          const auto& loc = i.getDebugLoc();
+          const auto& scope = *llvm::dyn_cast_or_null<llvm::DIScope>(loc.getScope());
+          const auto& file = *scope.getFile();
+          llvm::errs() << "\n[scabbard.instr:ERR] failed to cast IR Instruction to usable sub-type!"
+                          "\n[scabbard.instr:ERR]    src loc: \"" << file.getDirectory() << "/" << file.getFilename()
+                                                                  << ":" << loc.getLine() << "," << loc.getCol() << "\""
+                          "\n[scabbard.instr:ERR]       repr: `";
+          i.print(llvm::errs());
+          llvm::errs() << "`\n";
         }
         return InstrData::NEVER;
       }
+
       // InstrData __getInstrData_phi(const llvm::PHINode& PHI) const;
-      InstrData __getInstrData_phi(const llvm::PHINode& PHI) const
+      InstrData __getInstrData_phi(const llvm::PHINode& PHI, llvm::SmallSet<llvm::StringRef, 8u>& phiBBVisited) const
       {
         InstrData res = InstrData::NEVER;
-        static llvm::SmallPtrSet<const llvm::BasicBlock*, 32u> phiVisited; //lets hope static lets me get around the const function issue
-        phiVisited.insert(PHI.getParent());
+        // static size_t visits = 0ul;
+        llvm::SmallSet<llvm::StringRef, 8u> _phiBBVisited(phiBBVisited); //lets hope static lets me get around the const function issue
+        // if (visits > 8ul) {
+        //   llvm::errs() << "\n[scabbard.instr:DBG] dependency trace recursed through phi too many times!\n";
+        //   return res;
+        // }
+        // visits++;
+        _phiBBVisited.insert(PHI.getParent()->getName());
         for (const auto& _U : PHI.incoming_values()) {
           if (auto U = llvm::dyn_cast_or_null<llvm::Instruction>(_U.get())) {
-            if (not phiVisited.contains(U->getParent())) {
-              phiVisited.insert(U->getParent());
-              res |= __getInstrData_val(*U);
+            if (not _phiBBVisited.contains(U->getParent()->getName())) {
+              _phiBBVisited.insert(U->getParent()->getName());
+              res |= __getInstrData_val(*U, _phiBBVisited);
             }
           } else if (auto A = llvm::dyn_cast_or_null<llvm::Argument>(_U.get())) {
-            res |= __getInstrData_rec(*U);
+            res |= __getInstrData_rec(*A, _phiBBVisited);
           }
         }
-        phiVisited.clear();
+        // visits = 0ul;
+        // phiBBVisited.clear();
         return res;
       }
       // InstrData __getInstrData_val(const llvm::Value& V) const;
-      InstrData __getInstrData_val(const llvm::Value& V) const
+      InstrData __getInstrData_val(const llvm::Value& V, llvm::SmallSet<llvm::StringRef, 8u>& phiBBVisited) const
       {
+        try {
         // handle globals
         // if (const auto* _g = llvm::dyn_cast_or_null<llvm::GlobalVariable>(&V)) {
         if (const auto* _g = llvm::dyn_cast_or_null<llvm::GlobalValue>(&V)) {
@@ -118,17 +142,24 @@ namespace scabbard {
         } else
           // handle local function args/registers
           if (const auto* _A = llvm::dyn_cast_or_null<llvm::Argument>(&V)) {
-            return __getInstrData_rec(*_A); //NOTE: this might cause issues for the host
+            return __getInstrData_rec(*_A, phiBBVisited); //NOTE: this might cause issues for the host
           }
         // handle derived values (aka instructions)
         if (const auto* _I = llvm::dyn_cast_or_null<llvm::Instruction>(&V)) {
-          return __getInstrData_inst(*_I);
+          return __getInstrData_inst(*_I, phiBBVisited);
+        }
+        } catch(...) {
+          llvm::errs() << "\n[scabbard.instr:ERR] failed to cast IR Value to usable sub-type!"
+                          "\n[scabbard.instr:ERR]    src loc: <unknown>"
+                          "\n[scabbard.instr:ERR]       repr: `";
+          V.print(llvm::errs());
+          llvm::errs() << "`\n";
         }
         // unknown Value type...
         return InstrData::NEVER;
       }
       template<class InstrT>
-      InstrData __getInstrData_rec(const InstrT& I) const;
+      InstrData __getInstrData_rec(const InstrT& I, llvm::SmallSet<llvm::StringRef, 8u>& phiBBVisited) const;
 
     };
 

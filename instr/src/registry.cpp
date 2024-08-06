@@ -59,18 +59,30 @@ llvm::PassPluginLibraryInfo getScabbardPassPluginInfo() {
   using namespace llvm;
   return {LLVM_PLUGIN_API_VERSION, "scabbard", "alpha 0.0.1",
           [](PassBuilder& PB) {
-            PB.registerOptimizerEarlyEPCallback( // ~can~ find kernel functions (sometimes run's twice)
-                [&](llvm::ModulePassManager &MPM, OptimizationLevel level) {
-                  // MPM.addPass(scabbard::instr::ScabbardPassPlugin());
-                  // MPM.addPass(scabbard::instr::ScabbardPostPass(metadata)); // moved to linker phase
-                }
-              );
+            // PB.registerOptimizerEarlyEPCallback( // ~can~ find kernel functions (sometimes run's twice)
+            //     [&](llvm::ModulePassManager &MPM, OptimizationLevel level) {
+            //       // MPM.addPass(scabbard::instr::ScabbardPassPlugin());
+            //       // MPM.addPass(scabbard::instr::ScabbardPostPass(metadata)); // moved to linker phase
+            //     }
+            //   );
               PB.registerOptimizerLastEPCallback( // used to handle link time instrumentation
-                  [&](llvm::ModulePassManager &MPM, OptimizationLevel level) {
+                  [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
                     MPM.addPass(scabbard::instr::ScabbardPassPlugin());
                     // MPM.addPass(scabbard::instr::ScabbardPostPass(metadata));
                   }
                 );
+              // PB.registerFullLinkTimeOptimizationEarlyEPCallback(
+              //   [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
+              //       MPM.addPass(scabbard::instr::ScabbardPassPlugin());
+              //       // MPM.addPass(scabbard::instr::ScabbardPostPass(metadata));
+              //     }
+              // );
+              // PB.registerFullLinkTimeOptimizationLastEPCallback(
+              //   [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
+              //       MPM.addPass(scabbard::instr::ScabbardPassPlugin());
+              //       // MPM.addPass(scabbard::instr::ScabbardPostPass(metadata));
+              //     }
+              // );
           }};
 }
 extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo

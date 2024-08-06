@@ -13,7 +13,11 @@
 #include "ScabbardPass.hpp"
 
 #include <llvm/IR/Instructions.h>
-#include <llvm/ADT/Triple.h>
+#if __clang_major__ <= 16
+# include <llvm/ADT/Triple.h>
+#else
+# include <llvm/TargetParser/Triple.h>
+#endif
 #include <llvm/Support/Debug.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/Casting.h>
@@ -25,6 +29,8 @@
 #include <llvm/Transforms/Utils/ModuleUtils.h>
 #include <llvm/Transforms/Utils/BasicBlockUtils.h>
 #include <llvm/Transforms/Utils/Cloning.h>
+
+
 
 
 
@@ -125,55 +131,74 @@ namespace scabbard {
       device.trace_append$alloc = M.getFunction(device.trace_append$alloc_name);
       device.dummyFunc = M.getFunction(SCABBARD_DEVICE_DUMMY_FUNC_NAME);
 
+      // llvm::FunctionAnalysisManager fam; //DEBUG when running with debug build fo clang a dense map inside get result has unexpected behavior, but `fam` isn't actually used yet so just swap it for a default for now
       llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
                                               .getManager();
+      
       DepTraceDevice dt(M);
       llvm::SmallVector<llvm::Function*> funcs;
       for (auto& f : M.getFunctionList())
         funcs.push_back(&f);
       for (auto* f : funcs)
-        if (f->getName() != device.trace_append$mem_name && f->getName() != device.trace_append$alloc_name && f->getName() != "__ockl_hostcall_internal"
-            && f->getName() != SCABBARD_DEVICE_DUMMY_FUNC_NAME)
+        if (not device.NO_INSTR_FNS.count(f->getName().str()) 
+            && not f->getName().starts_with("llvm."))
           run_device(*f, fam, dt);
 
       finish_replacing_old_funcs_device(M);
+
+      // remove dummy function
+      // auto fn = M.getFunction(SCABBARD_DEVICE_DUMMY_FUNC_NAME);
+      // if (fn != nullptr) {
+      //   fn->removeFromParent();
+      //   delete fn;
+      // }
+
+      // remove unused virtual function call handlers (__cxa_pure_virtual, __cxa_deleted_virtual, __assert_fail)
+      // for (auto fn_name : CXX_DUP_FNS) {
+      //   auto fn = M.getFunction(fn_name);
+      //   if (fn != nullptr && fn->getNumUses() < 1u) {
+      //     fn->removeFromParent();
+      //     delete fn;
+      //   }
+      // }
+      
 
       // remove the dummy caller function from device_def
       // M.getFunction(SCABBARD_DEVICE_DUMMY_FUNC_NAME)->eraseFromParent(); //note: causes all linked functions to also be removed
     }
 
-    // void ScabbardPassPlugin::instrCallbacks_device(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
-    // {
-    //   device.trace_append$mem = M.getOrInsertFunction(
-    //       device.trace_append$mem_name,
-    //       llvm::FunctionType::get(
-    //           llvm::Type::getVoidTy(M.getContext()),
-    //           llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
-    //               llvm::IntegerType::get(M.getContext(), sizeof(InstrData) * 8),
-    //               llvm::PointerType::get(M.getContext(), 0u), //WARN: This constant 0u might need to be dynamicly decided for host modules
-    //               llvm::PointerType::get(M.getContext(), 1u), //WARN: This constant 0u might need to be dynamicly decided for host modules
-    //               llvm::IntegerType::get(M.getContext(), 32u),
-    //               llvm::IntegerType::get(M.getContext(), 32u)
-    //             }),
-    //           false
-    //         )
-    //     );
-    //   device.trace_append$alloc = M.getOrInsertFunction(
-    //       device.trace_append$alloc_name,
-    //       llvm::FunctionType::get(
-    //           llvm::Type::getVoidTy(M.getContext()),
-    //           llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
-    //               llvm::IntegerType::get(M.getContext(), sizeof(InstrData) * 8),
-    //               llvm::PointerType::get(M.getContext(), 0u),
-    //               llvm::PointerType::get(M.getContext(), 1u),
-    //               llvm::IntegerType::get(M.getContext(), 32u),
-    //               llvm::IntegerType::get(M.getContext(), 32u),
-    //               llvm::IntegerType::get(M.getContext(), 64u)
-    //             }),
-    //           false
-    //         )
-    //     );
-    // }
+    void ScabbardPassPlugin::instrCallbacks_device(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
+    {
+      // auto ptrTy = llvm::PointerType::get(M.getContext(), 0u);
+      // auto int64Ty = llvm::IntegerType::get(M.getContext(), 64u);
+      // device.trace_append$mem = M.getOrInsertFunction(
+      //     device.trace_append$mem_name,
+      //     llvm::FunctionType::get(
+      //         llvm::Type::getVoidTy(M.getContext()),
+      //         llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
+      //             ptrTy,
+      //             llvm::IntegerType::get(M.getContext(), sizeof(InstrData) * 8),
+      //             ptrTy, //WARN: This constant 0u might need to be dynamicly decided for host modules
+      //             int64Ty
+      //           }),
+      //         false
+      //       )
+      //   );
+      // device.trace_append$alloc = M.getOrInsertFunction(
+      //     device.trace_append$alloc_name,
+      //     llvm::FunctionType::get(
+      //         llvm::Type::getVoidTy(M.getContext()),
+      //         llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
+      //             ptrTy,
+      //             llvm::IntegerType::get(M.getContext(), sizeof(InstrData) * 8),
+      //             ptrTy,
+      //             int64Ty,
+      //             int64Ty
+      //           }),
+      //         false
+      //       )
+      //   );
+    }
 
 
 
@@ -300,7 +325,7 @@ namespace scabbard {
 
     void ScabbardPassPlugin::run_device(llvm::Function& _F, llvm::FunctionAnalysisManager& FAM, const DepTraceDevice& DT)
     {
-      if (_F.isDeclaration()) return; // skip functions not defined (only declared) in this module 
+      // if (_F.isDeclaration()) return; // skip functions not defined (only declared) in this module 
       llvm::Function& F = *replace_device_function(_F);
 
       // search for instructions to instrument and instrument them
@@ -360,6 +385,11 @@ namespace scabbard {
     {
       if (not (data & InstrData::ON_DEVICE)) // make sure this is supposed to be instrumented on device
         return;
+      llvm::CastInst* castInst = nullptr;
+      if (auto ptrTy = llvm::dyn_cast<llvm::PointerType>(V->getType()))
+        if (ptrTy->getAddressSpace() != 0u) { //NOTE hard coding this might be an issue
+          castInst = llvm::AddrSpaceCastInst::Create(llvm::Instruction::CastOps::AddrSpaceCast, V, device.trace_append$mem.getFunctionType()->getParamType(2u));
+        }
       auto loc = metadata.trace(F, I.getDebugLoc(), ModuleType::DEVICE);
       auto ci = llvm::CallInst::Create(
           device.trace_append$mem,
@@ -369,15 +399,22 @@ namespace scabbard {
                   llvm::IntegerType::get(F.getContext(), sizeof(InstrData) * 8),
                   llvm::APInt(sizeof(InstrData)*8, data)
                 ),
-              V,
+              (castInst ? castInst : V),
               loc.get_as_constant(F.getContext())
             })
         );
       // llvm::errs() << "\n[scabbard.instr.device:DBG] inserted trace call:\n[scabbard.instr.device:DBG]    repr: `"; ci->print(llvm::errs()); llvm::errs() << "`\n\n"; //DEBUG
-      if (InsertAfter)
-        ci->insertAfter(&I);
-      else
+      if (castInst && InsertAfter) {
+        castInst->insertAfter(&I);
+        ci->insertAfter(castInst);
+      } else if (castInst) {
+        castInst->insertBefore(&I);
         ci->insertBefore(&I);
+      } else if (InsertAfter) {
+        ci->insertAfter(&I);
+      } else {
+        ci->insertBefore(&I);
+      }
     }
 
     void ScabbardPassPlugin::instr_call_device(const llvm::Function& F, llvm::CallInst* ci)
@@ -405,6 +442,12 @@ namespace scabbard {
                         );
       llvm::Function* NewFn = llvm::dyn_cast<llvm::Function>(fn_callee.getCallee()); // new function (OldFn is old function)
       NewFn->setCallingConv(OldFn.getCallingConv());
+      NewFn->setLinkage(OldFn.getLinkage());
+
+      to_replace.push_back(std::tuple(&OldFn,NewFn));
+      // if (OldFn.isDeclaration())
+      //   return NewFn;
+      
       llvm::ValueToValueMapTy vMap;
       for (size_t i=0; i<OldFn.arg_size(); ++i)
         vMap[OldFn.getArg(i)] = NewFn->getArg(i);
@@ -412,20 +455,23 @@ namespace scabbard {
       //?NOTE: this might be used wrong.  Double check results in testing to make sure it works correctly
       //?     if wrong likely due to not creating vMap properly
       llvm::CloneFunctionInto(NewFn, &OldFn, vMap, llvm::CloneFunctionChangeType::LocalChangesOnly, rets);
-      to_replace.push_back(std::tuple(&OldFn,NewFn));
       return NewFn;
     }
 
     void ScabbardPassPlugin::finish_replacing_old_funcs_device(llvm::Module& M)
     {
+      llvm::SmallPtrSet<llvm::CallInst*,8u> to_remove;
       //modify to pass device tracker through as last parameter to all functions defined in this module'
       for (auto& tr : to_replace) {
         llvm::Function* OldFn, * NewFn; // llvm::MDNode* NewFnMDN;
         // std::tie(OldFn, NewFn, NewFnMDN) = tr;
         std::tie(OldFn, NewFn) = tr;
-
-        for (auto& u : OldFn->uses()) {
-          if (auto CI = llvm::dyn_cast<llvm::CallInst>(u.getUser())) {
+        // OldFn->print(llvm::errs()); NewFn->print(llvm::errs()); //DEBUG
+        for (auto u : OldFn->users()) {
+          // u.get()->print(llvm::errs()); //DEBUG
+          // if (auto CI = llvm::dyn_cast<llvm::CallInst>(u.getUser())) {
+          // u->print(llvm::errs()); //DEBUG
+          if (auto CI = llvm::dyn_cast<llvm::CallInst>(u)) {
             llvm::Function* iFn = CI->getFunction();
 #           if __clang_major__ <= 16
               if (iFn->getName().endswith("__old__scabbard_instr_replaced__old__"))
@@ -452,13 +498,20 @@ namespace scabbard {
             CI->replaceAllUsesWith(ci);
             ci->setDebugLoc(CI->getDebugLoc());
             ci->setCallingConv(CI->getCallingConv());
-            CI->eraseFromParent();
+            to_remove.insert(CI);
 
           } else {
             LLVM_DEBUG(llvm::errs() << "\n[scabbard.instr.device:DBG] overwritten device function used in non-call instruction!\n";);
           }
         }
-        // remove OldFn from module
+        for (auto ci : to_remove)
+          ci->removeFromParent();
+        to_remove.clear();
+      }
+      // remove OldFn from module
+      for (auto& tr : to_replace) {
+        llvm::Function* OldFn, * NewFn;
+        std::tie(OldFn, NewFn) = tr;
         OldFn->eraseFromParent();
       }
       // clear the list so we're ready for reuse

@@ -18,6 +18,8 @@ import sys
 from argconfig import parseScabbardArgs, printScabbardHelp
 from colors import *
 
+DEBUG: bool = True
+
 SCABBARD_PATH:str = os.environ['SCABBARD_PATH'] if 'SCABBARD_PATH' in os.environ else os.path.dirname(os.path.abspath(__file__))
 # sys.path.append(SCABBARD_PATH)
 # from libs.scabbard import scabbardlib as scabbard
@@ -43,6 +45,9 @@ def runCommandWithFlags(argv: list, env: dict) -> None:
     new_argv[1:1] = ADDED_FLAGS
     new_cmd = ' '.join(new_argv)
     
+    if DEBUG:
+        prCyan(f"[scabbard.py:DBG] instrumented cmd: {new_cmd}")
+    
     try:
         cmdOutput = subprocess.run(new_cmd, shell=True, check=True, env=env) #, text=True,
                                     # stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -57,6 +62,8 @@ def runCommandWithFlags(argv: list, env: dict) -> None:
 
 
 def executeOriginalCommand(argv: list) -> None:
+    if DEBUG:
+        print(f"[scabbard.py:DBG] running original cmd: {' '.join(argv)}")
     try:
         subprocess.run(' '.join(argv), shell=True, check=True)
     except subprocess.CalledProcessError as e:
@@ -79,17 +86,19 @@ def runBuildCommand(params: list, isRoot:bool=False) -> None:
         or any([x in params[1] for x in {"clang","hipcc"}]):
         runCommandWithFlags(params[1:], env)
     else:
+        if DEBUG:
+            prCyan(f"[scabbard.py:DBG] instrumented cmd: {' '.join(params)}")
         try:
                 cmdOutput = subprocess.run(' '.join(params), shell=True, check=True, env=env) #,  text=True,
                                             # stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 # print(cmdOutput.stdout)
         except subprocess.CalledProcessError as cpe:
             prRed(str(cpe.stderr) if cpe.stderr is not None else str(cpe.stdout))
-            raise RuntimeError('Error when running scabbard.intercept on a build command') from cpe
+            raise RuntimeError('Error when running scabbard.intercept on a build command [scabbard.py]') from cpe
         except Exception as e:
             os.remove(env['SCABBARD_METADATA_FILE']+".lock")
             prRed(e)
-            raise RuntimeError('Error when running scabbard.intercept on a build command') from e
+            raise RuntimeError('Error when running scabbard.intercept on a build command [scabbard.py]') from e
     
     os.remove(env['SCABBARD_METADATA_FILE']+".lock")
     if isRoot:
@@ -128,7 +137,7 @@ def trace(scabbard_args, args) -> None:
         cmdOutput = subprocess.run(new_cmd, shell=True, check=True, env=env)
     except subprocess.CalledProcessError as cpe:
         prRed(str(cpe.stderr) if cpe.stderr is not None else str(cpe.stdout))
-        raise RuntimeError('Error when running scabbard.intercept on a trace command') from cpe
+        raise RuntimeError('Error when running scabbard.trace on a trace command') from cpe
     except Exception as e:
         prRed(e)
         raise RuntimeError('Error when running scabbard on a trace command') from e
@@ -148,7 +157,7 @@ def verif(scabbard_args, args) -> None:
         # print(cmdOutput.stdout)
     except subprocess.CalledProcessError as cpe:
         prRed(str(cpe.stderr) if cpe.stderr is not None else str(cpe.stdout))
-        raise RuntimeError('Error when running scabbard.intercept on a verify command') from cpe
+        raise RuntimeError('Error when running scabbard.verif on a verify command') from cpe
     except Exception as e:
         prRed(e)
         raise RuntimeError('Error when running scabbard.verif') from e

@@ -4,6 +4,43 @@
  TODO:
 ----------------------------------------------------------------------------------------------------
 
+
+-[ ] fix invalid record issues in quicksilver
+      - files issues are occurring in
+        - CollisionEvent-hip-amdgcn-amd-amdhsa-gfx90a.o
+        - CycleTracking-hip-amdgcn-amd-amdhsa-gfx90a.o
+        - MCT-hip-amdgcn-amd-amdhsa-gfx90a.o
+        - MC_Facet_Crossing_Event-hip-amdgcn-amd-amdhsa-gfx90a.o
+        - MC_Load_Particle-hip-amdgcn-amd-amdhsa-gfx90a.o
+        - MC_Segment_Outcome-hip-amdgcn-amd-amdhsa-gfx90a.o
+        - MacroscopicCrossSection-hip-amdgcn-amd-amdhsa-gfx90a.o
+        - NuclearData-hip-amdgcn-amd-amdhsa-gfx90a.o
+      - issues derive from
+        - `BitcodeReader::parseFunctionBody` -> `BitcodeReader::materialize(GlobalValue)` -> `IRLinker::linkFunctionBody()` while handling instrumented kernel function(s)
+          - linked to CollisionEvent.cc in `"_Z14CollisionEventP10MonteCarloR11MC_Particlej"`
+          - linked to CycleTracking.cc in `"_Z17CycleTrackingGutsP10MonteCarloiP13ParticleVaultS2_"`
+      - output from modified lld build
+          
+          ```
+          [dbg] offending call inst calls `scabbard.trace.device.trace_append$mem` from inside of `_Z14CollisionEventP10MonteCarloR11MC_Particlej`
+          lld: error: Invalid record [inst-call-2] (Producer: 'LLVM17.0.0git' Reader: 'LLVM 17.0.0git')
+          [dbg] offending call inst calls `scabbard.trace.device.trace_append$mem` from inside of `_Z17CycleTrackingGutsP10MonteCarloiP13ParticleVaultS2_`
+          lld: error: Invalid record [inst-call-2] (Producer: 'LLVM17.0.0git' Reader: 'LLVM 17.0.0git')
+          [dbg] offending call inst calls `scabbard.trace.device.trace_append$mem` from inside of `_Z17MCT_Nearest_FacetP11MC_ParticleR11MC_LocationR9MC_VectorPK15DirectionCosineddbP10MonteCarlo`
+          lld: error: Invalid record [inst-call-2] (Producer: 'LLVM17.0.0git' Reader: 'LLVM 17.0.0git')
+          [dbg] offending call inst calls `scabbard.trace.device.trace_append$mem` from inside of `_Z23MC_Facet_Crossing_EventR11MC_ParticleP10MonteCarloiP13ParticleVault`
+          lld: error: Invalid record [inst-call-2] (Producer: 'LLVM17.0.0git' Reader: 'LLVM 17.0.0git')
+          [dbg] offending call inst calls `scabbard.trace.device.trace_append$mem` from inside of `_Z16MC_Load_ParticleP10MonteCarloR11MC_ParticleP13ParticleVaulti`
+          lld: error: Invalid record [inst-call-2] (Producer: 'LLVM17.0.0git' Reader: 'LLVM 17.0.0git')
+          [dbg] offending call inst calls `scabbard.trace.device.trace_append$mem` from inside of `_Z18MC_Segment_OutcomeP10MonteCarloR11MC_ParticleRj`
+          lld: error: Invalid record [inst-call-2] (Producer: 'LLVM17.0.0git' Reader: 'LLVM 17.0.0git')
+          [dbg] offending call inst calls `scabbard.trace.device.trace_append$mem` from inside of `_Z31weightedMacroscopicCrossSectionP10MonteCarloiiii`
+          lld: error: Invalid record [inst-call-2] (Producer: 'LLVM17.0.0git' Reader: 'LLVM 17.0.0git')
+          [dbg] offending call inst calls `scabbard.trace.device.trace_append$mem` from inside of `_ZN19NuclearDataReaction15sampleCollisionEddPdS0_RiPmi`
+          lld: error: Invalid record [inst-call-2] (Producer: 'LLVM17.0.0git' Reader: 'LLVM 17.0.0git')
+          ```
+
+
 -[ ] look into following projects to adapt them as tests for testing scabbard
      - smallpt-parallel-bvh-gpu \[[repo](https://github.com/andrewwuan/smallpt-parallel-bvh-gpu/tree/master)\] by An Wu \[[github-profile](https://github.com/andrewwuan)\]
      - dpid \[[repo](https://github.com/mergian/dpid)\] by Nicolas Weber \[[github-profile](https://github.com/mergian/)\]

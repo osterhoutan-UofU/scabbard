@@ -87,7 +87,7 @@ namespace instr {
   InstrData DepTrace<MT>::getInstrData(const InstrT& I) const { return InstrData::NEVER; }
   template<ModuleType MT>
   template<class InstrT>
-  InstrData DepTrace<MT>::__getInstrData_rec(const InstrT& I) const { return InstrData::NEVER; }
+  InstrData DepTrace<MT>::__getInstrData_rec(const InstrT& I, llvm::SmallSet<llvm::StringRef, 8u>& phiBBVisited) const { return InstrData::NEVER; }
 
 
   llvm::raw_ostream& operator << (llvm::raw_ostream& out, const InstrData& data) noexcept 
