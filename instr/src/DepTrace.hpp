@@ -82,6 +82,8 @@ namespace scabbard {
             return __getInstrData_rec(*_i, phiBBVisited);
           } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::AllocaInst>(&i)) {
             return __getInstrData_rec(*_i, phiBBVisited);
+          } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::IntToPtrInst>(&i)) {
+            return __getInstrData_rec(*_i, phiBBVisited);
           } else if (const auto* _i = llvm::dyn_cast_or_null<llvm::PHINode>(&i)) {
             return __getInstrData_phi(*_i, phiBBVisited);
           }
@@ -103,13 +105,7 @@ namespace scabbard {
       InstrData __getInstrData_phi(const llvm::PHINode& PHI, llvm::SmallSet<llvm::StringRef, 8u>& phiBBVisited) const
       {
         InstrData res = InstrData::NEVER;
-        // static size_t visits = 0ul;
-        llvm::SmallSet<llvm::StringRef, 8u> _phiBBVisited(phiBBVisited); //lets hope static lets me get around the const function issue
-        // if (visits > 8ul) {
-        //   llvm::errs() << "\n[scabbard.instr:DBG] dependency trace recursed through phi too many times!\n";
-        //   return res;
-        // }
-        // visits++;
+        llvm::SmallSet<llvm::StringRef, 8u> _phiBBVisited(phiBBVisited);
         _phiBBVisited.insert(PHI.getParent()->getName());
         for (const auto& _U : PHI.incoming_values()) {
           if (auto U = llvm::dyn_cast_or_null<llvm::Instruction>(_U.get())) {

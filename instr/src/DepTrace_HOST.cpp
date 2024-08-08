@@ -238,6 +238,13 @@ namespace scabbard {
       return __getInstrData_val(*I.getOperand(0), phiBBVisited);
     }
 
+    template<>
+    template<>
+    InstrData DepTrace<HOST>::__getInstrData_rec(const llvm::IntToPtrInst& I, llvm::SmallSet<llvm::StringRef, 8u>& phiBBVisited) const
+    {
+      return InstrData::ON_HOST | InstrData::_RUNTIME_CONDITIONAL; 
+    }
+
     template<> 
     template<>
     InstrData DepTrace<HOST>::__getInstrData_rec(const llvm::Argument& A, llvm::SmallSet<llvm::StringRef, 8u>& phiBBVisited) const

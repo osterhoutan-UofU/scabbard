@@ -20,7 +20,7 @@ from builtins import Exception
 from scabbard import executeOriginalCommand, ADDED_FLAGS, runBuildCommand, SCABBARD_PATH
 
 
-DEBUG: bool = True
+DEBUG: bool = False
 
 # --------------------------------------------------------------------------- #
 # --- Installation Paths ---------------------------------------------------- #

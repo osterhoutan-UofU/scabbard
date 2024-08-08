@@ -48,7 +48,6 @@ namespace scabbard {
       std::string r = ((_META_FILE) 
                         ? std::string(_META_FILE) 
                         : std::string("./anon.scabbard.meta"));
-      // llvm::errs() << "\n[scabbard.instr:DBG] `SCABBARD_METADATA_FILE` was set to: \"" << r << "\"\n"; //DEBUG
       return r;
     }
 
@@ -77,10 +76,8 @@ namespace scabbard {
       //               : (target.isArch16Bit()) ? 16 : 0))
       if (target.isAMDGPU()) { // checks for both amdgcn & r600 arch(s) (might need to restrict this to just amdgcn with `isAMDGCN()`)
         run_device(M, MAM);    //                                        To support hip on Nvidia GPUs we might need to also run this for nvptx arch(s) (this might be the same as supporting CUDA though)
-        // llvm::errs() << "\n[scabbard.instr.device:INFO] pass ran on: `" << M.getSourceFileName() << "`\n"; //DEBUG
       } else {
         run_host(M, MAM);
-        // llvm::errs() << "\n[scabbard.instr.host:INFO] pass ran on: `" << M.getSourceFileName() << "`\n"; //DEBUG
       }
       //TODO process analysis invalidations and return the Preserved analysis of all changes
       return llvm::PreservedAnalyses::none(); // this will have to change after transforms are performed
@@ -109,6 +106,7 @@ namespace scabbard {
       M.getContext().setDiscardValueNames(false);
       std::unique_ptr<llvm::Module> traceModule = llvm::parseIRFile(LIBTRACE_DEVICE_PATH, diag, M.getContext());
       M.getContext().setDiscardValueNames(true);
+      
       if (traceModule == nullptr) {
         llvm::errs() << "\n[scabbard::instr::link::ERROR] could not parse the libtrace-device bitcode/IR \"library\"!!"
                         "\n[scabbard::instr::link::ERROR] error msg: ```\n";
@@ -125,7 +123,6 @@ namespace scabbard {
         llvm::errs() << "\n[scabbard::instr::link::ERROR] the llvm linker encountered an error while linking!!\n";
         return;
       }
-      
       // get references to linked in utility functions
       device.trace_append$mem = M.getFunction(device.trace_append$mem_name);
       device.trace_append$alloc = M.getFunction(device.trace_append$alloc_name);
@@ -141,11 +138,10 @@ namespace scabbard {
         funcs.push_back(&f);
       for (auto* f : funcs)
         if (not device.NO_INSTR_FNS.count(f->getName().str()) 
-            && not f->getName().starts_with("llvm."))
+            && not f->getName().starts_with("llvm.")) {
           run_device(*f, fam, dt);
-
+        }
       finish_replacing_old_funcs_device(M);
-
       // remove dummy function
       // auto fn = M.getFunction(SCABBARD_DEVICE_DUMMY_FUNC_NAME);
       // if (fn != nullptr) {
@@ -327,7 +323,6 @@ namespace scabbard {
     {
       // if (_F.isDeclaration()) return; // skip functions not defined (only declared) in this module 
       llvm::Function& F = *replace_device_function(_F);
-
       // search for instructions to instrument and instrument them
       for (auto& bb : F)
         for (auto& i : bb)
@@ -335,11 +330,11 @@ namespace scabbard {
             auto data = DT.getInstrData(*store);
             LLVM_DEBUG(
               if (not data) continue;
-              llvm::errs() << "[scabbard::device] Found a `store` inst to instrument!\n"
-                "[scabbard::device]    prop: " << data << "\n"
-                "[scabbard::device]    repr: `";
+              llvm::errs() << "[scabbard.instr.device:DBG] Found a `store` inst to instrument!\n"
+                "[scabbard.instr.device:DBG]    prop: " << data << "\n"
+                "[scabbard.instr.device:DBG]    repr: `";
               i.print(llvm::errs());
-              llvm::errs() << "`\n[scabbard::device]\n";
+              llvm::errs() << "`\n[scabbard.instr.device:DBG]\n";
             );
             //instrument store instructions to update trace
             instr_mem_func_device(F, i, store->getPointerOperand(), data, false);
@@ -347,11 +342,11 @@ namespace scabbard {
             auto data = DT.getInstrData(*load);
             if (not data) continue;
             LLVM_DEBUG(
-              llvm::errs() << "[scabbard::device] Found a `load` inst to instrument!\n"
-                "[scabbard::device]    prop: " << data << "\n"
-                "[scabbard::device]    repr: `";
+              llvm::errs() << "[scabbard.instr.device:DBG] Found a `load` inst to instrument!\n"
+                "[scabbard.instr.device:DBG]    prop: " << data << "\n"
+                "[scabbard.instr.device:DBG]    repr: `";
               i.print(llvm::errs());
-              llvm::errs() << "`\n[scabbard::device]\n";
+              llvm::errs() << "`\n[scabbard.instr.device:DBG]\n";
             );
             //instrument load instructions
             instr_mem_func_device(F, i, load->getPointerOperand(), data);
@@ -361,23 +356,18 @@ namespace scabbard {
             auto data = DT.getInstrData(*atomic);
             LLVM_DEBUG(
               if (not data) continue;
-              llvm::errs() << "[scabbard::device] Found an `atomicrmw` inst to instrument!\n"
-                "[scabbard::device]    prop: " << data << "\n"
-                "[scabbard::device]    repr: `";
+              llvm::errs() << "[scabbard.instr.device:DBG] Found an `atomicrmw` inst to instrument!\n"
+                "[scabbard.instr.device:DBG]    prop: " << data << "\n"
+                "[scabbard.instr.device:DBG]    repr: `";
               i.print(llvm::errs());
-              llvm::errs() << "`\n[scabbard::device]\n";
+              llvm::errs() << "`\n[scabbard.instr.device:DBG]\n";
             );
             //instrument atomic readwrite instructions
             instr_mem_func_device(F, i, atomic->getPointerOperand(), data);
           }
-
-
-
-
-
-
-          // return llvm::PreservedAnalyses::all();
     }
+
+
 
     void ScabbardPassPlugin::instr_mem_func_device(llvm::Function& F, 
                                                     llvm::Instruction& I, llvm::Value* V,
@@ -403,7 +393,6 @@ namespace scabbard {
               loc.get_as_constant(F.getContext())
             })
         );
-      // llvm::errs() << "\n[scabbard.instr.device:DBG] inserted trace call:\n[scabbard.instr.device:DBG]    repr: `"; ci->print(llvm::errs()); llvm::errs() << "`\n\n"; //DEBUG
       if (castInst && InsertAfter) {
         castInst->insertAfter(&I);
         ci->insertAfter(castInst);
@@ -466,11 +455,8 @@ namespace scabbard {
         llvm::Function* OldFn, * NewFn; // llvm::MDNode* NewFnMDN;
         // std::tie(OldFn, NewFn, NewFnMDN) = tr;
         std::tie(OldFn, NewFn) = tr;
-        // OldFn->print(llvm::errs()); NewFn->print(llvm::errs()); //DEBUG
         for (auto u : OldFn->users()) {
-          // u.get()->print(llvm::errs()); //DEBUG
           // if (auto CI = llvm::dyn_cast<llvm::CallInst>(u.getUser())) {
-          // u->print(llvm::errs()); //DEBUG
           if (auto CI = llvm::dyn_cast<llvm::CallInst>(u)) {
             llvm::Function* iFn = CI->getFunction();
 #           if __clang_major__ <= 16
@@ -600,7 +586,6 @@ namespace scabbard {
               loc.get_as_constant(F.getContext())
             })
         );
-      // llvm::errs() << "\n[scabbard.instr.host:DBG] inserted trace call:\n[scabbard.instr.host:DBG]    repr: `"; ci->print(llvm::errs()); llvm::errs() << "`\n\n"; //DEBUG
       if (InsertAfter)
         ci->insertAfter(&I);
       else

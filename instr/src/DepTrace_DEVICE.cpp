@@ -153,6 +153,14 @@ namespace scabbard {
       return InstrData::NEVER; // this means that this ptr comes from the stack frame
     }
 
+
+    template<>
+    template<>
+    InstrData DepTrace<DEVICE>::__getInstrData_rec(const llvm::IntToPtrInst& I, llvm::SmallSet<llvm::StringRef, 8u>& phiBBVisited) const
+    {
+      return InstrData::ON_DEVICE | InstrData::UNKNOWN_HEAP; 
+    }
+
     template<>
     template<>
     InstrData DepTrace<DEVICE>::__getInstrData_rec(const llvm::Argument& I, llvm::SmallSet<llvm::StringRef, 8u>& phiBBVisited) const

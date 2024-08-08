@@ -135,6 +135,7 @@
         "AMDHSA",
         "argconfig",
         "ASYNCQUEUE",
+        "atomicrmw",
         "Bitcode",
         "DESYNC",
         "dpid",
@@ -152,6 +153,7 @@
         "Tioga",
         "tracefiles",
         "unifmem",
+        "uninstrumented",
         "Unqual",
         "verif"
     ]

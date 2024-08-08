@@ -112,6 +112,12 @@ namespace instr {
      * @return \c llvm::PreservedAnalyses - the relevant analysis that are still valid
      */
     llvm::PreservedAnalyses run(llvm::Module &M, llvm::ModuleAnalysisManager &MAM);
+
+
+    /**
+     * @brief tells the pass manager that this pass can't be skipped
+     */
+    static bool isRequired() { return true; }
     
 
   protected:

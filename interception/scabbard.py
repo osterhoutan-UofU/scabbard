@@ -18,7 +18,7 @@ import sys
 from argconfig import parseScabbardArgs, printScabbardHelp
 from colors import *
 
-DEBUG: bool = True
+DEBUG: bool = False
 
 SCABBARD_PATH:str = os.environ['SCABBARD_PATH'] if 'SCABBARD_PATH' in os.environ else os.path.dirname(os.path.abspath(__file__))
 # sys.path.append(SCABBARD_PATH)

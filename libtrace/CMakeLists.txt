@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
-project(libtrace VERSION 0.1.0)
-
 find_package(hip)
+
+project(libtrace VERSION 0.1.0 LANGUAGES HIP CXX)
 
 configure_file(${CMAKE_SOURCE_DIR}/config/sub-version.h.config
                 ./src/version.h)
