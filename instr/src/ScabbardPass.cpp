@@ -416,10 +416,11 @@ namespace scabbard {
     {
       llvm::Module& M = *OldFn.getParent();
       std::string old_name = OldFn.getName().str();
+      const auto* ptrTy = llvm::PointerType::get(OldFn.getContext(),0ul);
       OldFn.setName(old_name+"__old__scabbard_instr_replaced__old__");
       auto oldParamTys = OldFn.getFunctionType()->params();
       std::vector<llvm::Type*> paramTys(oldParamTys.begin(), oldParamTys.end());
-      paramTys.push_back(llvm::PointerType::get(OldFn.getContext(),0ul));
+      paramTys.push_back((llvm::Type*)ptrTy);
       auto fn_callee = M.getOrInsertFunction(
                           old_name,
                           llvm::FunctionType::get(
@@ -444,6 +445,27 @@ namespace scabbard {
       //?NOTE: this might be used wrong.  Double check results in testing to make sure it works correctly
       //?     if wrong likely due to not creating vMap properly
       llvm::CloneFunctionInto(NewFn, &OldFn, vMap, llvm::CloneFunctionChangeType::LocalChangesOnly, rets);
+      // provide metadata for the added argument
+      auto* subPMD = NewFn->getSubprogram();
+      auto retMDNs = subPMD->getRetainedNodes();
+      auto newRetMDNs = retMDNs.get()->clone();
+      newRetMDNs->push_back(
+          llvm::DILocalVariable::get(
+            NewFn->getContext(),
+            subPMD,
+            llvm::MDString::get(NewFn->getContext(), "SCABBARD_DT"),
+            subPMD->getFile(),
+            subPMD->getLine(),
+            llvm::MDString::get(NewFn->getContext(),"scabbard::trace::device::DeviceTracker*"),
+            retMDNs.size(),
+            llvm::DINode::DIFlags::FlagObjectPointer,
+            llvm::dwarf::MemorySpace::DW_MSPACE_LLVM_constant,
+            8u,
+            nullptr
+          )
+        );
+      subPMD->replaceRetainedNodes(retMDNs);
+      // return the new function
       return NewFn;
     }
 

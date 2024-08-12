@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 find_package(hip)
 
-project(libtrace VERSION 0.1.0 LANGUAGES HIP CXX)
+project(libtrace VERSION 0.1.0 LANGUAGES CXX)
 
 configure_file(${CMAKE_SOURCE_DIR}/config/sub-version.h.config
                 ./src/version.h)
@@ -41,7 +41,7 @@ set(LIBTRACE_DEVICE_PATH_IR_TMP ${CMAKE_CURRENT_BINARY_DIR}/libtrace-device.ll.t
 set(LIBTRACE_DEVICE_PATH_IR ${SCABBARD_PATH}/libtrace-device.ll)
 
 add_custom_target(trace-device
-    ${ROCM_PATH}/bin/hipcc ${CMAKE_CXX_FLAGS} -x hip -std=c++17 -I../lib/include -I./include -S -emit-llvm -o ${LIBTRACE_DEVICE_PATH_IR_TMP} ./src/device-defs.cpp
+    ${ROCM_PATH}/bin/hipcc ${CMAKE_CXX_FLAGS} -g -x hip -std=c++17 -I../lib/include -I./include -S -emit-llvm -o ${LIBTRACE_DEVICE_PATH_IR_TMP} ./src/device-defs.cpp
     COMMAND awk '/\; __CLANG_OFFLOAD_BUNDLE____START__ host.+/{p=1} /\; __CLANG_OFFLOAD_BUNDLE____END__ host.+/{p=0\; next}!p' ${LIBTRACE_DEVICE_PATH_IR_TMP} > ${LIBTRACE_DEVICE_PATH_IR}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     DEPENDS ./src/device-defs.cpp 
