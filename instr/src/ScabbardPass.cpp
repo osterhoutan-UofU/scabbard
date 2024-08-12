@@ -446,6 +446,7 @@ namespace scabbard {
       //?     if wrong likely due to not creating vMap properly
       llvm::CloneFunctionInto(NewFn, &OldFn, vMap, llvm::CloneFunctionChangeType::LocalChangesOnly, rets);
       // provide metadata for the added argument
+      if (NewFn->isDeclaration()) return NewFn; //skip this for external functions
       auto* subPMD = NewFn->getSubprogram();
       auto retMDNs = subPMD->getRetainedNodes();
       std::vector<llvm::Metadata*> arg_metadata;
