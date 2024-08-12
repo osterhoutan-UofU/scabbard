@@ -88,6 +88,7 @@ namespace instr {
                 "__assertfail",
                 "__assert_fail"
               };
+        llvm::Metadata* DeviceTrackerPtrTy_metadata = nullptr;
       } device;
 
 

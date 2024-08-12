@@ -128,6 +128,8 @@ namespace scabbard {
       device.trace_append$alloc = M.getFunction(device.trace_append$alloc_name);
       device.dummyFunc = M.getFunction(SCABBARD_DEVICE_DUMMY_FUNC_NAME);
 
+      device.DeviceTrackerPtrTy_metadata = llvm::cast<llvm::DILocalVariable>(llvm::dyn_cast<llvm::Function>(device.trace_append$mem.getCallee())->getSubprogram()->getRetainedNodes()[4])->getType();
+
       // llvm::FunctionAnalysisManager fam; //DEBUG when running with debug build fo clang a dense map inside get result has unexpected behavior, but `fam` isn't actually used yet so just swap it for a default for now
       llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
                                               .getManager();
@@ -393,6 +395,8 @@ namespace scabbard {
               loc.get_as_constant(F.getContext())
             })
         );
+      ci->setIsNoInline();
+      ci->setDebugLoc(I.getDebugLoc());
       if (castInst && InsertAfter) {
         castInst->insertAfter(&I);
         ci->insertAfter(castInst);
@@ -458,7 +462,7 @@ namespace scabbard {
             llvm::MDString::get(NewFn->getContext(), "SCABBARD_DT"),
             subPMD->getFile(),
             subPMD->getLine(),
-            llvm::MDString::get(NewFn->getContext(), "scabbard::trace::device::DeviceTracker*"),
+            device.DeviceTrackerPtrTy_metadata,
             arg_metadata.size(),
             llvm::DINode::DIFlags::FlagObjectPointer,
             llvm::dwarf::MemorySpace::DW_MSPACE_LLVM_constant,
@@ -467,6 +471,19 @@ namespace scabbard {
           )
         );
       subPMD->replaceRetainedNodes(llvm::DINodeArray(llvm::MDTuple::get(NewFn->getContext(),arg_metadata)));
+      // amend function type metadata
+      std::vector<llvm::Metadata*> fnTy_metadata;
+      auto fnTyMDs = subPMD->getType();
+      for (auto type : subPMD->getType()->getTypeArray()) fnTy_metadata.push_back(type);
+      fnTy_metadata.push_back(device.DeviceTrackerPtrTy_metadata);
+      subPMD->replaceType(
+        llvm::DISubroutineType::get(
+            NewFn->getContext(),
+            fnTyMDs->getFlags(),
+            fnTyMDs->getCC(),
+            llvm::DITypeRefArray(llvm::MDTuple::get(NewFn->getContext(), fnTy_metadata))
+          )
+        );
       // return the new function
       return NewFn;
     }
@@ -508,6 +525,7 @@ namespace scabbard {
             CI->replaceAllUsesWith(ci);
             ci->setDebugLoc(CI->getDebugLoc());
             ci->setCallingConv(CI->getCallingConv());
+            ci->setDebugLoc(CI->getDebugLoc());
             to_remove.insert(CI);
 
           } else {
@@ -610,6 +628,8 @@ namespace scabbard {
               loc.get_as_constant(F.getContext())
             })
         );
+      ci->setIsNoInline();
+      ci->setDebugLoc(I.getDebugLoc());
       if (InsertAfter)
         ci->insertAfter(&I);
       else
