@@ -448,7 +448,15 @@ namespace scabbard {
       // provide metadata for the added argument
       auto* subPMD = NewFn->getSubprogram();
       auto retMDNs = subPMD->getRetainedNodes();
-      auto newRetMDNs = retMDNs.get()->clone();
+      llvm::MDTuple* newRetMDNs = nullptr;
+      size_t arg_index = 0ul;
+      if (retMDNs.size() != 0ul) {
+        newRetMDNs = retMDNs.get()->clone().get();
+        arg_index = retMDNs.size();
+      } else {
+        newRetMDNs = llvm::MDTuple::get(NewFn->getContext(), {});
+        arg_index = 0ul;
+      }
       newRetMDNs->push_back(
           llvm::DILocalVariable::get(
             NewFn->getContext(),
@@ -456,15 +464,15 @@ namespace scabbard {
             llvm::MDString::get(NewFn->getContext(), "SCABBARD_DT"),
             subPMD->getFile(),
             subPMD->getLine(),
-            llvm::MDString::get(NewFn->getContext(),"scabbard::trace::device::DeviceTracker*"),
-            retMDNs.size(),
+            llvm::MDString::get(NewFn->getContext(), "scabbard::trace::device::DeviceTracker*"),
+            arg_index,
             llvm::DINode::DIFlags::FlagObjectPointer,
             llvm::dwarf::MemorySpace::DW_MSPACE_LLVM_constant,
             8u,
             nullptr
           )
         );
-      subPMD->replaceRetainedNodes(retMDNs);
+      subPMD->replaceRetainedNodes(newRetMDNs);
       // return the new function
       return NewFn;
     }
