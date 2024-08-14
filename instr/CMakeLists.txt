@@ -13,7 +13,7 @@ add_library(instr MODULE
     src/MetadataHandler.cpp
     src/registry.cpp
   )
-# add_dependencies(instr trace-device) # uncommetn to auto build the manually linked GPU module
+add_dependencies(instr trace) # uncomment to auto build the manually linked GPU module
 
 # add_library(testpass MODULE
 #     src/TestPass/TestPass.cpp

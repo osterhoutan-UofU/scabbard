@@ -59,6 +59,9 @@ add_custom_target(trace-device
     BYPRODUCTS ${LIBTRACE_DEVICE_PATH_IR}
                ${LIBTRACE_DEVICE_PATH_IR_TMP}
   )
+
+add_dependencies(trace trace-device) # uncomment to auto build the manually linked GPU module
+
 # add_library(trace-device STATIC
 #     src/device-defs.cpp
 #   )

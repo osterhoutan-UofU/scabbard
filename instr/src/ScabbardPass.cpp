@@ -52,8 +52,8 @@ namespace scabbard {
     }
 
 
-    ScabbardPassPlugin::ScabbardPassPlugin()
-      : metadata(get_meta_file_from_env())
+    ScabbardPassPlugin::ScabbardPassPlugin(bool isLTO_)
+      : metadata(get_meta_file_from_env()), isLTO(isLTO_)
     {}
 
     // ScabbardPassPlugin::ScabbardPassPlugin() {}
@@ -95,33 +95,36 @@ namespace scabbard {
       // for (auto& f : M.getFunctionList())
       //     run_device(f, fam, dt);
       // auto result = linkPass.run(M,MAM);x
-      const auto SCABBARD_PATH = std::getenv("SCABBARD_PATH");
-      if (SCABBARD_PATH == nullptr) {
-        llvm::errs() << "\n[scabbard::instr::link::ERROR] Env var `SCABBARD_PATH` was undefined could not identify instrumentation file location!!\n";
-        return;
-      }
-      const std::string LIBTRACE_DEVICE_PATH = std::string(SCABBARD_PATH) + "/libtrace-device.ll";
-      auto diag = llvm::SMDiagnostic();
-      // auto context = llvm::LLVMContext();
-      M.getContext().setDiscardValueNames(false);
-      std::unique_ptr<llvm::Module> traceModule = llvm::parseIRFile(LIBTRACE_DEVICE_PATH, diag, M.getContext());
-      M.getContext().setDiscardValueNames(true);
-      
-      if (traceModule == nullptr) {
-        llvm::errs() << "\n[scabbard::instr::link::ERROR] could not parse the libtrace-device bitcode/IR \"library\"!!"
-                        "\n[scabbard::instr::link::ERROR] error msg: ```\n";
-        diag.print("scabbard::instr", llvm::errs());
-        llvm::errs() << "```\n";
-        return;
-      }
-      // std::unique_ptr<llvm::Module>& traceModule = loadModule(_bug.get());
-      if (not llvm::Triple(traceModule->getTargetTriple()).isAMDGPU()) {
-        llvm::errs() << "\n[scabbard::instr::link::ERROR] could not find the device module in the libtrace-device bitcode \"library\"!!\n";
-        return;
-      }
-      if (llvm::Linker::linkModules(M, std::move(traceModule))) {
-        llvm::errs() << "\n[scabbard::instr::link::ERROR] the llvm linker encountered an error while linking!!\n";
-        return;
+      if (nullptr == M.getFunction(device.trace_append$mem_name)) {
+        const auto SCABBARD_PATH = std::getenv("SCABBARD_PATH");
+        if (SCABBARD_PATH == nullptr) {
+          llvm::errs() << "\n[scabbard.instr.device.link:ERROR] Env var `SCABBARD_PATH` was undefined could not identify instrumentation file location!!\n";
+          return;
+        }
+        const std::string LIBTRACE_DEVICE_PATH = std::string(SCABBARD_PATH) + "/libtrace-device.ll";
+        auto diag = llvm::SMDiagnostic();
+        // auto context = llvm::LLVMContext();
+        M.getContext().setDiscardValueNames(false);
+        std::unique_ptr<llvm::Module> traceModule = llvm::parseIRFile(LIBTRACE_DEVICE_PATH, diag, M.getContext());
+        M.getContext().setDiscardValueNames(true);
+        
+        if (traceModule == nullptr) {
+          llvm::errs() << "\n[scabbard.instr.device.link:ERROR] could not parse the libtrace-device bitcode/IR \"library\"!!"
+                          "\n[scabbard.instr.device.link:ERROR] error msg: ```\n";
+          diag.print("scabbard.instr.device.link", llvm::errs());
+          llvm::errs() << "```\n";
+          return;
+        }
+        // std::unique_ptr<llvm::Module>& traceModule = loadModule(_bug.get());
+        if (not llvm::Triple(traceModule->getTargetTriple()).isAMDGPU()) {
+          llvm::errs() << "\n[scabbard.instr.device.link:ERROR] could not find the device module in the libtrace-device bitcode \"library\"!!\n";
+          return;
+        }
+        llvm::Linker linker(M);
+        if (linker.linkInModule(std::move(traceModule), llvm::Linker::Flags::OverrideFromSrc, {})) {
+          llvm::errs() << "\n[scabbard.instr.device.link:ERROR] the llvm linker encountered an error while linking!!\n";
+          return;
+        }
       }
       // get references to linked in utility functions
       device.trace_append$mem = M.getFunction(device.trace_append$mem_name);
@@ -145,11 +148,11 @@ namespace scabbard {
         }
       finish_replacing_old_funcs_device(M);
       // remove dummy function
-      // auto fn = M.getFunction(SCABBARD_DEVICE_DUMMY_FUNC_NAME);
-      // if (fn != nullptr) {
-      //   fn->removeFromParent();
-      //   delete fn;
-      // }
+      auto fn = M.getFunction(SCABBARD_DEVICE_DUMMY_FUNC_NAME);
+      if (fn != nullptr) {
+        fn->removeFromParent();
+        delete fn;
+      }
 
       // remove unused virtual function call handlers (__cxa_pure_virtual, __cxa_deleted_virtual, __assert_fail)
       // for (auto fn_name : CXX_DUP_FNS) {
@@ -204,9 +207,12 @@ namespace scabbard {
 
     void ScabbardPassPlugin::run_host(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
     {
-      //TODO make any necessary additions to the Module (i.e.inserting globals and linking references)
+      if (nullptr != M.getFunction(host.scabbard_init_name) 
+            || nullptr != M.getFunction(host.trace_append$mem_name)
+            || nullptr != M.getFunction(host.register_job_name))
+          return; // return early this is already instrumented
+      // make any necessary additions to the Module (i.e.inserting globals and linking references)
       instrCallbacks_host(M, MAM);
-      //TODO process and store dgb metadata tables (or skip this and just read directly from binary latter)
       llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
         .getManager();
       // instrument if module contains main
@@ -395,7 +401,7 @@ namespace scabbard {
               loc.get_as_constant(F.getContext())
             })
         );
-      ci->setIsNoInline();
+      // ci->setIsNoInline();
       ci->setDebugLoc(I.getDebugLoc());
       if (castInst && InsertAfter) {
         castInst->insertAfter(&I);
@@ -628,7 +634,7 @@ namespace scabbard {
               loc.get_as_constant(F.getContext())
             })
         );
-      ci->setIsNoInline();
+      // ci->setIsNoInline();
       ci->setDebugLoc(I.getDebugLoc());
       if (InsertAfter)
         ci->insertAfter(&I);

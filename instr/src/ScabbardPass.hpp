@@ -52,6 +52,7 @@ namespace instr {
   protected:
     std::string source_loc = "";
     std::size_t archBit = 64;
+    bool isLTO = false;
 
     // std::vector<std::tuple<llvm::Function*,llvm::Function*,llvm::MDNode*>> to_replace;
     std::vector<std::tuple<llvm::Function*,llvm::Function*>> to_replace;
@@ -94,7 +95,7 @@ namespace instr {
 
   public:
 
-    ScabbardPassPlugin();
+    ScabbardPassPlugin(bool isLTO_=false);
     // ScabbardPassPlugin(MetadataHandler& metadataHandler_);
     // ScabbardPassPlugin(const std::string& InstrLibLoc);
     // ~ScabbardPassPlugin() = default;

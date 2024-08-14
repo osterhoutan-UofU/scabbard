@@ -77,12 +77,12 @@ llvm::PassPluginLibraryInfo getScabbardPassPluginInfo() {
               //       // MPM.addPass(scabbard::instr::ScabbardPostPass(metadata));
               //     }
               // );
-              // PB.registerFullLinkTimeOptimizationLastEPCallback(
-              //   [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
-              //       MPM.addPass(scabbard::instr::ScabbardPassPlugin());
-              //       // MPM.addPass(scabbard::instr::ScabbardPostPass(metadata));
-              //     }
-              // );
+              PB.registerFullLinkTimeOptimizationLastEPCallback(
+                [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
+                    MPM.addPass(scabbard::instr::ScabbardPassPlugin(true));
+                    // MPM.addPass(scabbard::instr::ScabbardPostPass(metadata));
+                  }
+              );
           }};
 }
 extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
