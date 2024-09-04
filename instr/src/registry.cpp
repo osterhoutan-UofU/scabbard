@@ -65,12 +65,12 @@ llvm::PassPluginLibraryInfo getScabbardPassPluginInfo() {
             //       // MPM.addPass(scabbard::instr::ScabbardPostPass(metadata)); // moved to linker phase
             //     }
             //   );
-              PB.registerOptimizerLastEPCallback( // used to handle link time instrumentation
-                  [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
-                    MPM.addPass(scabbard::instr::ScabbardPassPlugin());
-                    // MPM.addPass(scabbard::instr::ScabbardPostPass(metadata));
-                  }
-                );
+              // PB.registerOptimizerLastEPCallback( // used to handle link time instrumentation
+              //     [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
+              //       MPM.addPass(scabbard::instr::ScabbardPassPlugin());
+              //       // MPM.addPass(scabbard::instr::ScabbardPostPass(metadata));
+              //     }
+              //   );
               // PB.registerFullLinkTimeOptimizationEarlyEPCallback(
               //   [](llvm::ModulePassManager &MPM, OptimizationLevel level) {
               //       MPM.addPass(scabbard::instr::ScabbardPassPlugin());

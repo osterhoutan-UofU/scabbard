@@ -30,7 +30,9 @@ ADDED_FLAGS: list = [
         f'-fpass-plugin={SCABBARD_PATH}/libinstr.so', 
         f'-L{SCABBARD_PATH}',
         '-ltrace',
+        '-ltrace.device',
         '-lpthread',
+        # '-fgpu-rdc',
         '-g'
     ]
 

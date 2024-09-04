@@ -41,7 +41,7 @@ namespace scabbard {
 
     namespace device {
       
-      __device__ __noinline__
+      __device__
       void trace_append$mem(void* deviceTracker, const InstrData data, const void* PTR, const std::uint64_t SRC_ID) 
         asm (SCABBARD_DEVICE_CALLBACK_APPEND_MEM_NAME);
       __device__ 

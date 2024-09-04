@@ -19,6 +19,7 @@
 # include <llvm/TargetParser/Triple.h>
 #endif
 #include <llvm/Support/Debug.h>
+#include <llvm/IR/Intrinsics.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/Casting.h>
 #include <llvm/Support/DynamicLibrary.h>
@@ -52,6 +53,17 @@ namespace scabbard {
     }
 
 
+    ScabbardPassPlugin::ScabbardPassPlugin(bool isLTO_)
+      : metadata(get_meta_file_from_env()), isLTO(isLTO_)
+    {}
+
+    // ScabbardPassPlugin::ScabbardPassPlugin() {}
+
+    // ScabbardPassPlugin::ScabbardPassPlugin(const std::string& InstrLibLoc)
+    // {
+    //   llvm::Bitecode
+    // }
+
     static bool is_rocm_builtin(const llvm::DIFile* FILE)
     {
       return (FILE->getDirectory().starts_with("/opt/rocm") 
@@ -69,23 +81,8 @@ namespace scabbard {
     }
     static bool is_rocm_builtin(const llvm::DISubprogram* SUB)
     {
-      if (SUB == nullptr) return true; // might not be rocm, but most likely an intrinsic
-      auto FILE = SUB->getFile();
-      if (FILE == nullptr) return true; // might not be rocm, but most likely an intrinsic
-      return is_rocm_builtin(FILE);
+      return is_rocm_builtin(SUB->getFile());
     }
-
-
-    ScabbardPassPlugin::ScabbardPassPlugin(bool isLTO_)
-      : metadata(get_meta_file_from_env()), isLTO(isLTO_)
-    {}
-
-    // ScabbardPassPlugin::ScabbardPassPlugin() {}
-
-    // ScabbardPassPlugin::ScabbardPassPlugin(const std::string& InstrLibLoc)
-    // {
-    //   llvm::Bitecode
-    // }
 
 
     // << ========================================================================================== >> 
@@ -94,7 +91,6 @@ namespace scabbard {
 
     llvm::PreservedAnalyses ScabbardPassPlugin::run(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
     {
-      llvm::errs() << "\n[scabbard.instr.run:DBG] running instrumentation pass\n"; //DEBUG
       const llvm::Triple target(M.getTargetTriple());
       // archBit = ((target.isArch64Bit()) ? 64 //ASSUMING for now this will only be used on 64 bit machines
       //             : ((target.isArch32Bit()) ? 32 
@@ -111,8 +107,10 @@ namespace scabbard {
 
     // << ======================================== Device ========================================== >> 
 
+
     void ScabbardPassPlugin::run_device(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
     {
+      // if (not isLTO) return; //DEBUG
       instrCallbacks_device(M, MAM);
       // llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
       //   .getManager();
@@ -145,18 +143,41 @@ namespace scabbard {
       //     llvm::errs() << "\n[scabbard.instr.device.link:ERROR] could not find the device module in the libtrace-device bitcode \"library\"!!\n";
       //     return;
       //   }
-      //   llvm::Linker linker(M);
-      //   if (linker.linkInModule(std::move(traceModule), llvm::Linker::Flags::OverrideFromSrc, {})) {
-      //     llvm::errs() << "\n[scabbard.instr.device.link:ERROR] the llvm linker encountered an error while linking!!\n";
-      //     return;
+      //   if (isLTO) {
+      //     instrCallbacks_device(M, MAM);
+      //     // clone_scabbard_functions_device(M,*traceModule);
+      //     llvm::IRMover mover(M);
+      //     llvm::SmallVector<llvm::GlobalValue*,4> to_move{
+      //         // M.getFunction(device.trace_append$mem_name),
+      //         // M.getFunction(device.trace_append$alloc_name)
+      //         traceModule->getFunction(device.trace_append$mem_name),
+      //         traceModule->getFunction(device.trace_append$alloc_name)
+      //       };
+      //     auto err = mover.move(std::move(traceModule), to_move, {}, false);
+      //     if (err) {
+      //       llvm::errs() << "\n[scabbard.instr.device.link:ERROR] the llvm IRMover encountered an error while \"linking\" in the device trace lib!!\n";
+      //       return;
+      //     }
+      //   } else {
+      //     llvm::Linker linker(M);
+      //     if (linker.linkInModule(std::move(traceModule), llvm::Linker::Flags::OverrideFromSrc, {})) {
+      //       llvm::errs() << "\n[scabbard.instr.device.link:ERROR] the llvm linker encountered an error while linking!!\n";
+      //       return;
+      //     }
       //   }
       // }
+
       // get references to linked in utility functions
-      // device.trace_append$mem = M.getFunction(device.trace_append$mem_name);
-      // device.trace_append$alloc = M.getFunction(device.trace_append$alloc_name);
+      // auto fn$mem = M.getFunction(device.trace_append$mem_name);
+      // // fn$mem->setLinkage(llvm::GlobalValue::LinkageTypes::LinkOnceODRLinkage);
+      // device.trace_append$mem = fn$mem;
+      // auto fn$alloc = M.getFunction(device.trace_append$alloc_name);
+      // // fn$alloc->setLinkage(llvm::GlobalValue::LinkageTypes::LinkOnceODRLinkage);
+      // device.trace_append$alloc = fn$alloc;
       // device.dummyFunc = M.getFunction(SCABBARD_DEVICE_DUMMY_FUNC_NAME);
 
       // device.DeviceTrackerPtrTy_metadata = llvm::cast<llvm::DILocalVariable>(llvm::dyn_cast<llvm::Function>(device.trace_append$mem.getCallee())->getSubprogram()->getRetainedNodes()[4])->getType();
+
 
       // llvm::FunctionAnalysisManager fam; //DEBUG when running with debug build fo clang a dense map inside get result has unexpected behavior, but `fam` isn't actually used yet so just swap it for a default for now
       llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
@@ -167,24 +188,30 @@ namespace scabbard {
       for (auto& f : M.getFunctionList())
         funcs.push_back(&f);
       for (auto* f : funcs)
-        if (not(f->getName().starts_with("llvm.") //exclude intrinsics
-             || f->getName().starts_with("scabbard.") //exclude name mangled scabbard builtins
-             || device.NO_INSTR_FNS.count(f->getName().str()) // a manually excluded function (usually c++ builtin)
-             || is_rocm_builtin(f->getSubprogram())
-             || f->hasFnAttribute("disable_sanitizer_instrumentation"))) {
+        if (not device.NO_INSTR_FNS.count(f->getName().str()) 
+            && not f->getName().starts_with("llvm.") //exclude intrinsics
+            && not f->getName().starts_with("scabbard.") //exclude name mangled scabbard builtins
+            && (not f->isDeclaration() && not is_rocm_builtin(f->getSubprogram()))) {
           run_device(*f, fam, dt);
         }
+
       finish_replacing_old_funcs_device(M);
       // remove dummy function
       auto fn = M.getFunction(SCABBARD_DEVICE_DUMMY_FUNC_NAME);
-      if (fn != nullptr)
-        fn->eraseFromParent();
+      if (fn != nullptr) {
+        fn->removeFromParent();
+        delete fn;
+      }
+      // M.getFunction(device.trace_append$mem_name)->setName("llvm."+device.trace_append$mem_name);
+      // M.getFunction(device.trace_append$alloc_name)->setName("llvm."+device.trace_append$alloc_name);
 
       // remove unused virtual function call handlers (__cxa_pure_virtual, __cxa_deleted_virtual, __assert_fail)
       // for (auto fn_name : CXX_DUP_FNS) {
       //   auto fn = M.getFunction(fn_name);
-      //   if (fn != nullptr && fn->getNumUses() < 1u) 
-      //     fn->eraseFromParent();
+      //   if (fn != nullptr && fn->getNumUses() < 1u) {
+      //     fn->removeFromParent();
+      //     delete fn;
+      //   }
       // }
       
 
@@ -231,7 +258,8 @@ namespace scabbard {
 
     void ScabbardPassPlugin::run_host(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
     {
-      if (nullptr != M.getFunction(host.scabbard_init_name) 
+      if ( false//isLTO
+            || nullptr != M.getFunction(host.scabbard_init_name) 
             || nullptr != M.getFunction(host.trace_append$mem_name)
             || nullptr != M.getFunction(host.register_job_name))
           return; // return early this is already instrumented
@@ -244,8 +272,7 @@ namespace scabbard {
         instr_mainFunc_host(*f, fam);
       DepTraceHost dt(M);
       for (auto& f : M.getFunctionList())
-        if (not(f.getName() == "__hip_module_ctor"
-             || f.hasFnAttribute("disable_sanitizer_instrumentation")))
+        if (f.getName() != "__hip_module_ctor")
           run_host(f, fam, dt);
     }
 
@@ -352,6 +379,7 @@ namespace scabbard {
 
     // << ======================================== Device ========================================== >> 
 
+
     void ScabbardPassPlugin::run_device(llvm::Function& _F, llvm::FunctionAnalysisManager& FAM, const DepTraceDevice& DT)
     {
       // if (_F.isDeclaration()) return; // skip functions not defined (only declared) in this module 
@@ -361,8 +389,8 @@ namespace scabbard {
         for (auto& i : bb)
           if (auto* store = llvm::dyn_cast<llvm::StoreInst>(&i)) {
             auto data = DT.getInstrData(*store);
+            if (not data || is_rocm_builtin(i.getDebugLoc())) continue;
             LLVM_DEBUG(
-              if (not data) continue;
               llvm::errs() << "[scabbard.instr.device:DBG] Found a `store` inst to instrument!\n"
                 "[scabbard.instr.device:DBG]    prop: " << data << "\n"
                 "[scabbard.instr.device:DBG]    repr: `";
@@ -373,7 +401,7 @@ namespace scabbard {
             instr_mem_func_device(F, i, store->getPointerOperand(), data, false);
           } else if (auto* load = llvm::dyn_cast<llvm::LoadInst>(&i)) {
             auto data = DT.getInstrData(*load);
-            if (not data) continue;
+            if (not data || is_rocm_builtin(i.getDebugLoc())) continue;
             LLVM_DEBUG(
               llvm::errs() << "[scabbard.instr.device:DBG] Found a `load` inst to instrument!\n"
                 "[scabbard.instr.device:DBG]    prop: " << data << "\n"
@@ -384,11 +412,12 @@ namespace scabbard {
             //instrument load instructions
             instr_mem_func_device(F, i, load->getPointerOperand(), data);
           } else if (auto* call = llvm::dyn_cast<llvm::CallInst>(&i)) {
+            if (is_rocm_builtin(i.getDebugLoc())) continue;
             instr_call_device(F, call);
           } else if (auto atomic = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
             auto data = DT.getInstrData(*atomic);
+            if (not data || is_rocm_builtin(i.getDebugLoc())) continue;
             LLVM_DEBUG(
-              if (not data) continue;
               llvm::errs() << "[scabbard.instr.device:DBG] Found an `atomicrmw` inst to instrument!\n"
                 "[scabbard.instr.device:DBG]    prop: " << data << "\n"
                 "[scabbard.instr.device:DBG]    repr: `";
@@ -397,20 +426,7 @@ namespace scabbard {
             );
             //instrument atomic readwrite instructions
             instr_mem_func_device(F, i, atomic->getPointerOperand(), data);
-          } else if (auto cmpxchg = llvm::dyn_cast<llvm::AtomicCmpXchgInst>(&i)) {
-            auto data = DT.getInstrData(*cmpxchg);
-            LLVM_DEBUG(
-              if (not data) continue;
-              llvm::errs() << "[scabbard.instr.device:DBG] Found an `cmpxchg` inst to instrument!\n"
-                "[scabbard.instr.device:DBG]    prop: " << data << "\n"
-                "[scabbard.instr.device:DBG]    repr: `";
-              i.print(llvm::errs());
-              llvm::errs() << "`\n[scabbard.instr.device:DBG]\n";
-            );
-            //instrument atomic readwrite instructions
-            instr_mem_func_device(F, i, cmpxchg->getPointerOperand(), data);
           }
-      // llvm::errs() << "\n[scabbard.instr.device:DBG] instrumented a function:\n```"; F.print(llvm::errs()); llvm::errs() << "\n```\n"; //DEBUG
     }
 
 
@@ -421,12 +437,10 @@ namespace scabbard {
     {
       if (not (data & InstrData::ON_DEVICE)) // make sure this is supposed to be instrumented on device
         return;
-      // llvm::IRBuilder<> IRB(&I);
       llvm::CastInst* castInst = nullptr;
       if (auto ptrTy = llvm::dyn_cast<llvm::PointerType>(V->getType()))
         if (ptrTy->getAddressSpace() != 0u) { //NOTE hard coding this might be an issue
           castInst = llvm::AddrSpaceCastInst::Create(llvm::Instruction::CastOps::AddrSpaceCast, V, device.trace_append$mem.getFunctionType()->getParamType(2u));
-          castInst->insertBefore(&I);
         }
       auto loc = metadata.trace(F, I.getDebugLoc(), ModuleType::DEVICE);
       auto ci = llvm::CallInst::Create(
@@ -443,20 +457,17 @@ namespace scabbard {
         );
       // ci->setIsNoInline();
       ci->setDebugLoc(I.getDebugLoc());
-      ci->setCallingConv(llvm::CallingConv::Fast);
-      // if (castInst && InsertAfter) {
-      //   castInst->insertAfter(&I);
-      //   ci->insertAfter(castInst);
-      // } else if (castInst) {
-      //   castInst->insertBefore(&I);
-      //   ci->insertBefore(&I);
-      // } else 
-      if (InsertAfter) {
+      if (castInst && InsertAfter) {
+        castInst->insertAfter(&I);
+        ci->insertAfter(castInst);
+      } else if (castInst) {
+        castInst->insertBefore(&I);
+        ci->insertBefore(&I);
+      } else if (InsertAfter) {
         ci->insertAfter(&I);
       } else {
         ci->insertBefore(&I);
       }
-      // if (castInst) { llvm::errs()<<"\n[scabbard.instr.device:DBG] instrumented instruction. reporting surrounding block in fn `"<<F.getName()<<"`\n```"; I.getParent()->print(llvm::errs()); llvm::errs()<<"\n```\n"; } //DEBUG
     }
 
     void ScabbardPassPlugin::instr_call_device(const llvm::Function& F, llvm::CallInst* ci)
@@ -582,7 +593,7 @@ namespace scabbard {
           }
         }
         for (auto ci : to_remove)
-          ci->eraseFromParent();
+          ci->removeFromParent();
         to_remove.clear();
       }
       // remove OldFn from module
@@ -597,6 +608,42 @@ namespace scabbard {
     }
 
 
+    // void ScabbardPassPlugin::clone_scabbard_functions_device(llvm::Module& M, const llvm::Module& LibM)
+    // {
+    //   llvm::SmallVector<llvm::ReturnInst*,8> rets;
+    //   llvm::ValueToValueMapTy vMap;  // might have to make this a fresh for every cloned function
+    //   for (auto IntrFn : device.REQUIRED_BUILTINS) {
+    //     llvm::Function* destIntrFn = nullptr;
+    //     auto srcIntrFn = LibM.getFunction(IntrFn.first); // for now we will assume that intrinsics are well defined in lib module
+    //     llvm::errs() << "\n[scabbard.instr.device:INFO] `" << IntrFn.first <<"` "  << ((srcIntrFn->isIntrinsic()) ? "IS" : "is NOT") << " an intrinsic\n"; //DEBUG
+    //     if (IntrFn.second == llvm::Intrinsic::not_intrinsic) {
+    //       destIntrFn = llvm::dyn_cast_or_null<llvm::Function>(M.getOrInsertFunction(IntrFn.first, //currently only for the llvm.amdgcn.work... thread and block id retrieval intrinsics
+    //                                                                                   llvm::FunctionType::get(
+    //                                                                                   llvm::Type::getInt32Ty(M.getContext()), false)
+    //                                                                                 ).getCallee());
+    //     } else {
+    //       // llvm::SmallVector<llvm::Type*,3> ty_overloads; //NOTE if context becomes more of a 
+    //       destIntrFn = llvm::Intrinsic::getDeclaration(&M, IntrFn.second, srcIntrFn->getFunctionType()->params());
+    //     }
+    //     if (not destIntrFn) {
+    //       llvm::errs() << "\n[scabbard.instr.device:ERR] could not clone and intrinsic/builtin into module (`" << IntrFn.first <<"`)\n";
+    //       destIntrFn = M.getFunction(IntrFn.first); //NOTE: last resort will likely npt ever work
+    //     }
+    //     if (not destIntrFn) {
+    //       llvm::errs() << "\n[scabbard.instr.device:DBG] dest module did not have intrinsic creating signature manually (`" << IntrFn.first << "`)\n"; //DEBUG
+    //     }
+    //     vMap[srcIntrFn] = destIntrFn;
+    //   }
+    //   for (auto fnName : device.TRACE_LIB_FNS_TO_CLONE) {
+    //     auto destFn = M.getFunction(fnName);
+    //     auto srcFn = LibM.getFunction(fnName);
+    //     for (size_t i=0; i<srcFn->arg_size(); ++i)
+    //       vMap[srcFn->getArg(i)] = destFn->getArg(i);
+    //     llvm::CloneFunctionInto(destFn,srcFn,vMap,llvm::CloneFunctionChangeType::DifferentModule,rets);
+    //   }
+    // }
+
+
     // << ========================================= Host =========================================== >> 
 
 
@@ -607,8 +654,8 @@ namespace scabbard {
         for (auto& i : bb)
           if (auto* store = llvm::dyn_cast<llvm::StoreInst>(&i)) {
             auto data = DT.getInstrData(*store);
+            if (not data || is_rocm_builtin(i.getDebugLoc())) continue;
             LLVM_DEBUG(
-              if (not data) continue;
             llvm::errs() << "[scabbard.instr.host:DBG] Found a `store` inst to instrument!\n"
               "[scabbard.instr.host:DBG]    prop: " << data << "\n"
               "[scabbard.instr.host:DBG]    repr: `";
@@ -619,8 +666,8 @@ namespace scabbard {
             instr_mem_func_host(F, i, store->getPointerOperand(), data);
           } else if (auto* load = llvm::dyn_cast<llvm::LoadInst>(&i)) {
             auto data = DT.getInstrData(*load);
+            if (not data || is_rocm_builtin(i.getDebugLoc())) continue;
             LLVM_DEBUG(
-              if (not data) continue;
             llvm::errs() << "[scabbard.instr.host:DBG] Found a `load` inst to instrument!\n"
               "[scabbard.instr.host:DBG]    prop: " << data << "\n"
               "[scabbard.instr.host:DBG]    repr: `";
@@ -632,11 +679,12 @@ namespace scabbard {
             // instrument load instructions
             instr_mem_func_host(F, i, load->getPointerOperand(), data);
           } else if (auto* call = llvm::dyn_cast<llvm::CallInst>(&i)) {
+            // if (is_rocm_builtin(i.getDebugLoc())) continue;
             instr_call_host(F, call);
           } else if (auto atomic = llvm::dyn_cast<llvm::AtomicRMWInst>(&i)) {
             auto data = DT.getInstrData(*atomic);
+            if (not data || is_rocm_builtin(i.getDebugLoc())) continue;
             LLVM_DEBUG(
-              if (not data) continue;
             llvm::errs() << "[scabbard.instr.host:DBG] Found an `atomicrmw` inst to instrument!\n"
               "[scabbard.instr.host:DBG]    prop: " << data << "\n"
               "[scabbard.instr.host:DBG]    repr: `";
@@ -645,18 +693,6 @@ namespace scabbard {
             );
             //instrument atomic readwrite instructions
             instr_mem_func_host(F, i, atomic->getPointerOperand(), data);
-          } else if (auto cmpxchg = llvm::dyn_cast<llvm::AtomicCmpXchgInst>(&i)) {
-            auto data = DT.getInstrData(*cmpxchg);
-            LLVM_DEBUG(
-              if (not data) continue;
-            llvm::errs() << "[scabbard.instr.host:DBG] Found an `cmpxchg` inst to instrument!\n"
-              "[scabbard.instr.host:DBG]    prop: " << data << "\n"
-              "[scabbard.instr.host:DBG]    repr: `";
-            i.print(llvm::errs());
-            llvm::errs() << "`\n[scabbard.instr.host:DBG]\n";
-            );
-            //instrument atomic readwrite instructions
-            instr_mem_func_host(F, i, cmpxchg->getPointerOperand(), data);
           }
           // return llvm::PreservedAnalyses::all();
     }
@@ -691,7 +727,6 @@ namespace scabbard {
         );
       // ci->setIsNoInline();
       ci->setDebugLoc(I.getDebugLoc());
-      ci->setCallingConv(llvm::CallingConv::Fast);
       if (InsertAfter)
         ci->insertAfter(&I);
       else
@@ -897,6 +932,14 @@ namespace scabbard {
                   })
               );
     }
+
+    // inline const LocResult& backtrace_DebugLoc_from_hip_lib(const llvm::Instruction& I, const MetadataHandler& metadata)
+    // {
+    //    //TODO when using <<<>>> launch syntax you might need to backtrack out to find where a launch actually occurs
+    //   const auto prev_block 
+    //   return {0ul};
+    //   return metadata.trace(F, , ModuleType::HOST);
+    // }
 
 
     void ScabbardPassPlugin::instr_launch_func_host(llvm::Function& F, llvm::CallInst& CI)

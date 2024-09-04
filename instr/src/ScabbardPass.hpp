@@ -21,6 +21,7 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/PassManager.h>
+#include <llvm/IR/Intrinsics.h>
 
 #include <string>
 #include <memory>
@@ -89,6 +90,21 @@ namespace instr {
                 "__assertfail",
                 "__assert_fail"
               };
+        // const std::vector<std::string> TRACE_LIB_FNS_TO_CLONE{
+        //         trace_append$mem_name,
+        //         trace_append$alloc_name
+        //       };
+        // const std::unordered_map<std::string, llvm::Intrinsic::ID> REQUIRED_BUILTINS{
+        //         {"llvm.amdgcn.workgroup.id.x",  llvm::Intrinsic::not_intrinsic},
+        //         {"llvm.amdgcn.workgroup.id.y",  llvm::Intrinsic::not_intrinsic},
+        //         {"llvm.amdgcn.workgroup.id.z",  llvm::Intrinsic::not_intrinsic},
+        //         {"llvm.amdgcn.workitem.id.x",   llvm::Intrinsic::not_intrinsic},
+        //         {"llvm.amdgcn.workitem.id.y",   llvm::Intrinsic::not_intrinsic},
+        //         {"llvm.amdgcn.workitem.id.z",   llvm::Intrinsic::not_intrinsic},
+        //         {"llvm.lifetime.start.p5",      llvm::Intrinsic::lifetime_start},
+        //         {"llvm.lifetime.end.p5",        llvm::Intrinsic::lifetime_end},
+        //         {"llvm.memcpy.p0.p5.i64",       llvm::Intrinsic::memcpy},
+        //       };
         llvm::Metadata* DeviceTrackerPtrTy_metadata = nullptr;
       } device;
 
@@ -202,6 +218,8 @@ namespace instr {
 
     auto replace_device_function(llvm::Function& F) -> llvm::Function*;
     auto finish_replacing_old_funcs_device(llvm::Module& M) -> void;
+
+    // auto clone_scabbard_functions_device(llvm::Module& M, const llvm::Module& LibM) -> void;
     
   };//?END class ScabbardPassPlugin
 
