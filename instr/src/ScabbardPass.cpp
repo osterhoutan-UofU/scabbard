@@ -256,9 +256,10 @@ namespace scabbard {
             host.scabbard_init_name,
             llvm::FunctionType::get(
                 llvm::Type::getVoidTy(M.getContext()),
-                llvm::ArrayRef<llvm::Type*>(std::array<llvm::Type*,1>{
-                    llvm::Type::getVoidTy(M.getContext()),
-                  }),
+                {},
+                // llvm::ArrayRef<llvm::Type*>(std::array<llvm::Type*,1>{
+                //     llvm::Type::getVoidTy(M.getContext()),
+                //   }),
                 false
               )
           );
@@ -279,9 +280,7 @@ namespace scabbard {
               llvm::ArrayRef<llvm::Type*>(std::vector<llvm::Type*>{
                   llvm::IntegerType::get(M.getContext(), sizeof(InstrData) * 8),
                   llvm::PointerType::get(M.getContext(), 0u), //WARN: This constant 0u might need to be dynamicly decided for host modules
-                  llvm::PointerType::get(M.getContext(), 0u), //WARN: This constant 0u might need to be dynamicly decided for host modules
-                  llvm::IntegerType::get(M.getContext(), 32u),
-                  llvm::IntegerType::get(M.getContext(), 32u)
+                  llvm::IntegerType::get(M.getContext(), 64u)
                 }),
               false
             )
