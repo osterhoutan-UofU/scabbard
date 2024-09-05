@@ -176,6 +176,13 @@ namespace scabbard {
       return __getInstrData_val(I, phiBBVisited);
     }
 
+    template<> 
+    template<>
+    InstrData DepTrace<HOST>::getInstrData(const llvm::AtomicCmpXchgInst& I) const
+    {
+      return InstrData::NEVER;  //This will need to change if we start recording writes on the cpu side
+    }
+
     // << ------------------------------------------------------------------------------------------ >> 
 
     template<> 
@@ -272,6 +279,8 @@ namespace scabbard {
       // } else if (auto* _i = llvm::dyn_cast_or_null<llvm::CallInst>(&i)) {
       //   return getInstrData(*_i, phiBBVisited);
       } else if (auto _i = llvm::dyn_cast_or_null<llvm::AtomicRMWInst>(&i)) {
+        return getInstrData(*_i);
+      } else if (auto _i = llvm::dyn_cast_or_null<llvm::AtomicCmpXchgInst>(&i)) {
         return getInstrData(*_i);
       }
       return InstrData::NEVER;

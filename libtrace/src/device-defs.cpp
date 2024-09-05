@@ -42,7 +42,9 @@ namespace scabbard {
       //           + threadIdx.x + threadIdx.y + threadIdx.z) % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT);
       // }
       
-      __device__ __noinline__
+      // __device__ __noinline__
+      [[clang::disable_sanitizer_instrumentation, gnu::flatten, gnu::always_inline,
+        gnu::used, gnu::retain]] __device__
       void trace_append$mem(void* deviceTracker, const InstrData data, const void* PTR, const std::uint64_t SRC_ID)
       {
         DeviceTracker& DT = *((DeviceTracker*) deviceTracker);
@@ -51,20 +53,11 @@ namespace scabbard {
                                                                                   PTR, 
                                                                                   SRC_ID, 
                                                                                   0ul);
-        // const size_t lId = getLaneId();
-        // auto& _tmp0 = DEVICE_TRACE_LOGGER->data;
-        // auto& _tmp1 = _tmp0[lId];
-        // auto& _tmp2 = _tmp1.next;
-        // const size_t _tmp3 = _tmp2;   // <<<< THIS OPERATION CAUSES THE SIGSEGV 
-        // const size_t _li = ++_tmp2;  // atomic so increment should happen at same time as load/copy // <<<< THIS OPERATION CAUSES THE SIGSEGV 
-        // const size_t li = _li % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH;
-        // DEVICE_TRACE_LOGGER->data[lId].data[li] = TraceData(wall_clock64(), data,
-        //                                                                   blockIdx, threadIdx,
-        //                                                                   PTR, 
-        //                                                                  *src_id, line, col, 0ul);
       }
 
-      __device__ __noinline__
+      // __device__ __noinline__
+      [[clang::disable_sanitizer_instrumentation, gnu::flatten, gnu::always_inline,
+        gnu::used, gnu::retain]] __device__
       void trace_append$alloc(void* deviceTracker, const InstrData data, const void* PTR, const std::uint64_t SRC_ID, const std::size_t size)
       {
         DeviceTracker& DT = *((DeviceTracker*) deviceTracker);
@@ -90,21 +83,21 @@ namespace scabbard {
        * @brief waisted space used to that the device side function does not optimized out
        *        from not being called from inside the llvm device module pre-instrumentation
        */
-      __global__ 
-      void call_for_looks(void* dt, int32_t intTy, float fTy, InstrData tmp, void* ptr, void* meta, const std::uint64_t* src_id) asm (SCABBARD_DEVICE_DUMMY_FUNC_NAME);
+      // __global__ 
+      // void call_for_looks(void* dt, int32_t intTy, float fTy, InstrData tmp, void* ptr, void* meta, const std::uint64_t* src_id) asm (SCABBARD_DEVICE_DUMMY_FUNC_NAME);
 
-      __global__ 
-      void call_for_looks(void* dt, int32_t intTy, float fTy, InstrData tmp, void* ptr, void* meta, const std::uint64_t* src_id)
-      {
-        fTy *= intTy;
-        *((float*) dt) = fTy;
-        ::scabbard::trace::device::trace_append$mem(dt,tmp,ptr,101ul);
-        ::scabbard::trace::device::trace_append$mem(dt,tmp,ptr,102ul);
-        ::scabbard::trace::device::trace_append$mem(dt,tmp,ptr,103ul);
-        ::scabbard::trace::device::trace_append$alloc(dt,tmp,ptr,104ul,7ul);
-        ::scabbard::trace::device::trace_append$alloc(dt,tmp,ptr,105ul,23ul);
-        ::scabbard::trace::device::trace_append$alloc(dt,tmp,ptr,106ul,230ul);
-      }
+      // __global__ 
+      // void call_for_looks(void* dt, int32_t intTy, float fTy, InstrData tmp, void* ptr, void* meta, const std::uint64_t* src_id)
+      // {
+      //   fTy *= intTy;
+      //   *((float*) dt) = fTy;
+      //   ::scabbard::trace::device::trace_append$mem(dt,tmp,ptr,101ul);
+      //   ::scabbard::trace::device::trace_append$mem(dt,tmp,ptr,102ul);
+      //   ::scabbard::trace::device::trace_append$mem(dt,tmp,ptr,103ul);
+      //   ::scabbard::trace::device::trace_append$alloc(dt,tmp,ptr,104ul,7ul);
+      //   ::scabbard::trace::device::trace_append$alloc(dt,tmp,ptr,105ul,23ul);
+      //   ::scabbard::trace::device::trace_append$alloc(dt,tmp,ptr,106ul,230ul);
+      // }
 
       // __global__ void call_for_differentiation(InstrData tmp, void* ptr, void* meta)
       // {

@@ -34,6 +34,38 @@ namespace scabbard {
     //   {"<none>", BASE_CHECK}
     // };
 
+    /**
+     * @brief return whether or not the cpu can access the memory in the address space of the pointer provided
+     *        (only for AMD gpu's)
+     * @param PTR_OP a \c llvm::PointerType who's address space will be checked
+     * @return \c bool - if the cpu can read from the address pointed to (based off of the address-space)
+     */
+    static bool is_accessible_address_space(const llvm::Value* PTR_OP) 
+    {
+      if (auto ptr = llvm::dyn_cast<llvm::PointerType>(PTR_OP->getType())) {
+        switch (ptr->getAddressSpace()) {
+          case 0: // generic
+          case 1: // global
+            return true;
+          case 2: // region
+            return true;    // only guessing for this one
+          case 3: // local
+          case 5: // private
+            return false;
+          case 4: // constant
+          case 6: // constant 32-bit
+            return true;  // technically we should never see this here since you can't write to these addresses on the gpu
+          case 7: // buffer fat ptr
+          case 8: // buffer resource
+          case 9: // buffer strided ptr
+          case 128: // stream-out registers
+          default:
+            return false;
+        }
+      }
+      assert(false && "expected a pointer type");
+    }
+
     // << ------------------------------------------------------------------------------------------ >> 
 
     template<>
@@ -54,6 +86,7 @@ namespace scabbard {
     template<>
     InstrData DepTrace<DEVICE>::getInstrData(const llvm::StoreInst& I) const
     {
+      if (not is_accessible_address_space(I.getPointerOperand())) return InstrData::NEVER;
       llvm::SmallSet<llvm::StringRef, 8u> phiBBVisited;
       InstrData res = __getInstrData_val(*I.getPointerOperand(), phiBBVisited);
       if (res == InstrData::NEVER)
@@ -67,6 +100,7 @@ namespace scabbard {
     InstrData DepTrace<DEVICE>::getInstrData(const llvm::LoadInst& I) const
     {
 #     ifdef __SCABBARD_TRACE_HOST_WRITE_TO_GPU_READ
+      if (not is_accessible_address_space(I.getPointerOperand())) return InstrData::NEVER;
       llvm::SmallSet<llvm::StringRef, 8u> phiBBVisited;
       InstrData res = __getInstrData_val(*I.getPointerOperand(), phiBBVisited);
       if (res == InstrData::NEVER)
@@ -89,7 +123,24 @@ namespace scabbard {
     template<>
     InstrData DepTrace<DEVICE>::getInstrData(const llvm::AtomicRMWInst& I) const
     {
-      return (InstrData)(InstrData::ATOMIC_MEM | InstrData::ON_DEVICE | InstrData::READ | InstrData::WRITE);  // this means that the mem is device heap (shared or global doesn't matter)
+      if (not is_accessible_address_space(I.getPointerOperand())) return InstrData::NEVER;
+      llvm::SmallSet<llvm::StringRef, 8u> phiBBVisited;
+      InstrData res = __getInstrData_val(*I.getPointerOperand(), phiBBVisited);
+      if (res == InstrData::NEVER)
+        return InstrData::NEVER;
+      return (InstrData)(InstrData::ATOMIC_MEM | InstrData::ON_DEVICE | InstrData::READ | InstrData::WRITE | res);  // this means that the mem is device heap (shared or global doesn't matter)
+    }
+
+    template<>
+    template<>
+    InstrData DepTrace<DEVICE>::getInstrData(const llvm::AtomicCmpXchgInst& I) const
+    {
+      if (not is_accessible_address_space(I.getPointerOperand())) return InstrData::NEVER;
+      llvm::SmallSet<llvm::StringRef, 8u> phiBBVisited;
+      InstrData res = __getInstrData_val(*I.getPointerOperand(), phiBBVisited);
+      if (res == InstrData::NEVER)
+        return InstrData::NEVER;
+      return (InstrData)(InstrData::ATOMIC_MEM | InstrData::ON_DEVICE | InstrData::WRITE | res);  // this means that the mem is device heap (shared or global doesn't matter)
     }
 
     // << ------------------------------------------------------------------------------------------ >> 
@@ -112,13 +163,14 @@ namespace scabbard {
     template<>
     InstrData DepTrace<DEVICE>::__getInstrData_rec(const llvm::AtomicRMWInst& I, llvm::SmallSet<llvm::StringRef, 8u>& phiBBVisited) const
     {
-      return InstrData::NEVER;
+      return __getInstrData_val(*I.getPointerOperand(), phiBBVisited);
     }
 
     template<>
     template<>
     InstrData DepTrace<DEVICE>::__getInstrData_rec(const llvm::AddrSpaceCastInst& I, llvm::SmallSet<llvm::StringRef, 8u>& phiBBVisited) const
     {
+      if (not is_accessible_address_space(I.getPointerOperand())) return InstrData::NEVER;
       return __getInstrData_val(*I.getPointerOperand(), phiBBVisited);
     }
 
@@ -185,6 +237,8 @@ namespace scabbard {
       // } else if (auto* _i = llvm::dyn_cast_or_null<llvm::CallInst>(&i)) {
       //   return getInstrData(*_i);
       } else if (auto _i = llvm::dyn_cast_or_null<llvm::AtomicRMWInst>(&i)) {
+        return getInstrData(*_i);
+      } else if (auto _i = llvm::dyn_cast_or_null<llvm::AtomicCmpXchgInst>(&i)) {
         return getInstrData(*_i);
       }
       return InstrData::NEVER;
