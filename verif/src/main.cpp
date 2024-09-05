@@ -58,7 +58,8 @@ int main(int argc, char *argv[]) {
 
       case StateMachine::ResultStatus::INTERNAL_ERROR:
         std::cout << result.first.err_msg << std::endl;
-        return EXIT_FAILURE;
+        std::cout << "(x" << result.second << ')' << std::endl; break; //DEBUG
+        // return EXIT_FAILURE;
       default:
         std::cerr << "!unknown result code!" << std::endl;
         return EXIT_FAILURE;

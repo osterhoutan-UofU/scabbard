@@ -107,8 +107,12 @@ namespace verif {
 
         case InstrData::FREE: {
           auto r = allocs.find(td.ptr);
-          if (r == allocs.end())
-            return {{{INTERNAL_ERROR, nullptr, nullptr, "\n[scabbard.verif:ERR] bad alloc data (could not find hipMalloc associated with hipFree in trace history)"}, 1ul}};
+          if (r == allocs.end()) {
+            add_result(results,{INTERNAL_ERROR, nullptr, nullptr, "\n[scabbard.verif:ERR] bad alloc data (could not find hipMalloc associated with hipFree in trace history)"}); //DEBUG
+            last_global_sync = td.time_stamp; //DEBUG
+            break; //DEBUG
+            // return {{{INTERNAL_ERROR, nullptr, nullptr, "\n[scabbard.verif:ERR] bad alloc data (could not find hipMalloc associated with hipFree in trace history)"}, 1ul}};
+          }
           for (it = mem.find(td.ptr); it != mem.end() && it->second->ptr < td.ptr+r->second; ++it)
             it = mem.erase(it);
             // mem.erase(it);
