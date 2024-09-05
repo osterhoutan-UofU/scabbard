@@ -94,7 +94,7 @@ namespace scabbard {
 
     llvm::PreservedAnalyses ScabbardPassPlugin::run(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
     {
-      llvm::errs() << "\n[scabbard.instr.run:DBG] running instrumentation pass\n"; //DEBUG
+      // llvm::errs() << "\n[scabbard.instr.run:DBG] running instrumentation pass\n"; //DEBUG
       const llvm::Triple target(M.getTargetTriple());
       // archBit = ((target.isArch64Bit()) ? 64 //ASSUMING for now this will only be used on 64 bit machines
       //             : ((target.isArch32Bit()) ? 32 
@@ -113,6 +113,7 @@ namespace scabbard {
 
     void ScabbardPassPlugin::run_device(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
     {
+      llvm::errs() << "\n[scabbard.instr.device.run:DBG] running instrumentation pass on device/GPU module ("<< (isLTO ? "LTO" : "LateOpt") <<")\n"; //DEBUG
       instrCallbacks_device(M, MAM);
       // llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
       //   .getManager();
@@ -235,6 +236,7 @@ namespace scabbard {
             || nullptr != M.getFunction(host.trace_append$mem_name)
             || nullptr != M.getFunction(host.register_job_name))
           return; // return early this is already instrumented
+      llvm::errs() << "\n[scabbard.instr.host.run:DBG] running instrumentation pass on host/CPU module ("<< (isLTO ? "LTO" : "LateOpt") <<")\n"; //DEBUG
       // make any necessary additions to the Module (i.e.inserting globals and linking references)
       instrCallbacks_host(M, MAM);
       llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)

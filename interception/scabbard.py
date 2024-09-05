@@ -27,12 +27,15 @@ SCABBARD_PATH:str = os.environ['SCABBARD_PATH'] if 'SCABBARD_PATH' in os.environ
 INTERCEPT_LIB:str = SCABBARD_PATH+"/intercept.so"
 
 ADDED_FLAGS: list = [
-        f'-fpass-plugin={SCABBARD_PATH}/libinstr.so', 
+        # f'-fpass-plugin={SCABBARD_PATH}/libinstr.so', 
+        f'-Wl,--load-pass-plugin={SCABBARD_PATH}/libinstr.so',                  # load pass plugin for cpu module (during LTO)
+        f'-Xoffload-linker', f'--load-pass-plugin={SCABBARD_PATH}/libinstr.so', # load pass plugin for gpu module (during LTO)
         f'-L{SCABBARD_PATH}',
         '-ltrace',
         '-ltrace.device',
         '-lpthread',
-        # '-fgpu-rdc',
+        '-fgpu-rdc',
+        '-flto',
         '-g'
     ]
 
