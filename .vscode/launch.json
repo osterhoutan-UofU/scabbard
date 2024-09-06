@@ -449,6 +449,43 @@
             // "preLaunchTask": "[CMake] build scabbard-instr"
         },
         {
+            "name": "(gdb) scabbard-instr w/ dbg lld-17 on SW4CK",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/mnt/e/tmp/llvm-project/build/bin/ld.lld", // point to debug build of opt
+            "args": [
+               "-flavor","gnu","-m","elf64_amdgpu","--no-undefined","-shared","-plugin-opt=-amdgpu-internalize-symbols","-plugin-opt=mcpu=gfx1030","-plugin-opt=O3","--lto-CGO3","-save-temps","--whole-archive","--load-pass-plugin=../../scabbard/build/scabbard/libinstr.so","-o","a.out-hip-amdgcn-amd-amdhsa-gfx1030","curvitest-hip-amdgcn-amd-amdhsa-gfx1030.o","curvilinear4sgc-hip-amdgcn-amd-amdhsa-gfx1030.o","Events-hip-amdgcn-amd-amdhsa-gfx1030.o","main-hip-amdgcn-amd-amdhsa-gfx1030.o","/tmp/libbc-camp-amdgcn-gfx1030-eaeb8d.a","/tmp/libbc-trace-amdgcn-gfx1030-072efd.a","/tmp/libbc-trace.device-amdgcn-gfx1030-a7cff2.a","--no-whole-archive"
+
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/../SW4CK/src",
+            "environment": [
+                {
+                    "name": "SCABBARD_PATH",
+                    "value": "${workspaceFolder}/build/scabbard"
+                },
+                {
+                    "name": "SCABBARD_METADATA_FILE",
+                    "value": "${workspaceFolder}/../SW4CK/src/qs.scabbard.meta"
+                }
+            ],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ],
+            // "preLaunchTask": "[CMake] build scabbard-instr"
+        },
+        {
             "name": "(gdb) scabbard-instr w/ dbg-opt on test.bc",
             "type": "cppdbg",
             "request": "launch",
