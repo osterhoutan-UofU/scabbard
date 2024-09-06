@@ -24,19 +24,20 @@ SCABBARD_PATH:str = os.environ['SCABBARD_PATH'] if 'SCABBARD_PATH' in os.environ
 # sys.path.append(SCABBARD_PATH)
 # from libs.scabbard import scabbardlib as scabbard
 
+INSTR_LIB:str = SCABBARD_PATH+"/libinstr.so"
 INTERCEPT_LIB:str = SCABBARD_PATH+"/intercept.so"
 
 ADDED_FLAGS: list = [
-        # f'-fpass-plugin={SCABBARD_PATH}/libinstr.so', 
-        f'-Wl,--load-pass-plugin={SCABBARD_PATH}/libinstr.so',                  # load pass plugin for cpu module (during LTO)
-        f'-Xoffload-linker', f'--load-pass-plugin={SCABBARD_PATH}/libinstr.so', # load pass plugin for gpu module (during LTO)
-        f'-L{SCABBARD_PATH}',
-        '-ltrace',
-        '-ltrace.device',
-        '-lpthread',
-        '-fgpu-rdc',
-        '-flto',
-        '-g'
+        # f'-fpass-plugin={SCABBARD_PATH}/libinstr.so',           # load the pass plugin (during late opt) (requires adjustments to pass manager setup)
+        f'-Wl,--load-pass-plugin={INSTR_LIB}',                  # load pass plugin for cpu module (during LTO)
+        '-Xoffload-linker', f'--load-pass-plugin={INSTR_LIB}',  # load pass plugin for gpu module (during LTO)
+        f'-L{SCABBARD_PATH}',                                   # point the linker to where scabbard's trace libraries are
+        '-ltrace',                                              # the tracing code for the gpu that the instrumentation will call on
+        '-ltrace.device',                                       # the tracing code for the gpu that the instrumentation will call on
+        '-lpthread',                                            # required by scabbard's libtrace
+        '-fgpu-rdc',                                            # if we compile in single TU mode the LTO pass won't run on the device modules
+        '-flto',                                                # ensure that LTO is run (will conflict if -fthin-lto or -fno-lto is used)
+        '-g'                                                    # required to get the location metadata
     ]
 
 def runCommandWithFlags(argv: list, env: dict) -> None:
