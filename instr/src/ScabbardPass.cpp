@@ -187,6 +187,12 @@ namespace scabbard {
       //   if (fn != nullptr && fn->getNumUses() < 1u) 
       //     fn->eraseFromParent();
       // }
+
+      // remove tmp variables with function comdat pointers referencing replaced functions
+      // llvm::SmallVector<llvm::GlobalVariable*,4u> GV_to_remove;
+      // for (auto& GV : M.globals())
+      //   if (GV.getName().starts_with("__clang_gpu_used_external")) 
+      //     GV_to_remove.push_back(&GV);
       
 
       // remove the dummy caller function from device_def
@@ -590,6 +596,7 @@ namespace scabbard {
       for (auto& tr : to_replace) {
         llvm::Function* OldFn, * NewFn;
         std::tie(OldFn, NewFn) = tr;
+        OldFn->replaceAllUsesWith(NewFn);
         OldFn->eraseFromParent();
       }
       // clear the list so we're ready for reuse
