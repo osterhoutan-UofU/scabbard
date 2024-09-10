@@ -32,7 +32,7 @@ Scabbard cannot tell you if a data race occurred inside your GPU code, only if t
       - [Instrumenting Simple Programs](#instrumenting-simple-programs)
     - [Step 2: Generate a Trace File](#step-2-generate-a-trace-file)
     - [Step 3: Check for Unified Memory Data Races](#step-3-check-for-unified-memory-data-races)
-    - [Interpreting the output:](#interpreting-the-output)
+      - [Interpreting the output:](#interpreting-the-output)
 
 
 ## Build:
@@ -222,6 +222,6 @@ You must use the scabbard interface tool in `verif` mode using the metadata file
 scabbard verif <meta-file\> <trace-file\>
 ```
 
-### Interpreting the output:
+#### Interpreting the output:
 TODO
 
