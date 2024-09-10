@@ -72,7 +72,7 @@ Follow these 3 steps:
 >     ```
 >  2. Add an alias for the scabbard interface/wrapper. _i.e._
 >     ```sh
->     alias scabbard=$SCABBARD_PATH/scabbard
+>     alias scabbard=$SCABBARD_PATH/scabbard.py
 >     ```
 >     **NOTE:**
 >     using `scabbard --help` will provide basic instructions on how to use the scabbard interface
