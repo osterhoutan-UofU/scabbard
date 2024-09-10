@@ -71,7 +71,10 @@ def executeOriginalCommand(argv: list) -> None:
     if DEBUG:
         print(f"[scabbard.py:DBG] running original cmd: {' '.join(argv)}")
     try:
-        subprocess.run(' '.join(argv), shell=True, check=True)
+        cmd: str = ' '.join(argv)
+        if DEBUG:
+            prCyan(f"[scabbard.py:DBG] executing unaltered cmd: {cmd}")
+        subprocess.run(f"LD_PRELOAD={INTERCEPT_LIB} {cmd}", shell=True, check=True)
     except subprocess.CalledProcessError as e:
         prRed(e)
         

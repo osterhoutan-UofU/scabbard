@@ -64,7 +64,7 @@ def runCommandWithFlags(argv: list) -> None:
         raise Exception("[scabbard.intercept.driver:ERR] `SCABBARD_METADATA_FILE` was not defined! [dev-error]")
     
     new_cmd: str
-    if any([x in os.path.basename(argv[0]) for x in ["clang","hipcc"]]):
+    if any([x in os.path.basename(argv[0]) for x in ["clang","hipcc","mpcc"]]):
         new_argv = list(argv)
         new_argv[1:1] = ADDED_FLAGS
         new_cmd = ' '.join(new_argv)
@@ -73,6 +73,7 @@ def runCommandWithFlags(argv: list) -> None:
               "\n                           -> CMake is not supported by the scabbard interceptor!"+
               "\n                              Try directly calling the configured build tool (i.e. `make`, `ninja`, etc.)\n")
         executeOriginalCommand(argv) # might try this for now
+        return
     elif any([x in os.path.basename(argv[0]) for x in {"make", "ninja", "MSBuild"}]):
         try:
             executeOriginalCommand(argv)
@@ -86,7 +87,7 @@ def runCommandWithFlags(argv: list) -> None:
         new_cmd = ' '.join(argv)
     
     if DEBUG:
-        prCyan(f"[driver.py] instrumented cmd: {new_cmd}")
+        prCyan(f"[driver.py] cmd run: {new_cmd}")
     try:
         cmdOutput = subprocess.run(new_cmd, shell=True, check=True, env=env) #, text=True,
                                     # stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
