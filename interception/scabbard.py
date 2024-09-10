@@ -55,6 +55,8 @@ def runCommandWithFlags(argv: list, env: dict) -> None:
         prCyan(f"[scabbard.py:DBG] instrumented cmd: {new_cmd}")
     
     try:
+        prGreen('*** SCABBARD ***')
+        prGreen('Running Instrumented command\n')
         cmdOutput = subprocess.run(new_cmd, shell=True, check=True, env=env) #, text=True,
                                     # stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         # print(cmdOutput.stdout)
@@ -67,64 +69,94 @@ def runCommandWithFlags(argv: list, env: dict) -> None:
 
 
 
-def executeOriginalCommand(argv: list) -> None:
-    if DEBUG:
-        print(f"[scabbard.py:DBG] running original cmd: {' '.join(argv)}")
-    try:
-        cmd: str = ' '.join(argv)
-        if DEBUG:
-            prCyan(f"[scabbard.py:DBG] executing unaltered cmd: {cmd}")
-        subprocess.run(f"LD_PRELOAD={INTERCEPT_LIB} {cmd}", shell=True, check=True)
-    except subprocess.CalledProcessError as e:
-        prRed(e)
+# def executeOriginalCommand(argv: list) -> None:
+#     if DEBUG:
+#         print(f"[scabbard.py:DBG] running original cmd: {' '.join(argv)}")
+#     try:
+#         cmd: str = ' '.join(argv)
+#         if DEBUG:
+#             prCyan(f"[scabbard.py:DBG] executing unaltered cmd: {cmd}")
+#         subprocess.run(f"LD_PRELOAD={INTERCEPT_LIB} {cmd}", shell=True, check=True)
+#     except subprocess.CalledProcessError as e:
+#         prRed(e)
         
 
-def runBuildCommand(params: list, isRoot:bool=False) -> None:
-    prGreen('*** SCABBARD ***')
-    prGreen('Intercepting commands in: ' + ' '.join(params))
-    params.insert(0, 'LD_PRELOAD='+INTERCEPT_LIB)
+# def runBuildCommand(params: list, isRoot:bool=False) -> None:
+#     prGreen('*** SCABBARD ***')
+#     prGreen('Intercepting commands in: ' + ' '.join(params))
+#     params.insert(0, 'LD_PRELOAD='+INTERCEPT_LIB)
     
-    env: dict = dict(os.environ)
+#     env: dict = dict(os.environ)
     
-    if 'SCABBARD_PATH' not in env:
-        env.update({'SCABBARD_PATH':os.path.dirname(os.path.abspath(__file__))})
-    if 'SCABBARD_METADATA_FILE' not in env:
-        env.update({'SCABBARD_METADATA_FILE':f"{os.path.abspath(os.getcwd())}/anon.scabbard.metadata"})
+#     if 'SCABBARD_PATH' not in env:
+#         env.update({'SCABBARD_PATH':os.path.dirname(os.path.abspath(__file__))})
+#     if 'SCABBARD_METADATA_FILE' not in env:
+#         env.update({'SCABBARD_METADATA_FILE':f"{os.path.abspath(os.getcwd())}/anon.scabbard.metadata"})
 
-    if any([x in os.path.basename(params[1]) for x in {"clang","hipcc"}]) \
-        or any([x in params[1] for x in {"clang","hipcc"}]):
-        runCommandWithFlags(params[1:], env)
-    else:
-        if DEBUG:
-            prCyan(f"[scabbard.py:DBG] instrumented cmd: {' '.join(params)}")
-        try:
-                cmdOutput = subprocess.run(' '.join(params), shell=True, check=True, env=env) #,  text=True,
-                                            # stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                # print(cmdOutput.stdout)
-        except subprocess.CalledProcessError as cpe:
-            prRed(str(cpe.stderr) if cpe.stderr is not None else str(cpe.stdout))
-            raise RuntimeError('Error when running scabbard.intercept on a build command [scabbard.py]') from cpe
-        except Exception as e:
-            os.remove(env['SCABBARD_METADATA_FILE']+".lock")
-            prRed(e)
-            raise RuntimeError('Error when running scabbard.intercept on a build command [scabbard.py]') from e
+#     if any([x in os.path.basename(params[1]) for x in {"clang","hipcc"}]) \
+#         or any([x in params[1] for x in {"clang","hipcc"}]):
+#         runCommandWithFlags(params[1:], env)
+#     else:
+#         if DEBUG:
+#             prCyan(f"[scabbard.py:DBG] instrumented cmd: {' '.join(params)}")
+#         try:
+#                 cmdOutput = subprocess.run(' '.join(params), shell=True, check=True, env=env) #,  text=True,
+#                                             # stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+#                 # print(cmdOutput.stdout)
+#         except subprocess.CalledProcessError as cpe:
+#             prRed(str(cpe.stderr) if cpe.stderr is not None else str(cpe.stdout))
+#             raise RuntimeError('Error when running scabbard.intercept on a build command [scabbard.py]') from cpe
+#         except Exception as e:
+#             os.remove(env['SCABBARD_METADATA_FILE']+".lock")
+#             prRed(e)
+#             raise RuntimeError('Error when running scabbard.intercept on a build command [scabbard.py]') from e
     
-    os.remove(env['SCABBARD_METADATA_FILE']+".lock")
-    if isRoot:
-        prGreen(f"\n[scabbard.instr:INFO] Build Finished!\n[scabbard.instr:INFO] Meta-file generated: {os.environ['SCABBARD_METADATA_FILE']}\n")
+#     os.remove(env['SCABBARD_METADATA_FILE']+".lock")
+#     if isRoot:
+#         prGreen(f"\n[scabbard.instr:INFO] Build Finished!\n[scabbard.instr:INFO] Meta-file generated: {os.environ['SCABBARD_METADATA_FILE']}\n")
 
 #     scabbard.merge_stats_reports('./report/', './', 'output')
 #     scabbard.generate_remark_reports('./report/', './', ['output'])
 
 
 def instr(scabbard_args, args) -> None:
+    env = dict(os.environ)
+    if ('meta_file' in scabbard_args or "meta-file" in scabbard_args or "--meta-file" in scabbard_args) \
+            and scabbard_args.meta_file is not None and len(scabbard_args.meta_file) > 0:
+        env.update({'SCABBARD_METADATA_FILE':scabbard_args.meta_file[0]})
+    elif 'SCABBARD_METADATA_FILE' not in os.environ:
+        env.update({'SCABBARD_METADATA_FILE':f"{os.path.abspath(os.getcwd())}/anon.scabbard.meta"})
+    lock_file = pathlib.Path(env['SCABBARD_METADATA_FILE']+".lock")
+    lock_file.touch() # create the metadata file beforehand to alleviate some inter os issues
+    runCommandWithFlags(args, env)
+    lock_file.unlink()
+    
+    
+def build(scabbard_args, args) -> None:
+    env = dict(os.environ)
     if ('meta_file' in scabbard_args or "meta-file" in scabbard_args or "--meta-file" in scabbard_args) \
             and scabbard_args.meta_file is not None and len(scabbard_args.meta_file) > 0:
         os.environ.update({'SCABBARD_METADATA_FILE':scabbard_args.meta_file[0]})
-    elif 'SCABBARD_METADATA_FILE' not in os.environ:
-        os.environ.update({'SCABBARD_METADATA_FILE':f"{os.path.abspath(os.getcwd())}/anon.scabbard.meta"})
-    pathlib.Path(os.environ['SCABBARD_METADATA_FILE']+".lock").touch() # create the metadata file beforehand to alleviate some inter os issues
-    runBuildCommand(args, isRoot=True)
+    elif 'SCABBARD_METADATA_FILE' not in env:
+        env.update({'SCABBARD_METADATA_FILE':f"{os.path.abspath(os.getcwd())}/anon.scabbard.meta"})
+    lock_file = pathlib.Path(env['SCABBARD_METADATA_FILE']+".lock") 
+    
+    if len(args) < 1:
+        prRed("[scabbard.build:ERR] provide a command to run (no command received)")
+        exit(-1)
+    new_cmd = ' '.join(args)
+    
+    lock_file.touch() # create the metadata file beforehand to alleviate some inter os issues
+    try:
+        cmdOutput = subprocess.run(new_cmd, shell=True, check=True, env=env)
+    except subprocess.CalledProcessError as cpe:
+        prRed(str(cpe.stderr) if cpe.stderr is not None else str(cpe.stdout))
+        raise RuntimeError('Error when running scabbard.build on a build command') from cpe
+    except Exception as e:
+        prRed(e)
+        raise RuntimeError('Error when running scabbard on a trace command') from e
+    prGreen(f"[scabbard.build:INFO] Build Finished!\n[scabbard.build:INFO] meta-file generated: `{env['SCABBARD_METADATA_FILE']}\n")
+    lock_file.unlink()
     
 
 def trace(scabbard_args, args) -> None:
@@ -184,6 +216,8 @@ def main(argv:list) -> None:
         match scabbard_args.mode:
             case 'instr':
                 instr(scabbard_args, args)
+            case 'build':
+                build(scabbard_args, args)
             case 'trace':
                 trace(scabbard_args, args)
             case 'verif':
