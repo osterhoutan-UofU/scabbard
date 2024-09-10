@@ -81,20 +81,10 @@ Follow these 3 steps:
 
 ### Step 1: Instrument your build
 
-Use one of the following methods to instrument your build
-- [scabbard](#scabbard)
-    - [Compatibility](#compatibility)
-  - [Table of Contents](#table-of-contents)
-  - [Build:](#build)
-    - [Dependencies](#dependencies)
-  - [Using scabbard:](#using-scabbard)
-    - [Step 1: Instrument your build](#step-1-instrument-your-build)
-      - [Instrumenting with CMake](#instrumenting-with-cmake)
-      - [Manually Adding Instrumentation to your Build System](#manually-adding-instrumentation-to-your-build-system)
-      - [Instrumenting Simple Programs](#instrumenting-simple-programs)
-    - [Step 2: Generate a Trace File](#step-2-generate-a-trace-file)
-    - [Step 3: Check for Unified Memory Data Races](#step-3-check-for-unified-memory-data-races)
-      - [Interpreting the output:](#interpreting-the-output)
+Use one of the following methods to configure and build your project with scabbards instrumentation:
+- Option 1: [Instrumenting Simple Programs](#instrumenting-simple-programs)
+- Option 2: [Instrumenting with CMake](#instrumenting-with-cmake)
+- Option 3: [Manually Adding Instrumentation to your Build System](#manually-adding-instrumentation-to-your-build-system)
 
 #### Instrumenting with CMake
 
