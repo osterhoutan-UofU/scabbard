@@ -208,6 +208,12 @@ If you don't it will default to `<instrumented-exe>.scabbard.trace` wherever tha
 
 The `<run-cmd>` place holder can be replaced with whatever command and its arguments you would normally use to launch your program.
 
+> **WARNING:**
+> Scabbard trace files can get very large (>15GB for simple GPU code).
+> It is recommended to try to run your scabbard instrumented code on as small of a data-set as possible.
+> To reduce the number of write operations that will occur on the GPU as much as possible.
+> Else be prepared for a very large trace file, and an even longer wait time for the offline analysis.
+
 After your program finishes running ensure it exited normally then continue to [step 3](#step-3-check-for-unified-memory-data-races).
 
 
@@ -221,6 +227,16 @@ You must use the scabbard interface tool in `verif` mode using the metadata file
 ```sh
 scabbard verif <meta-file\> <trace-file\>
 ```
+
+> **NOTE:**
+> The offline-analysis/verify tool is robust, but single threaded, a little slow, 
+> and currently does not have a spinner or any kind if output until it finishes 
+> to let you know it's not frozen or stuck.
+> However we can assure you that it is very robust and is very very unlikely to be frozen or stuck.
+> So just let it run until it is done.
+>
+> A rule of thumb for how long it will take is is roughly 15sec per 1GB of trace file
+> _(this can very greatly between different CPUs)_ 
 
 #### Interpreting the output:
 TODO
