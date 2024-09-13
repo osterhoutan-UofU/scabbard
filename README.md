@@ -204,7 +204,7 @@ scabbard trace --trace-file=<proj-name>.scabbard.trace <run-cmd>
 > using `scabbard trace --help` will provide basic instructions on how to use the scabbard interface
 
 It is recommended to provide a `--trace-file` so you know where the trace file will be generated at.
-If you don't it will default to `<instrumented-exe>.scabbard.trace` wherever that is on your machine.
+If you don't it will default to `<run-cmd>.scabbard.trace` wherever that is on your machine.
 
 The `<run-cmd>` place holder can be replaced with whatever command and its arguments you would normally use to launch your program.
 
