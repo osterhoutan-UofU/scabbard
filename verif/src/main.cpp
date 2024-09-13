@@ -43,12 +43,12 @@ int main(int argc, char *argv[]) {
     switch (result.first.status)
     {
       case StateMachine::ResultStatus::ERROR:
-        std::cout << '\n' << result.second << "x DATA RACE(S) were detected; deriving from the following src locs!\n";
+        std::cout << '\n' << result.second << "x DATA RACE(S) were detected; deriving from the src locations detailed in the sampled event below!\n";
         printResult(std::cout, mf, tf, result.first);
         break;
 
       case StateMachine::ResultStatus::WARNING:
-        std::cout << '\n' << result.second << "x POSSIBLE data race(s) were detected; deriving from the following src locs!\n";
+        std::cout << '\n' << result.second << "x POSSIBLE data race(s) were detected; deriving from the src locations detailed in the sampled event below!\n";
         printResult(std::cout, mf, tf, result.first);
         break;
 
@@ -83,51 +83,54 @@ void printResult(std::ostream& out,
   auto printRead = [&]() -> void {
     auto it = MF.find(res.read->metadata);
     const scabbard::SrcMetadata& meta = ((it != MF.end()) ? it->second : UNKNOWN_METADATA);
-    out << "   READ: {\n" 
-           "         time (logical): " << res.read->time_stamp << ",\n"
-           "                 device: CPU\n"
-           "              thread id: 0x" << std::hex << std::hash<std::thread::id>{}(res.read->threadId.host) << std::dec << "\n"
-           "                src loc: \"" << meta.srcFile << ':' << meta.line << ',' << meta.col << "\"\n"
-           "    }\n";
+    out << "    READ: {\n" 
+           "                time: " << res.read->time_stamp << " (logical),\n"
+           "              device: CPU,\n"
+           "           thread id: 0x" << std::hex << std::hash<std::thread::id>{}(res.read->threadId.host) << std::dec << ",\n"
+           "             src loc: \"" << meta.srcFile << ':' << meta.line << ',' << meta.col << "\"\n"
+           "          }";
   };
   auto printWrite = [&]() -> void {
     auto it = MF.find(res.write->metadata);
     const scabbard::SrcMetadata& meta = ((it != MF.end()) ? it->second : UNKNOWN_METADATA);
-    out << "  WRITE: {\n" 
-           "    time (logical): " << res.write->time_stamp << ",\n"
-           "            device: GPU\n"
-           "         thread id: {\n"
-           "                   id: {stream: 0x" << std::hex << res.write->threadId.device.job.STREAM << std::dec << ", job#: " << res.write->threadId.device.job.JOB << "},\n"
-           "                block: {x:" << res.write->threadId.device.block.x << 
-                                  ", y:" << res.write->threadId.device.block.y << 
-                                  ", z:"<< res.write->threadId.device.block.z <<"},\n"
-           "               thread: {x:" << res.write->threadId.device.thread.x << 
-                                    ", y:" << res.write->threadId.device.thread.y << 
-                                    ", z:"<< res.write->threadId.device.thread.z <<"}\n"
-           "            }\n"
-           "           src loc: \"" << meta.srcFile << ':' << meta.line << ',' << meta.col << "\"\n"
-           "    }\n";
+    out << "   WRITE: {\n" 
+           "               time: " << res.write->time_stamp << " (logical),\n"
+           "              device: GPU,\n"
+           "           thread id: {\n"
+           "                           id: {stream: 0x" << std::hex << res.write->threadId.device.job.STREAM << std::dec << ", job#: " << res.write->threadId.device.job.JOB << "},\n"
+           "                        block: {x:" << res.write->threadId.device.block.x << 
+                                         ", y:" << res.write->threadId.device.block.y << 
+                                         ", z:"<< res.write->threadId.device.block.z <<"},\n"
+           "                       thread: {x:" << res.write->threadId.device.thread.x << 
+                                         ", y:" << res.write->threadId.device.thread.y << 
+                                         ", z:"<< (uint16_t)res.write->threadId.device.thread.z <<"}\n"
+           "                      },\n"
+           "            src loc: \"" << meta.srcFile << ':' << meta.line << ',' << meta.col << "\"\n"
+           "          }";
   };
-  out << " RESULT: `" << res.status << "`\n";
+  out << "  RESULT: `" << res.status << "`,\n";
   if (res.err_msg != "")
-    out << "MESSAGE: \"" << res.err_msg << "\"\n";
-  out << "MEM LOC: 0x" << std::hex << ((res.read) ? res.read->ptr : res.write->ptr) << std::dec << ", {" << res.read->data << "}\n";
+    out << " MESSAGE: \"" << res.err_msg << "\",\n";
+  out << "  MEM LOC: 0x" << std::hex << ((res.read) ? res.read->ptr : res.write->ptr) << std::dec << ",\n"
+         "METADATA: {" << res.read->data << "},\n";
   
   if (res.write == nullptr) { //case there is no write data
     printRead();
-    out.flush();
+    out << std::endl;
     return;
   }
   
   if (res.read->time_stamp > res.write->time_stamp) {
     printWrite();
+    out << ",\n";
     printRead();
-    out.flush();
+    out << std::endl;
     return;
   }
 
   printRead();
+  out << ",\n";
   printWrite();
-  out.flush();
+  out << std::endl;
                                       
 }
