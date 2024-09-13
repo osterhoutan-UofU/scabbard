@@ -27,11 +27,13 @@ namespace scabbard {
     const char* TraceWriter::BUF = _BUF.c_str();  
 
     
-    __host__ 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
+    __host__
     TraceWriter::TraceWriter(const std::string& file_path)
       : out(file_path, std::ios::out | std::ios::binary | std::ios::trunc) 
     {}
 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
     __host__
     TraceWriter::~TraceWriter()
     {
@@ -40,6 +42,7 @@ namespace scabbard {
     }
 
 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
     __host__
     void TraceWriter::init(const std::string& executable_path, std::time_t time_stamp)
     {
@@ -101,6 +104,7 @@ namespace scabbard {
       
     }
 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
     __host__
     void TraceWriter::finalize()
     {
@@ -129,6 +133,7 @@ namespace scabbard {
       // out.seekp(eof);
     }
 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
     __host__
     void TraceWriter::close()
     {
@@ -136,10 +141,12 @@ namespace scabbard {
         out.close();
     }
 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
     __host__
     inline bool TraceWriter::is_open() const { return out.is_open(); }
 
 
+    // [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
     // __host__
     // inline TraceWriter& operator << (TraceWriter& out, const TraceData& data)
     // {

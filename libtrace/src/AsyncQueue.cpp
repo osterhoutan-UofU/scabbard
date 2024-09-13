@@ -29,14 +29,16 @@ namespace scabbard {
     // << ========================================================================================== >> 
 
 
-    __host__ 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
+    __host__
     AsyncQueue::AsyncQueue()
     {
       // set the values in the device last read tracker
       // std::memset(&this->device_last_read,0u,sizeof(size_t)*SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT);
     }
 
-    __host__ 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
+    __host__
     AsyncQueue::~AsyncQueue()
     {
       stop();
@@ -53,6 +55,7 @@ namespace scabbard {
     }
 
 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
     __host__
     void AsyncQueue::start()
     {
@@ -66,6 +69,7 @@ namespace scabbard {
                                       });
     }
 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
     __host__
     void AsyncQueue::stop()
     {
@@ -77,14 +81,16 @@ namespace scabbard {
     }
 
     template<class Rep, class Period>
-    __host__ 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
+    __host__
     void AsyncQueue::set_delay(const std::chrono::duration<Rep,Period>& delay_)
     {
       delay = delay_;
     }
 
 
-    __host__ 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
+    __host__
     void AsyncQueue::set_trace_writer(const std::string& file_path, const std::string& exe_path, std::time_t start_time)
     {
       if (tw != nullptr) {
@@ -120,7 +126,8 @@ namespace scabbard {
       }
     }
 
-    // __host__ 
+    // [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
+    // __host__
     // void AsyncQueue::set_device_queue(DeviceAsyncQueue* dq_)
     // {
     //   if (dq_ == nullptr)
@@ -134,6 +141,7 @@ namespace scabbard {
     //   deviceQ = dq_;
     // }
 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
     __host__
     device::DeviceTracker* AsyncQueue::add_job(const hipStream_t STREAM)
     {
@@ -156,7 +164,8 @@ namespace scabbard {
       return dt;
     }
 
-    __host__ 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
+    __host__
     void AsyncQueue::append(TraceData tData)
     {
       mx_hostQ.lock();
@@ -166,14 +175,16 @@ namespace scabbard {
 
 
 
-    __host__ 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
+    __host__
     void AsyncQueue::async_process()
     {
       process_device(*tw);
       process_host(*tw);
     }
 
-    __host__ 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
+    __host__
     void AsyncQueue::process_device(TraceWriter& tw)
     {
       mx_device.lock();
@@ -197,7 +208,8 @@ namespace scabbard {
       mx_device.unlock();
     }
 
-    __host__ 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
+    __host__
     void AsyncQueue::process_host(TraceWriter& tw)
     {
       mx_hostQ.lock();
@@ -209,7 +221,8 @@ namespace scabbard {
     }
 
 
-    // __host__ 
+    // [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
+    // __host__
     // std::uint64_t AsyncQueue::register_src(const char* src)
     // {
     //   return metadata.register_src(src);
@@ -221,12 +234,14 @@ namespace scabbard {
     // << ========================================================================================== >> 
 
 
+    // [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
     // __host__
     // DeviceAsyncQueue::DeviceAsyncQueue() 
     //   : data()
     // {
     //   std::memset(data, 0u, sizeof(DeviceAsyncQueue::Lane)*SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT);
     // }
+    // [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
     // __host__
     // DeviceAsyncQueue::Lane::Lane() 
     //   : data()
@@ -236,11 +251,13 @@ namespace scabbard {
 
     // // __device__ inline 
     // // DeviceAsyncQueue::Lane& DeviceAsyncQueue::operator [] (size_t i) { return data[i]; }
+    // [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
     // __host__ inline 
     // const DeviceAsyncQueue::Lane& DeviceAsyncQueue::operator [] (size_t i) const { return data[i]; }
 
     // // __device__ inline 
     // // TraceData& DeviceAsyncQueue::Lane::operator [] (size_t j) { return data[j]; }
+    // [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
     // __host__ inline 
     // const TraceData& DeviceAsyncQueue::Lane::operator [] (size_t j) const { return data[j]; }
 
@@ -259,7 +276,8 @@ namespace scabbard {
     //   data[lId][(++data[lId].next)  // atomic so increment should happen at same time as load/copy
     //             % SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH] = tData;
     // }
-    // __device__ __host__ 
+    // [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
+    // __device__ __host__
     // inline DeviceAsyncQueue&  DeviceAsyncQueue::operator += (const TraceData& tData)
     // {
     //   const size_t lId = getLaneId();
@@ -268,7 +286,8 @@ namespace scabbard {
     // }
 
 
-    // __host__ 
+    // [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
+    // __host__
     // DeviceAsyncQueue::DeviceAsyncQueue()
     // {
     //   for (size_t i=0; i<SCABBARD_DEVICE_CYCLE_BUFFER_LANE_COUNT; ++i) {
@@ -276,7 +295,8 @@ namespace scabbard {
     //   }
     // }
 
-    // __host__ 
+    // [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
+    // __host__
     // DeviceAsyncQueue::Lane::Lane()
     // {
     //   std::memset(&data,0,sizeof(TraceData)*SCABBARD_DEVICE_CYCLE_BUFFER_LANE_LENGTH);

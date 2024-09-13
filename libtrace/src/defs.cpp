@@ -62,7 +62,8 @@ namespace scabbard {
     // <<                                           CALLS                                            >> 
     // << ========================================================================================== >> 
     
-    __host__ 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain, gnu::noinline]] 
+    __host__
     void scabbard_init()
     {
       // if (__hip_gpubin_handle == nullptr)
@@ -110,26 +111,30 @@ namespace scabbard {
       TRACE_LOGGER.start();
     }
 
-    __host__ 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain, gnu::noinline]] 
+    __host__
     void scabbard_close()
     {
       //TODO
     }
 
 
-    // __host__ 
+    // [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
+    // __host__
     // std::uint64_t metadata_register$src(const char* src_file) 
     // {
     //   return TRACE_LOGGER.register_src(src_file);
     // }
 
 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain, gnu::noinline]] 
     __host__
     void* register_job(const hipStream_t STREAM)
     {
       return ((void*) TRACE_LOGGER.add_job(STREAM));
     }
 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain, gnu::noinline]] 
     __host__
     void scabbard_stream_callback(hipStream_t stream, hipError_t status, void* dt_)
     {
@@ -142,6 +147,7 @@ namespace scabbard {
         TRACE_LOGGER.vClk = dvClk;
     }
 
+    [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain, gnu::noinline]] 
     __host__
     void register_job_callback(void* dt_, hipStream_t stream, const std::uint64_t SRC_ID)
     {
@@ -179,7 +185,8 @@ namespace scabbard {
     // << ========================================= Host =========================================== >> 
     namespace host {
 
-      __host__ 
+      [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain, gnu::noinline]]
+      __host__
       void trace_append$mem(const InstrData data, const void* PTR, const std::uint64_t SRC_ID)
       {
         TRACE_LOGGER.append(
@@ -194,7 +201,8 @@ namespace scabbard {
           );
       }
 
-      __host__ 
+      [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain, gnu::noinline]] 
+      __host__
       void trace_append$mem$cond(InstrData data, const void* PTR, const std::uint64_t SRC_ID)
       {
         hipPointerAttribute_t attrs;
@@ -217,7 +225,8 @@ namespace scabbard {
         }
       }
 
-      __host__ 
+      [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain, gnu::noinline]]
+      __host__
       void trace_append$alloc(const InstrData data, const void* PTR, const std::uint64_t SRC_ID, const std::size_t SIZE)
       {
         TRACE_LOGGER.append(

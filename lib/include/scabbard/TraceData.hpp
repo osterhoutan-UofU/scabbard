@@ -38,6 +38,7 @@ struct blockId_t {
   uint16_t y = 0u;
   uint16_t z = 0u;
 # ifdef __scabbard_hip_compile
+    [[clang::disable_sanitizer_instrumentation, gnu::flatten, gnu::always_inline]] 
     __host__ __device__ 
     inline blockId_t(const dim3& blockId)
 # else
@@ -57,6 +58,7 @@ struct threadId_t {
   uint16_t y;
   uint8_t z;
 # ifdef __scabbard_hip_compile
+    [[clang::disable_sanitizer_instrumentation, gnu::flatten, gnu::always_inline]] 
     __host__ __device__ 
     inline threadId_t(const dim3& threadId)
 # else
@@ -75,10 +77,12 @@ struct jobId_t {
   uint16_t JOB = 0u;
   uint16_t STREAM = 0u;
 # ifdef __scabbard_hip_compile
+  [[clang::disable_sanitizer_instrumentation, gnu::flatten, gnu::always_inline]] 
   __host__
   jobId_t(uint16_t JOB_, const hipStream_t STREAM_)
     : JOB(JOB_), STREAM(jobId_t::hash_stream_ptr(STREAM_))
   {}
+  [[clang::disable_sanitizer_instrumentation, gnu::flatten, gnu::always_inline]] 
   __host__
   static inline uint16_t hash_stream_ptr(const hipStream_t STREAM) 
 # else
@@ -96,7 +100,8 @@ struct DeviceThreadId {
   blockId_t block;
   threadId_t thread;
 # ifdef __scabbard_hip_compile
-    __host__ __device__ 
+  [[clang::disable_sanitizer_instrumentation, gnu::flatten, gnu::always_inline]] 
+  __host__ __device__ 
   inline DeviceThreadId(const jobId_t& jobId, const dim3& blockId, const dim3& threadId) 
     : job(jobId), block(blockId), thread(threadId) 
   {}
@@ -129,10 +134,14 @@ union ThreadId {
   void* _NONE_;
 # ifdef __scabbard_hip_compile
   __device__ inline ThreadId(const jobId_t& job_, const dim3& blockId_, const dim3& threadId_) { device = DeviceThreadId(job_, blockId_, threadId_); }
-  __host__ ThreadId() { std::memset(this,0,sizeof(ThreadId)); this->host = ::std::this_thread::get_id(); }
-    __host__ __device__
+  [[clang::disable_sanitizer_instrumentation, gnu::flatten, gnu::always_inline]] 
+  __host__
+  ThreadId() { std::memset(this,0,sizeof(ThreadId)); this->host = ::std::this_thread::get_id(); }
+  [[clang::disable_sanitizer_instrumentation, gnu::flatten, gnu::always_inline]] 
+  __host__ __device__
 # endif
   ThreadId(void* _) { std::memset(this,0,sizeof(ThreadId)); }
+  // [[clang::disable_sanitizer_instrumentation, gnu::flatten, gnu::always_inline]] 
   // __host__ __device__ bool ok() const { return this->_NONE_ != nullptr; } 
 };
 static_assert(sizeof(ThreadId) <= __WORDSIZE*2, "ThreadID is of the correct size");
@@ -171,10 +180,12 @@ struct TraceData {
 #endif
   // Constructors
 # ifdef __scabbard_hip_compile
+    [[clang::disable_sanitizer_instrumentation, gnu::flatten, gnu::always_inline]] 
     __host__ __device__ 
 # endif
   TraceData() = default;
 # ifdef __scabbard_hip_compile
+    [[clang::disable_sanitizer_instrumentation, gnu::flatten, gnu::always_inline]] 
     __host__ __device__ 
 # endif
   TraceData(const TraceData& other) { std::memcpy(this, &other, sizeof(TraceData)); }
@@ -184,6 +195,7 @@ struct TraceData {
   // only use this constructor if WORD_LEN in file trace file is different from system __WORDSIZE
   TraceData(const char* buffer, const size_t WORD_LEN);
 # else
+  [[clang::disable_sanitizer_instrumentation, gnu::flatten, gnu::always_inline]]
   __device__ TraceData(const std::size_t time_stamp_, InstrData data_, 
                         const jobId_t& JOB_ID, const dim3& blockId_, const dim3 threadId_,
                         const void* ptr_, 
@@ -192,11 +204,14 @@ struct TraceData {
     : time_stamp(time_stamp_), data(data_), threadId(JOB_ID, blockId_, threadId_),
       ptr(ptr_), metadata(metadata_), _OPT_DATA(size_)
     {}
-  // __host__ TraceData(InstrData data_, const void* ptr_, const LocMData_t& metadata_, std::size_t opt_data=0ul)
+  // [[clang::disable_sanitizer_instrumentation, gnu::flatten, gnu::always_inline]] 
+  // __host__
+  // TraceData(InstrData data_, const void* ptr_, const LocMData_t& metadata_, std::size_t opt_data=0ul)
   //   : time_stamp(std::chrono::high_resolution_clock::now().time_since_epoch().count()),
   //     data(data_), threadId(), ptr(ptr_), metadata(metadata_), _OPT_DATA(opt_data)
   // {}
-  __host__ 
+  [[clang::disable_sanitizer_instrumentation, gnu::flatten, gnu::always_inline]]
+  __host__
   TraceData(size_t time_stamp_, InstrData data_, const ThreadId& threadId_,
                     const void* ptr_, const size_t metadata_, std::size_t opt_data)
     : time_stamp(time_stamp_), data(data_), threadId(threadId_),
@@ -204,11 +219,13 @@ struct TraceData {
   {}
 # endif
 # ifdef __scabbard_hip_compile
+    [[clang::disable_sanitizer_instrumentation, gnu::flatten, gnu::always_inline]] 
     __host__ __device__ 
 # endif 
   inline bool empty() const { return data == InstrData::NEVER; }
   // Explicit operators
 # ifdef __scabbard_hip_compile
+  [[clang::disable_sanitizer_instrumentation, gnu::flatten, gnu::always_inline]] 
   __device__ __host__
   inline TraceData& operator = (const TraceData& other) = default; /* { 
     this->time_stamp = other.time_stamp; 
@@ -223,7 +240,8 @@ struct TraceData {
   inline TraceData& operator = (const TraceData& other) { std::memcpy(this, &other, sizeof(TraceData)); return *this; }
 # endif
 # ifdef __scabbard_hip_compile
-    __host__ __device__ 
+  [[clang::disable_sanitizer_instrumentation, gnu::flatten, gnu::always_inline]] 
+  __host__ __device__ 
 # endif 
   inline operator bool () const { return data != InstrData::NEVER; }
 };
