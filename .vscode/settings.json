@@ -148,6 +148,7 @@
         "LLNL's",
         "Malloc",
         "Memcpy",
+        "ROCM",
         "startswith",
         "syncthreads",
         "Tioga",
@@ -155,6 +156,7 @@
         "unifmem",
         "uninstrumented",
         "Unqual",
+        "UREG",
         "verif"
     ]
 }
