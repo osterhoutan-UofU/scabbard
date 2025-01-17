@@ -15,7 +15,8 @@ from time import time_ns
 from pint import UnitRegistry, Quantity, Unit
 from colors import *
 
-RUN_X_SCRIPT: Path = Path("./test/run_x.sh")
+DEFAULT_CRITERIA: Iterable = [2**x for x in range(0,4)]
+
 HIPCC: Path|None = None
 SCABBARD: Path|None = None
 
@@ -122,7 +123,7 @@ def run_uninstrumented(config: TestConfig) -> TestResult:
         remove_files(exe)
 
 
-def run_uninstrumented(config: TestConfig) -> TestResult:
+def run_instrumented(config: TestConfig) -> TestResult:
     """
     Build and run a non-instrumented version of the synthetic test,
     time it, get the size of the trace file, and return the results.
@@ -209,9 +210,21 @@ def run_tests(src:Path, rw_mods: Iterable[int],
     for cpu in rw_mods:
         for gpu in rw_mods:
             config: TestConfig = TestConfig(src, cpu, gpu, do_instr, data_size)
-                data.append(run_instrumented(config)
-                            if do_instr else run_uninstrumented(config))
+            data.append(run_instrumented(config)
+                        if do_instr else run_uninstrumented(config))
     return data
+
+
+def output_data_simple(data:List[TestResult]) -> None:
+    """
+    print the contents of the data list separated by new lines
+
+    Args:
+        data (List[TestResult]): The data to output
+    """
+    for i in data:
+        print(f"  {i}")
+        
 
 def output_data(data:List[TestResult]) -> None:
     """
@@ -256,10 +269,28 @@ def main(args: List[str]) -> None:
         args (List[str]): commandline args
     """
     try:
-        if not RUN_X_SCRIPT.exists():
-            raise RuntimeError("Could not find the `run_x.sh` script."+
-                               "Please ensure your running this from the top level of the scabbard repo.")
-        #TODO: initiate tests
+        criteria: Iterable
+        if len(args) == 2:
+            try:
+                criteria = eval(args[1])
+            except Exception as ex:
+                prRed("failed to evaluate user input for modifier range")
+                raise ex
+            if not isinstance(criteria,Iterable):
+                raise RuntimeError(f"`{args[1]}` does not evaluate to an iterable (type is: `{type(criteria)}`)")
+        else:
+            criteria = DEFAULT_CRITERIA
+            
+        
+        instr_results = run_tests(criteria, do_instr=True)
+        no_instr_results = run_tests(criteria, do_instr=False)
+        
+        #TODO replace this with fancier output and processed data
+        prGreen("\n==== non-instrumented data ====")
+        output_data_simple(no_instr_results)
+        prGreen("\n==== instrumented data ====")
+        output_data_simple(instr_results)
+        
     except Exception as ex:
         prRed(ex)
     print("\n==== END OF TESTS ====\n")
