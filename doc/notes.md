@@ -4,6 +4,72 @@
  TODO:
 ----------------------------------------------------------------------------------------------------
 
+-[X] write pseudocode for logical clock branching
+  - option 1
+    ```rust
+    use mut atomic<u64> as HostClock;
+    use mut atomic<u64> as DeviceClock;
+    let HOST_CLOCK: HostClock = 0;  // instrumented global
+    let HOST_MUTEX: std::mutex;     // instrumented global
+
+    /// [instrumented user fn] 
+    /// Some device kernel that reads from `in` and writes to `out`
+    ///  and when the write occurs each thread will tick `DC: DeviceClock` up by one
+    ///    (no locks or mutexes, just atomics and memory coherency)
+    //   instrumented to accept the `DC: DeviceClock` argument as it's last argument
+    __global__ fn kernel(in: u64[], out: mut u64[], DC: DeviceClock) -> void { /*...*/ }
+
+    /// [instrumented user fn]
+    /// This is the user's function that is instrumented 
+    __host__ fn someFn() {
+      let S: StreamID = HANDLE_HIP!(hipCreateStream(0));
+      let in, out: mut u64* = nullptr;
+      HANDLE_HIP!(hipMalloc(&in, DATA_SIZE));
+      HANDLE_HIP!(hipMalloc(&out, DATA_SIZE));
+      setInputData(in);
+      zeroOutput(out);
+      let DC: DeviceClock* = scabbard.branchDeviceClock(S); // instrumented
+      kernel<<<G_DIM,B_DIM,S,SHARE_MEM_SIZE>>>(in, out, DC); // instrumented to pass DC in w/ orig arguments
+      HANDLE_HIP!(hipRegisterCallback(S, scabbard.jobEndClockJoinCallback, {DC})); // instrumented
+
+      // Sync (or don't if you want scabbard to register it)
+      
+      for (i: u64; i < DATA_SIZE; i++) {
+        readData!(out[i]);
+        scabbard.host.trace_append((void*)&out[i],        // instrumented
+                                    ActionData::READ|ActionData::DeviceHeap,    // instrumented
+                                    /* id representing the line where readData occurs */12); // instrumented
+      }
+    }
+
+    /// [scabbard rtl fn] 
+    /// Allocate a job specific device clock and
+    /// bBranch the device clock from the host clock
+    __host__ fn scabbard.branchDeviceClock(S: StreamID) -> DeviceClock* {
+      let DC: DeviceClock* = nullptr;
+      HANDLE_HIP(hipMallocManaged(&DC, sizeof(DeviceClock), hipManagedPreferDevice));
+      *DC = HOST_CLOCK;
+      return DC;
+    }
+    /// [scabbard rtl fn] 
+    /// fn called when kernel finishes unites the clocks
+    __host__ fn scabbard.jobEndClockJoinCallback(DEVICE_CLOCK: DeviceClock*) -> void {
+      if (DEVICE_CLOCK > HOST_CLOCK)
+        HOST_CLOCK = DEVICE_CLOCK;
+    }
+    /// [scabbard rtl fn]
+    /// append any device reads to the trace file
+    __host__ fn scabbard.host.trace_append(PTR: void*, data: ActionData, metadata: SrcLocID) -> void {
+      HOST_MUTEX.lock();
+      addToTraceQueue(TraceData!(HOST_CLOCK++, PTR, data, metadata));
+      HOST_MUTEX.unlock();
+    }
+    ```
+  - option 2
+    ```
+    
+    ```
+
 
 -[ ] fix invalid record issues in quicksilver
       - files issues are occurring in

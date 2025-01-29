@@ -146,6 +146,8 @@ namespace verif {
   const StateMachine::ResultStatus StateMachine::check_race_read(const TraceData& r, const TraceData& o) 
   {
     // mem[o.ptr] = &r;
+    //NOTE: we probably don't need to compare sync times to the current read event since we are garenteed to process events in chronological order.
+    //NOTE: we might also be able to get away with transforming this into DFA style state machine instead of a Murphi style state machine
     if (o.data & InstrData::WRITE) { // if mem stores a write event 
       if (last_global_sync < o.time_stamp || last_global_sync > r.time_stamp ) // the write happened after the last global sync event
           return ResultStatus::WARNING; // return a warning
