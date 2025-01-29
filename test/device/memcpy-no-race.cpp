@@ -48,7 +48,7 @@ auto main() -> int
   matrix_mul<<<(dim3){1u,1u,1u},(dim3){DIM,DIM,1u},0ul,0ul>>>(A,B,C);
 
   // calls to hipMemcpy automaticaly perform a global stream sync (or stream sync for hipMemcpyStream) preventing data races (but also not utilizing the benefits of heterogenous memory)
-  HIP_CHECK(hipMemcpy(out, C, sizeof(double)*DIM*DIM), "from `hipMemcpy(out, C, ...)`");
+  HIP_CHECK(hipMemcpy(out, C, sizeof(double)*DIM*DIM, hipMemcpyHostToDevice), "from `hipMemcpy(out, C, ...)`");
 
   HIP_CHECK(hipFree(A), "from `hipFree(A)`");
   HIP_CHECK(hipFree(B), "from `hipFree(B)`");
