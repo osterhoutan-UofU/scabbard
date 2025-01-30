@@ -58,7 +58,7 @@ auto main() -> int
     double res_sum = 0.0L;
     for (size_t i=0; i<(DIM*DIM); ++i)
       for (size_t I=0ull; I<CPU_READ_MOD; ++I) {
-        res_sum += C[i];
+        res_sum += C[i] + I;
       }
 
   HIP_CHECK(hipFree(A), "from `hipFree(A)`");
