@@ -143,6 +143,7 @@
         "endswith",
         "hipcc",
         "Instramentable",
+        "instrs",
         "instrumenter",
         "LIBTRACE",
         "LLNL's",

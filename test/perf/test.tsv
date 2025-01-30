@@ -1,0 +1,129 @@
+SRC	CPU READ MOD	GPU WRITE MOD	IS INSTRUMENTED	DATA SIZE	RUNTIME	VERIF TIME	TRACE SIZE
+test/perf/test.cpp	256	256	False	1024	455162231 nanosecond		
+test/perf/test.cpp	256	512	False	1024	451430569 nanosecond		
+test/perf/test.cpp	256	1024	False	1024	451951806 nanosecond		
+test/perf/test.cpp	256	2048	False	1024	452478333 nanosecond		
+test/perf/test.cpp	256	4096	False	1024	456708751 nanosecond		
+test/perf/test.cpp	256	8192	False	1024	451194181 nanosecond		
+test/perf/test.cpp	256	16384	False	1024	452050767 nanosecond		
+test/perf/test.cpp	256	32768	False	1024	452953913 nanosecond		
+test/perf/test.cpp	512	256	False	1024	452870601 nanosecond		
+test/perf/test.cpp	512	512	False	1024	452872514 nanosecond		
+test/perf/test.cpp	512	1024	False	1024	450268827 nanosecond		
+test/perf/test.cpp	512	2048	False	1024	453648135 nanosecond		
+test/perf/test.cpp	512	4096	False	1024	455605563 nanosecond		
+test/perf/test.cpp	512	8192	False	1024	454441271 nanosecond		
+test/perf/test.cpp	512	16384	False	1024	454649884 nanosecond		
+test/perf/test.cpp	512	32768	False	1024	458104038 nanosecond		
+test/perf/test.cpp	1024	256	False	1024	454956908 nanosecond		
+test/perf/test.cpp	1024	512	False	1024	455910964 nanosecond		
+test/perf/test.cpp	1024	1024	False	1024	453416752 nanosecond		
+test/perf/test.cpp	1024	2048	False	1024	455330920 nanosecond		
+test/perf/test.cpp	1024	4096	False	1024	460549248 nanosecond		
+test/perf/test.cpp	1024	8192	False	1024	454368150 nanosecond		
+test/perf/test.cpp	1024	16384	False	1024	457974345 nanosecond		
+test/perf/test.cpp	1024	32768	False	1024	575672447 nanosecond		
+test/perf/test.cpp	2048	256	False	1024	452616597 nanosecond		
+test/perf/test.cpp	2048	512	False	1024	453881289 nanosecond		
+test/perf/test.cpp	2048	1024	False	1024	452654270 nanosecond		
+test/perf/test.cpp	2048	2048	False	1024	453641106 nanosecond		
+test/perf/test.cpp	2048	4096	False	1024	455898185 nanosecond		
+test/perf/test.cpp	2048	8192	False	1024	459210249 nanosecond		
+test/perf/test.cpp	2048	16384	False	1024	454811540 nanosecond		
+test/perf/test.cpp	2048	32768	False	1024	454470851 nanosecond		
+test/perf/test.cpp	4096	256	False	1024	454568891 nanosecond		
+test/perf/test.cpp	4096	512	False	1024	456121825 nanosecond		
+test/perf/test.cpp	4096	1024	False	1024	457664469 nanosecond		
+test/perf/test.cpp	4096	2048	False	1024	457530540 nanosecond		
+test/perf/test.cpp	4096	4096	False	1024	457066403 nanosecond		
+test/perf/test.cpp	4096	8192	False	1024	457914794 nanosecond		
+test/perf/test.cpp	4096	16384	False	1024	456780319 nanosecond		
+test/perf/test.cpp	4096	32768	False	1024	455966074 nanosecond		
+test/perf/test.cpp	8192	256	False	1024	459942066 nanosecond		
+test/perf/test.cpp	8192	512	False	1024	461097000 nanosecond		
+test/perf/test.cpp	8192	1024	False	1024	467699783 nanosecond		
+test/perf/test.cpp	8192	2048	False	1024	465318707 nanosecond		
+test/perf/test.cpp	8192	4096	False	1024	466533878 nanosecond		
+test/perf/test.cpp	8192	8192	False	1024	461759853 nanosecond		
+test/perf/test.cpp	8192	16384	False	1024	462368399 nanosecond		
+test/perf/test.cpp	8192	32768	False	1024	461699449 nanosecond		
+test/perf/test.cpp	16384	256	False	1024	467926415 nanosecond		
+test/perf/test.cpp	16384	512	False	1024	467785704 nanosecond		
+test/perf/test.cpp	16384	1024	False	1024	467712332 nanosecond		
+test/perf/test.cpp	16384	2048	False	1024	469196761 nanosecond		
+test/perf/test.cpp	16384	4096	False	1024	468158725 nanosecond		
+test/perf/test.cpp	16384	8192	False	1024	470669739 nanosecond		
+test/perf/test.cpp	16384	16384	False	1024	466064225 nanosecond		
+test/perf/test.cpp	16384	32768	False	1024	470678711 nanosecond		
+test/perf/test.cpp	32768	256	False	1024	484547198 nanosecond		
+test/perf/test.cpp	32768	512	False	1024	484183925 nanosecond		
+test/perf/test.cpp	32768	1024	False	1024	482960048 nanosecond		
+test/perf/test.cpp	32768	2048	False	1024	482751775 nanosecond		
+test/perf/test.cpp	32768	4096	False	1024	485261149 nanosecond		
+test/perf/test.cpp	32768	8192	False	1024	487404535 nanosecond		
+test/perf/test.cpp	32768	16384	False	1024	485489009 nanosecond		
+test/perf/test.cpp	32768	32768	False	1024	484237147 nanosecond		
+test/perf/test.cpp	256	256	True	1024	1597437823 nanosecond	51941441 nanosecond	66142 Byte
+test/perf/test.cpp	256	512	True	1024	508282335 nanosecond	48657104 nanosecond	66142 Byte
+test/perf/test.cpp	256	1024	True	1024	507266279 nanosecond	47910068 nanosecond	66142 Byte
+test/perf/test.cpp	256	2048	True	1024	501429893 nanosecond	47966778 nanosecond	66142 Byte
+test/perf/test.cpp	256	4096	True	1024	500697295 nanosecond	48581899 nanosecond	66142 Byte
+test/perf/test.cpp	256	8192	True	1024	499526609 nanosecond	48455885 nanosecond	66142 Byte
+test/perf/test.cpp	256	16384	True	1024	501451294 nanosecond	48209628 nanosecond	66142 Byte
+test/perf/test.cpp	256	32768	True	1024	503921064 nanosecond	48402391 nanosecond	66142 Byte
+test/perf/test.cpp	512	256	True	1024	500444321 nanosecond	48680687 nanosecond	66142 Byte
+test/perf/test.cpp	512	512	True	1024	505512450 nanosecond	50348975 nanosecond	66142 Byte
+test/perf/test.cpp	512	1024	True	1024	499862636 nanosecond	49081643 nanosecond	66142 Byte
+test/perf/test.cpp	512	2048	True	1024	499946298 nanosecond	48682811 nanosecond	66142 Byte
+test/perf/test.cpp	512	4096	True	1024	500563211 nanosecond	49297761 nanosecond	66142 Byte
+test/perf/test.cpp	512	8192	True	1024	498216830 nanosecond	49240641 nanosecond	66142 Byte
+test/perf/test.cpp	512	16384	True	1024	502172065 nanosecond	48620500 nanosecond	66142 Byte
+test/perf/test.cpp	512	32768	True	1024	500813296 nanosecond	49010275 nanosecond	66142 Byte
+test/perf/test.cpp	1024	256	True	1024	507029706 nanosecond	49166867 nanosecond	66142 Byte
+test/perf/test.cpp	1024	512	True	1024	503965466 nanosecond	49518558 nanosecond	66142 Byte
+test/perf/test.cpp	1024	1024	True	1024	499684952 nanosecond	48602065 nanosecond	66142 Byte
+test/perf/test.cpp	1024	2048	True	1024	499508279 nanosecond	48335469 nanosecond	66142 Byte
+test/perf/test.cpp	1024	4096	True	1024	504324782 nanosecond	48253450 nanosecond	66142 Byte
+test/perf/test.cpp	1024	8192	True	1024	501667088 nanosecond	48696427 nanosecond	66142 Byte
+test/perf/test.cpp	1024	16384	True	1024	500564955 nanosecond	48227500 nanosecond	66142 Byte
+test/perf/test.cpp	1024	32768	True	1024	500963175 nanosecond	48184727 nanosecond	66142 Byte
+test/perf/test.cpp	2048	256	True	1024	500424823 nanosecond	48493434 nanosecond	66142 Byte
+test/perf/test.cpp	2048	512	True	1024	504553504 nanosecond	48932594 nanosecond	66142 Byte
+test/perf/test.cpp	2048	1024	True	1024	503906021 nanosecond	48423559 nanosecond	66142 Byte
+test/perf/test.cpp	2048	2048	True	1024	499949544 nanosecond	48253810 nanosecond	66142 Byte
+test/perf/test.cpp	2048	4096	True	1024	502672384 nanosecond	50659227 nanosecond	66142 Byte
+test/perf/test.cpp	2048	8192	True	1024	503676808 nanosecond	49894285 nanosecond	66142 Byte
+test/perf/test.cpp	2048	16384	True	1024	503548670 nanosecond	49015475 nanosecond	66142 Byte
+test/perf/test.cpp	2048	32768	True	1024	504498337 nanosecond	48625309 nanosecond	66142 Byte
+test/perf/test.cpp	4096	256	True	1024	511714380 nanosecond	49836240 nanosecond	66142 Byte
+test/perf/test.cpp	4096	512	True	1024	511583446 nanosecond	49791524 nanosecond	66142 Byte
+test/perf/test.cpp	4096	1024	True	1024	510538245 nanosecond	48987679 nanosecond	66142 Byte
+test/perf/test.cpp	4096	2048	True	1024	505493152 nanosecond	49106559 nanosecond	66142 Byte
+test/perf/test.cpp	4096	4096	True	1024	505539702 nanosecond	49504589 nanosecond	66142 Byte
+test/perf/test.cpp	4096	8192	True	1024	503860355 nanosecond	48286123 nanosecond	66142 Byte
+test/perf/test.cpp	4096	16384	True	1024	503092371 nanosecond	48794626 nanosecond	66142 Byte
+test/perf/test.cpp	4096	32768	True	1024	505171169 nanosecond	48641590 nanosecond	66142 Byte
+test/perf/test.cpp	8192	256	True	1024	506699113 nanosecond	48262617 nanosecond	66142 Byte
+test/perf/test.cpp	8192	512	True	1024	508343022 nanosecond	48319307 nanosecond	66142 Byte
+test/perf/test.cpp	8192	1024	True	1024	504440577 nanosecond	48609628 nanosecond	66142 Byte
+test/perf/test.cpp	8192	2048	True	1024	511339635 nanosecond	48994823 nanosecond	66142 Byte
+test/perf/test.cpp	8192	4096	True	1024	510510823 nanosecond	48764979 nanosecond	66142 Byte
+test/perf/test.cpp	8192	8192	True	1024	508775077 nanosecond	50513689 nanosecond	66142 Byte
+test/perf/test.cpp	8192	16384	True	1024	510525341 nanosecond	48904919 nanosecond	66142 Byte
+test/perf/test.cpp	8192	32768	True	1024	507836489 nanosecond	48901501 nanosecond	66142 Byte
+test/perf/test.cpp	16384	256	True	1024	516047931 nanosecond	49124391 nanosecond	66142 Byte
+test/perf/test.cpp	16384	512	True	1024	518393250 nanosecond	48598224 nanosecond	66142 Byte
+test/perf/test.cpp	16384	1024	True	1024	517052335 nanosecond	49283990 nanosecond	66142 Byte
+test/perf/test.cpp	16384	2048	True	1024	516505476 nanosecond	49129592 nanosecond	49758 Byte
+test/perf/test.cpp	16384	4096	True	1024	514173423 nanosecond	49640291 nanosecond	66142 Byte
+test/perf/test.cpp	16384	8192	True	1024	519020324 nanosecond	49621384 nanosecond	66142 Byte
+test/perf/test.cpp	16384	16384	True	1024	525234349 nanosecond	49682041 nanosecond	66142 Byte
+test/perf/test.cpp	16384	32768	True	1024	518222299 nanosecond	51382592 nanosecond	66142 Byte
+test/perf/test.cpp	32768	256	True	1024	535470352 nanosecond	48997930 nanosecond	66142 Byte
+test/perf/test.cpp	32768	512	True	1024	537216888 nanosecond	50714078 nanosecond	66142 Byte
+test/perf/test.cpp	32768	1024	True	1024	536212817 nanosecond	49039240 nanosecond	66142 Byte
+test/perf/test.cpp	32768	2048	True	1024	533638030 nanosecond	52157878 nanosecond	66142 Byte
+test/perf/test.cpp	32768	4096	True	1024	534345357 nanosecond	48993903 nanosecond	66142 Byte
+test/perf/test.cpp	32768	8192	True	1024	530200165 nanosecond	48667591 nanosecond	66142 Byte
+test/perf/test.cpp	32768	16384	True	1024	535088974 nanosecond	48942594 nanosecond	66142 Byte
+test/perf/test.cpp	32768	32768	True	1024	533355404 nanosecond	49018460 nanosecond	66142 Byte

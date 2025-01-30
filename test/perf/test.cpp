@@ -17,7 +17,7 @@
 #include <string>
 #include <iostream>
 
-#define DIM (DATA_SIZE##ul)
+#define DIM (32ul)
 
 __global__
 auto matrix_mul(double* A, double* B, double* C) -> void
