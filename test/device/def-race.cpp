@@ -26,7 +26,7 @@ auto matrix_mul(double* A, double* B, double* C) -> void
   double tmp_sum = 0.0L;
   for (size_t i=0; i<DIM; ++i)
     tmp_sum += A[ROW*DIM + i] * B[i*DIM + COL];
-  C[ROW*DIM + COL] = tmp_sum;
+  C[ROW*DIM + COL] = tmp_sum;    // <<<<<<<<<<<<<<<<<<<<<   GPU WRITE LOCATION
 }
 
 __host__
@@ -49,9 +49,11 @@ auto main() -> int
 
   matrix_mul<<<(dim3){1u,1u,1u},(dim3){DIM,DIM,1u},0ul,0ul>>>(A,B,C);
 
+  // HIP_CHECK(hipDeviceSyncronize();, "from `hipDeviceSyncronize()`");  // <<<<<<<<<<<< (MISSING) CPU/GPU SYNC CALL
+  
   double res_sum = 0.0L;
   for (int64_t i=(DIM*DIM)-1l; i>=0l; --i) // iterating backwards should ensure that we read something before a write.
-    res_sum += C[i];
+    res_sum += C[i];  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  CPU READ LOCATION
 
   HIP_CHECK(hipStreamSynchronize(0ul), "from `hipStreamSynchronize(0ul)`");
 
