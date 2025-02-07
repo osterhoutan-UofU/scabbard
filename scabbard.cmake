@@ -28,7 +28,7 @@ set(ENV{SABBARD_PATH} ${SCABBARD_PATH})
 
 option(ENABLE_SCABBARD "instrument specified targets with scabbard" On)
 
-macro(scabbard_instrument_target target)
+function(scabbard_instrument_target target)
     if(ENABLE_SCABBARD)
         get_target_property(target_type ${target} TYPE)
         if(target_type MATCHES "MODULE_LIBRARY|SHARED_LIBRARY|EXECUTABLE")
@@ -48,7 +48,7 @@ macro(scabbard_instrument_target target)
                            "[scabbard:NOTE]    -g -flto -fgpu-rdc -Wl,--load-pass-plugin=\${SCABBARD_PATH}/libinstr.so -Xoffload-linker --load-pass-plugin=\${SCABBARD_PATH}/libinstr.so -L\${SCABBARD_PATH} -ltrace -ltrace.device -lpthread")
         endif()
     endif()
-endmacro()
+endfunction()
 
 function(scabbard_instrument_targets)
     if(ENABLE_SCABBARD)
