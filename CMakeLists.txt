@@ -89,6 +89,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/scabbard)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/scabbard)
 set(SCABBARD_PATH ${CMAKE_BINARY_DIR}/scabbard)
 configure_file(${CMAKE_SOURCE_DIR}/scabbard.cmake ${SCABBARD_PATH}/scabbard.cmake)
+# configure_file(${CMAKE_SOURCE_DIR}/scabbard.cmake ${SCABBARD_PATH}/cmake/scabbard.cmake)
 
 add_subdirectory(lib)
 add_subdirectory(libtrace)
