@@ -4,6 +4,19 @@
  TODO:
 ----------------------------------------------------------------------------------------------------
 
+-[ ] get time data from applications:
+     - Quicksilver
+       - NI-Build: 77.61s/21.644s (user/total)
+       - I-Build: 108.89s/55.609s (user/total)
+       - NI-Run: 7.83s (user)
+       - I-Run: 11.4s (user)
+     - XSBench
+       - NI-Build: 7.41s/1.709s (user/total)
+       - I-Build: 8.36s/2.59s (user/total)
+       - NI-Run: 0.306s/2.88s (prog/user)
+       - I-Run: 8.841s/85.38s (prog/user)
+       - trace size 15G
+
 -[X] write pseudocode for logical clock branching
   - option 1
     ```rust
