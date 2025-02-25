@@ -38,7 +38,7 @@ Scabbard cannot tell you if a data race occurred inside your GPU code, only if t
 ## Build:
 
 ### Dependencies
-- ROCm >= v5.4.3
+- ROCm >= v5.4.3 (>=6.1.2 prefered)
 - llvm (the llvm-dev build included with the ROCm version you use)
 - python >= 3.10
 - cmake >= 3.20
