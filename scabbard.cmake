@@ -13,32 +13,40 @@
 include_guard(GLOBAL)
 
 
-
 function(scabbard_set_scabbard_path)
-    if(DEFINED $ENV{SCABBARD_PATH})
-        return(PROPAGATE SCABBARD_PATH $ENV{SCABBARD_PATH})
-    elseif(EXISTS ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/build/scabbard)    # scabbard built localy this file AND this file loaded from outside build dir
-        return(PROPAGATE SCABBARD_PATH ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/build/scabbard) 
-    elseif(EXISTS ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/libinstr.so)   # scabbard installed into rocm AND/OR thsi file included from build dir
-        return(PROPAGATE SCABBARD_PATH ${CMAKE_CURRENT_FUNCTION_LIST_DIR})
+        if(DEFINED $ENV{SCABBARD_PATH})
+            set(SCABBARD_PATH $ENV{SCABBARD_PATH})
+            return(PROPAGATE SCABBARD_PATH $ENV{SCABBARD_PATH})
+        elseif(EXISTS ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/build/scabbard)    # scabbard built localy this file AND this file loaded from outside build dir
+            set(SCABBARD_PATH ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/build/scabbard)    
+            return(PROPAGATE SCABBARD_PATH ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/build/scabbard) 
+        elseif(EXISTS ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/libinstr.so)   # scabbard installed into rocm AND/OR thsi file included from build dir
+            set(SCABBARD_PATH ${CMAKE_CURRENT_FUNCTION_LIST_DIR})
+            return(PROPAGATE SCABBARD_PATH ${CMAKE_CURRENT_FUNCTION_LIST_DIR})
+        endif()
+    endfunction()
+    
+    # set(ENV{SCABBARD_METADATA_FILE} ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.scabbard.meta)
+    if(NOT DEFINED SCABBARD_PATH)
+        if(DEFINED ENV{SCABBARD_PATH})
+            set(SCABBARD_PATH $ENV{SCABBARD_PATH})
+        else()
+            scabbard_set_scabbard_path()
+        endif()
+        message(NOTICE "[scabbard:DBG] SCABBARD_PATH: '${SCABBARD_PATH}'")
     endif()
-endfunction()
-
-# set(ENV{SCABBARD_METADATA_FILE} ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.scabbard.meta)
-if(NOT DEFINED SCABBARD_PATH)
-    scabbard_set_scabbard_path()
-endif()
 # set(ENV{SABBARD_PATH} ${SCABBARD_PATH})
 
 option(ENABLE_SCABBARD "instrument specified targets with scabbard" On)
 
 function(scabbard_instrument_target target)
-    set(test_var "test_var")
-    message("[scabbard:DBG] test_var='${test_var}' and target='${target}' and ARGV0='${ARGV0}' and ARGC='${ARGC}' and ARGN='${ARGN}'")
+    # set(test_var "test_var")
+    # message("[scabbard:DBG] test_var='${test_var}' and target='${target}' and ARGV0='${ARGV0}' and ARGC='${ARGC}' and ARGN='${ARGN}'")
     if(ENABLE_SCABBARD)
         get_target_property(target_type ${target} TYPE)
-        message(NOTICE "[scabbard:DBG] target_type='${target_type}'")
+        # message(NOTICE "[scabbard:DBG] target_type='${target_type}'")
         if(target_type MATCHES "MODULE_LIBRARY|SHARED_LIBRARY|EXECUTABLE")
+            message(NOTICE "[scabbard:NOTE] instrumenting '${target_type}': '${target}'")
             target_link_options(${target}
                 PUBLIC
                 -flto -fgpu-rdc 
@@ -46,8 +54,9 @@ function(scabbard_instrument_target target)
                 -Xoffload-linker --load-pass-plugin=${SCABBARD_PATH}/libinstr.so 
                 -L${SCABBARD_PATH} -ltrace -ltrace.device -lpthread)
             target_compile_options(${target} PUBLIC -g -fgpu-rdc -flto) # debug info always required for scabbard
-            target_link_libraries(${target} PRIVATE instr)  #ensure that instrumentation gets built before a target that needs instrumenting
+            # target_link_libraries(${target} PRIVATE instr)  #ensure that instrumentation gets built before a target that needs instrumenting
         elseif(target_type STREQUAL "STATIC_LIBRARY")
+            message(NOTICE "[scabbard:NOTE] enabling GPU-RDC and LTO for static lib: '${target}'")
             target_compile_options(${target} PUBLIC -g -fgpu-rdc -flto) # debug info always required for scabbard
         elseif(NOT DEFINED SCABBARD_SUPPRESS_TYPE_WARN)
             message(NOTICE "[scabbard:NOTE] '${target}' is not a target of a supported type for the scabbard cmake module.\n"
