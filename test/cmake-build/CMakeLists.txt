@@ -37,7 +37,7 @@ project(HIPExample LANGUAGES CXX HIP)
             get_target_property(target_type ${target} TYPE)
             #    message(NOTICE "[scabbard:DBG] target_type='${target_type}'")
             if(target_type MATCHES "MODULE_LIBRARY|SHARED_LIBRARY|EXECUTABLE")
-                message(NOTICE "[scabbard:NOTE] instrumenting: '${target}' ${SCABBARD_PATH}")
+                message(NOTICE "[scabbard:NOTE] instrumenting: '${target}'")
                 target_link_options(${target}
                     PUBLIC
                     -flto -fgpu-rdc 

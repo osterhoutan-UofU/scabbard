@@ -39,6 +39,10 @@
 # LLNL flux files
 *.core
 
+# data stores
+*.zip
+*.tar.*
+
 # scabbard trace files
 *.trace
 *.scabbard.meta.lock
