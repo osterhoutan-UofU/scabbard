@@ -93,13 +93,13 @@ namespace scabbard {
 
     public:
 
-      friend __host__ inline TraceWriter& operator << (TraceWriter& out, const TraceData& data)
-      {
-        out.write(reinterpret_cast<const char*>(&data), sizeof(TraceData));
-        if ((sizeof(TraceData) % TraceWriter::WORD_LEN) > 0)
-          out.write(TraceWriter::BUF, sizeof(TraceData) % TraceWriter::WORD_LEN);
-        return out;
-      }
+      friend __host__ TraceWriter& operator << (TraceWriter& out, const TraceData& data);
+      // {
+      //   out.write(reinterpret_cast<const char*>(&data), sizeof(TraceData));
+      //   if ((sizeof(TraceData) % TraceWriter::WORD_LEN) > 0)
+      //     out.write(TraceWriter::BUF, sizeof(TraceData) % TraceWriter::WORD_LEN);
+      //   return out;
+      // }
     };
     
   
