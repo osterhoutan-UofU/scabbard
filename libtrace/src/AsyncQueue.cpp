@@ -258,7 +258,7 @@ namespace scabbard {
     // // __device__ inline 
     // // TraceData& DeviceAsyncQueue::Lane::operator [] (size_t j) { return data[j]; }
     // [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
-    // __host__ inline 
+      // __host__ inline 
     // const TraceData& DeviceAsyncQueue::Lane::operator [] (size_t j) const { return data[j]; }
 
 

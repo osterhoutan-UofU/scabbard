@@ -91,6 +91,13 @@ set(SCABBARD_PATH ${CMAKE_BINARY_DIR}/scabbard)
 configure_file(${CMAKE_SOURCE_DIR}/scabbard.cmake ${SCABBARD_PATH}/scabbard.cmake)
 # configure_file(${CMAKE_SOURCE_DIR}/scabbard.cmake ${SCABBARD_PATH}/cmake/scabbard.cmake)
 
+option(SCABBARD_USE_COMPRESSION "set compression of trace files using zlib file notation i.e. /[1-9][hf]?/" "6")
+
+if(SCABBARD_USE_COMPRESSION)
+find_package(ZLIB 1.2 REQUIRED)
+endif()
+
+
 add_subdirectory(lib)
 add_subdirectory(libtrace)
 add_subdirectory(instr)

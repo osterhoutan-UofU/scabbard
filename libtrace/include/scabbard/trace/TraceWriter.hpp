@@ -18,7 +18,11 @@
 
 // #include <scabbard/trace/MetadataStrore.hpp>
 
+#ifdef SCABBARD_USE_COMPRESSION
+#include <zlib.h>
+#else
 #include <fstream>
+#endif
 #include <string>
 #include <chrono>
 
@@ -29,7 +33,11 @@ namespace scabbard {
 
     class TraceWriter {
       
+#     ifdef SCABBARD_USE_COMPRESSION
+      gzFile out;
+#     else
       std::ofstream out;
+#     endif
 
       // set up binary file setup by the system wordsize
       static const uint32_t WORD_LEN;
@@ -75,11 +83,21 @@ namespace scabbard {
        */
       __host__ inline bool is_open() const;
 
+    protected:
+      /**
+       * @brief Write binary data to the file (it will be compressed if configured to do so)
+       * @param Content content to write
+       * @param Size the size of the content to write in Bytes
+       */
+      __host__ inline void write(const char* Content, size_t Size);
+
+    public:
+
       friend __host__ inline TraceWriter& operator << (TraceWriter& out, const TraceData& data)
       {
-        out.out.write(reinterpret_cast<const char*>(&data), sizeof(TraceData));
+        out.write(reinterpret_cast<const char*>(&data), sizeof(TraceData));
         if ((sizeof(TraceData) % TraceWriter::WORD_LEN) > 0)
-          out.out.write(TraceWriter::BUF, sizeof(TraceData) % TraceWriter::WORD_LEN);
+          out.write(TraceWriter::BUF, sizeof(TraceData) % TraceWriter::WORD_LEN);
         return out;
       }
     };
