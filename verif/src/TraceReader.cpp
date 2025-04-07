@@ -28,7 +28,7 @@ namespace verif {
     throw std::domain_error("64-bit verifiers only support trace files made on 32 and 64 bit machines");
   }
 
-  TraceData readTraceData_32(std::ifstream& in)
+  TraceData readTraceData_32(FileMask& in)
   {
     TraceData res;
     // in.read(reinterpret_cast<char*>(&res.time_stamp), sizeof(uint32_t));
@@ -41,7 +41,7 @@ namespace verif {
     return res;
   }
 
-  TraceData readTraceData_64(std::ifstream& in)
+  TraceData readTraceData_64(FileMask& in)
   {
     TraceData res;
     in.read(reinterpret_cast<char*>(&res), sizeof(TraceData));
@@ -54,14 +54,14 @@ namespace verif {
       throw std::domain_error("32-bit verifier's don't support trace files generated on machines of different word sizes");
   }
 
-  TraceData readTraceData_32(std::ifstream& in)
+  TraceData readTraceData_32(FileMask& in)
   {
     TraceData res;
     in.read(reinterpret_cast<char*>(&res), sizeof(TraceData));
     return res;
   }
 
-  TraceData readTraceData_64(std::ifstream& in)
+  TraceData readTraceData_64(FileMask& in)
   {
     throw std::exception("this binary is compiled in 32 bit, but the trace file has a larger wordsize of 64 bits. This is not supported!");
   }
@@ -78,7 +78,7 @@ namespace verif {
       throw std::domain_error("incompatible version: this trace file was made by an old and unsupported instrumenter.");
   }
 
-  std::string readStringL(std::ifstream& in, std::streamoff l)
+  std::string readStringL(FileMask& in, std::streamoff l)
   {
     char buf[BUF_L];
     std::string tmp = "";
@@ -98,14 +98,14 @@ namespace verif {
 
   TraceFile readTraceFile(const std::string& filepath)
   {
-    std::ifstream* _input;
+    FileMask* _input;
     try {
-      _input = new std::ifstream(filepath, std::ios::binary);
+      _input = new FileMask(filepath);
     } catch (std::exception& ex) {
       std::cerr << "Error occurred while opening trace file: `" << filepath << "`\n    " << ex.what() << std::endl;
       exit(EXIT_FAILURE);
     }
-    std::ifstream& in = *_input;
+    FileMask& in = *_input;
     TraceFile tf;
     char* buf = new char[16ul];
     std::memset(buf, 0, 16ul);
@@ -180,7 +180,7 @@ namespace verif {
       // }
 
       // based upon trace file decide how to interpret trace data
-      std::function<TraceData(std::ifstream&)> readTraceData;
+      std::function<TraceData(FileMask&)> readTraceData;
       switch (tf.WORD_LEN) {
         case 4u: // 32 bit wordsize
           readTraceData = readTraceData_32;

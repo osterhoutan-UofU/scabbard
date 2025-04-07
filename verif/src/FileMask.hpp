@@ -33,7 +33,7 @@ namespace verif {
     {
       in = gzopen(file_path, "rb" SCABBARD_USE_COMPRESSION);
       if (in == NULL)
-        throw std::runtime_error("Error: Could not open file - " + file_path);
+        throw std::runtime_error("Error: ZLIB Could not open file - '" + file_path + "'");
     }
 
     inline FileMask& read(char* buf, size_t len)
@@ -71,8 +71,8 @@ namespace verif {
     std::ifstream in;
 
   public:
-    FileMask(const std::string& file_path)
-      : in(file_path, std::ios::binary)
+    FileMask(const std::string& filepath)
+      : in(filepath, std::ios::binary)
     {}
 
     inline FileMask& read(char* buf, size_t len)
