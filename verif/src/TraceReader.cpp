@@ -10,8 +10,8 @@
  */
 
 #include "TraceReader.hpp"
+#include "FileMask.hpp"
 
-#include <fstream>
 #include <iostream>
 #include <memory>
 
