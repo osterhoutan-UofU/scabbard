@@ -107,7 +107,7 @@ set(SCABBARD_LINK_ZLIB "")
 endif()
 
 configure_file(${CMAKE_SOURCE_DIR}/scabbard.cmake ${SCABBARD_PATH}/scabbard.cmake @ONLY)
-# configure_file(${CMAKE_SOURCE_DIR}/scabbard.cmake ${SCABBARD_PATH}/cmake/scabbard.cmake)
+# configure_file(${CMAKE_SOURCE_DIR}/scabbard.cmake ${SCABBARD_PATH}/cmake/scabbard.cmake @ONLY)
 
 
 add_subdirectory(lib)
