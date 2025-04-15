@@ -88,14 +88,26 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/scabbard)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/scabbard)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/scabbard)
 set(SCABBARD_PATH ${CMAKE_BINARY_DIR}/scabbard)
-configure_file(${CMAKE_SOURCE_DIR}/scabbard.cmake ${SCABBARD_PATH}/scabbard.cmake)
-# configure_file(${CMAKE_SOURCE_DIR}/scabbard.cmake ${SCABBARD_PATH}/cmake/scabbard.cmake)
 
-option(SCABBARD_USE_COMPRESSION "set compression of trace files using zlib file notation i.e. /[1-9][hf]?/" "6")
+option(SCABBARD_USE_COMPRESSION 
+        "set compression level of trace files using zlib file notation i.e. /[1-9][hf]?/ in SCABBARD_COMPRESSION_LEVEL var" 
+        ON)
 
 if(SCABBARD_USE_COMPRESSION)
 find_package(ZLIB 1.2 REQUIRED)
+set(SCABBARD_ZLIB_LIBRARIES "-L${ZLIB_LIBRARIES}")
+set(SCABBARD_LINK_ZLIB "-lz")
+if(NOT DEFINED SCABBARD_COMPRESSION_LEVEL)
+set(SCABBARD_COMPRESSION_LEVEL "6" CACHE STRING "compression level of trace files using zlib file notation i.e. /[1-9][hf]?/")
 endif()
+message(NOTICE "[NOTE] building lib trace to use compression (level=${SCABBARD_COMPRESSION_LEVEL})")
+else()
+set(SCABBARD_ZLIB_LIBRARIES "")
+set(SCABBARD_LINK_ZLIB "")
+endif()
+
+configure_file(${CMAKE_SOURCE_DIR}/scabbard.cmake ${SCABBARD_PATH}/scabbard.cmake @ONLY)
+# configure_file(${CMAKE_SOURCE_DIR}/scabbard.cmake ${SCABBARD_PATH}/cmake/scabbard.cmake)
 
 
 add_subdirectory(lib)

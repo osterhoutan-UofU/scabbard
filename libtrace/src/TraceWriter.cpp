@@ -33,7 +33,7 @@ namespace scabbard {
     __host__
     TraceWriter::TraceWriter(const std::string& file_path)
     {
-      out = gzopen(file_path, "wb" SCABBARD_USE_COMPRESSION);
+      out = gzopen(file_path.c_str(), "wb" SCABBARD_USE_COMPRESSION);
     }
 
     [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain]] 
@@ -101,7 +101,7 @@ namespace scabbard {
     __host__
     void TraceWriter::init(const std::string& executable_path, std::time_t time_stamp)
     {
-      if (not out.is_open()) {
+      if (not is_open()) {
         std::cerr << "\n[scabbard::trace::writer::ERROR] could not initiate trace file if it is not open!\n"
                   << std::endl;
         exit(EXIT_FAILURE);

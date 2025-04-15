@@ -34,7 +34,9 @@ ADDED_FLAGS: list = [
         f'-L{SCABBARD_PATH}',                                   # point the linker to where scabbard's trace libraries are
         '-ltrace',                                              # the tracing code for the gpu that the instrumentation will call on
         '-ltrace.device',                                       # the tracing code for the gpu that the instrumentation will call on
-        '-lpthread',                                            # required by scabbard's libtrace
+        '-lpthread',                                            # required by scabbard's libtrace (link unix pthread library)
+        '@SCABBARD_ZLIB_LIBRARIES@',                            # required by scabbard's libtrace (link zlib compression library)
+        '@SCABBARD_LINK_ZLIB@',                                 # required by scabbard's libtrace (link zlib compression library)
         '-fgpu-rdc',                                            # if we compile in single TU mode the LTO pass won't run on the device modules
         '-flto',                                                # ensure that LTO is run (will conflict if -fthin-lto or -fno-lto is used)
         '-g'                                                    # required to get the location metadata

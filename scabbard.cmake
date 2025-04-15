@@ -13,31 +13,28 @@
 include_guard(GLOBAL)
 
 
-function(scabbard_set_scabbard_path)
-        if(DEFINED $ENV{SCABBARD_PATH})
-            set(SCABBARD_PATH $ENV{SCABBARD_PATH})
-            return(PROPAGATE SCABBARD_PATH $ENV{SCABBARD_PATH})
-        elseif(EXISTS ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/build/scabbard)    # scabbard built localy this file AND this file loaded from outside build dir
-            set(SCABBARD_PATH ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/build/scabbard)    
-            return(PROPAGATE SCABBARD_PATH ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/build/scabbard) 
-        elseif(EXISTS ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/libinstr.so)   # scabbard installed into rocm AND/OR thsi file included from build dir
-            set(SCABBARD_PATH ${CMAKE_CURRENT_FUNCTION_LIST_DIR})
-            return(PROPAGATE SCABBARD_PATH ${CMAKE_CURRENT_FUNCTION_LIST_DIR})
-        endif()
-    endfunction()
+
     
-    # set(ENV{SCABBARD_METADATA_FILE} ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.scabbard.meta)
-    if(NOT DEFINED SCABBARD_PATH)
-        if(DEFINED ENV{SCABBARD_PATH})
-            set(SCABBARD_PATH $ENV{SCABBARD_PATH})
-        else()
-            scabbard_set_scabbard_path()
-        endif()
-        message(NOTICE "[scabbard:DBG] SCABBARD_PATH: '${SCABBARD_PATH}'")
+# set(ENV{SCABBARD_METADATA_FILE} ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.scabbard.meta)
+if(NOT DEFINED SCABBARD_PATH)
+    if(DEFINED ENV{SCABBARD_PATH})
+        set(SCABBARD_PATH $ENV{SCABBARD_PATH})
+    else()
+        set(SCABBARD_PATH @SCABBARD_PATH@)
     endif()
+    message(NOTICE "[scabbard:DBG] SCABBARD_PATH: '${SCABBARD_PATH}'")
+endif()
 # set(ENV{SABBARD_PATH} ${SCABBARD_PATH})
 
 option(ENABLE_SCABBARD "instrument specified targets with scabbard" On)
+option(SCABBARD_USE_COMPRESSION "was compression enabled in your scabbard build?" @SCABBARD_USE_COMPRESSION@)
+
+if(SCABBARD_USE_COMPRESSION)
+set(SCABBARD_ZLIB_LINK_OPTIONS "@SCABBARD_ZLIB_LIBRARIES@ @SCABBARD_LINK_ZLIB@")
+else()
+set(SCABBARD_ZLIB_LINK_OPTIONS "")
+endif()
+
 
 function(scabbard_instrument_target target)
     # set(test_var "test_var")
@@ -50,6 +47,7 @@ function(scabbard_instrument_target target)
             target_link_options(${target}
                 PUBLIC
                 -flto -fgpu-rdc 
+                ${SCABBARD_ZLIB_LINK_OPTIONS} 
                 -Wl,--load-pass-plugin=${SCABBARD_PATH}/libinstr.so 
                 -Xoffload-linker --load-pass-plugin=${SCABBARD_PATH}/libinstr.so 
                 -L${SCABBARD_PATH} -ltrace -ltrace.device -lpthread)

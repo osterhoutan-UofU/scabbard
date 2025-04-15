@@ -42,6 +42,7 @@
 # data stores
 *.zip
 *.tar.*
+*.gz
 
 # scabbard trace files
 *.trace

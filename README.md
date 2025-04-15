@@ -42,6 +42,7 @@ Scabbard cannot tell you if a data race occurred inside your GPU code, only if t
 - llvm (the llvm-dev build included with the ROCm version you use)
 - python >= 3.10
 - cmake >= 3.20
+- zlib >= 1.2
 
 First set your `ROCM_PATH` environment variable to point to your desired install of ROCm.
 If you only have one installed version or the `/opt/rocm` sym-link exists you might be able to skip this step. 
@@ -155,9 +156,10 @@ If you are using a different build system and have multiple build steps follow t
     And ensure you don't need the `-fno-lto` or `-fthin-lto` flags as scabbard is not compatible. 
  5. Add the following flags clang/hipcc/mpcc to your link step
     ```
-    -flto -fgpu-rdc -Wl,--load-pass-plugin=${SCABBARD_PATH}/libinstr.so -Xoffload-linker --load-pass-plugin=${SCABBARD_PATH}/libinstr.so -L${SCABBARD_PATH} -ltrace -ltrace.device -lpthread
+    -flto -fgpu-rdc -Wl,--load-pass-plugin=${SCABBARD_PATH}/libinstr.so -Xoffload-linker --load-pass-plugin=${SCABBARD_PATH}/libinstr.so -L${SCABBARD_PATH} -ltrace -ltrace.device -lpthread -lz
     ```
     If you are manually calling ldd to link, you should know what to do to modify these for your needs.
+    > You may also need to add a `-L` option pointing to the appropriate version of zlib on your system.
  6. Let your build compile as normal (done with this step, continue to [step 2](#step-2-generate-a-trace-file)).
 
 

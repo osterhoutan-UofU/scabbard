@@ -62,7 +62,21 @@ namespace scabbard {
     // << ========================================================================================== >> 
     // <<                                           CALLS                                            >> 
     // << ========================================================================================== >> 
-    
+
+    [[clang::disable_sanitizer_instrumentation]] 
+    __host__
+    static inline bool ends_with(const std::string& str, const char* suffix, unsigned suffixLen)
+    {
+      return str.size() >= suffixLen && str.compare(str.size()-suffixLen, suffixLen, suffix, suffixLen) == 0;
+    }
+
+    [[clang::disable_sanitizer_instrumentation]] 
+    __host__
+    static inline bool ends_with(const std::string& str, const char* suffix)
+    {
+      return ends_with(str, suffix, std::string::traits_type::length(suffix));
+    }
+
     [[clang::disable_sanitizer_instrumentation, gnu::used, gnu::retain, gnu::noinline]] 
     __host__
     void scabbard_init()
@@ -83,8 +97,8 @@ namespace scabbard {
         trace_file += ".p" + std::to_string(getpid());
 
 #     ifdef SCABBARD_USE_COMPRESSION
-      if (not TRACE_FILE.ends_with(".gz")) // mark as a compressed trace file if necessary
-        TRACE_FILE += ".gz";
+      if (not ends_with(trace_file,".gz")) // mark as a compressed trace file if necessary
+        trace_file += ".gz";
 #     endif
       const std::string TRACE_FILE = trace_file;
       // std::cerr << "\n[scabbard.trace:DBG] initiating scabbard trace system with details as follows"    //DEBUG

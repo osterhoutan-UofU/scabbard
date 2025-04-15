@@ -25,5 +25,5 @@ target_link_libraries(verif
 
 if(SCABBARD_USE_COMPRESSION)
 target_link_libraries(verif PUBLIC ZLIB::ZLIB)
-target_compile_options(verif "-DSCABBARD_USE_COMPRESSION=${SCABBARD_USE_COMPRESSION}")
+target_compile_options(verif PRIVATE "-DSCABBARD_USE_COMPRESSION=\"${SCABBARD_COMPRESSION_LEVEL}\"")
 endif()

@@ -40,7 +40,7 @@ target_link_libraries(trace
 
 if(SCABBARD_USE_COMPRESSION)
 target_link_libraries(trace PUBLIC ZLIB::ZLIB)
-target_compile_options(trace "-DSCABBARD_USE_COMPRESSION=${SCABBARD_USE_COMPRESSION}")
+target_compile_options(trace PRIVATE "-DSCABBARD_USE_COMPRESSION=\"${SCABBARD_COMPRESSION_LEVEL}\"")
 endif()
 
 
