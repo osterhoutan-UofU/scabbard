@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include "BufferedReader.hpp"
+
 #include <scabbard/TraceFile.hpp>
 #include <scabbard/TraceData.hpp>
 #include <scabbard/Metadata.hpp>
@@ -21,6 +23,9 @@
 
 namespace scabbard {
 namespace verif {
+
+
+  using TraceFile = scabbard::BaseTraceFile<scabbard::BufferedReader>;
 
 
   /**

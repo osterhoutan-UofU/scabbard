@@ -18,6 +18,7 @@
 #include <set>
 #include <map>
 #include <tuple>
+#include <optional>
 
 namespace scabbard {
 namespace verif {
@@ -36,14 +37,20 @@ namespace verif {
     enum ResultStatus { GOOD=0, ERROR=2, WARNING=1, INTERNAL_ERROR=-1 };
     struct Result {
       ResultStatus status;
-      const TraceData* read = nullptr; 
-      const TraceData* write = nullptr;
+      const std::optional<const TraceData> read = {}; 
+      const std::optional<const TraceData> write = {};
       std::string err_msg = "";
       friend inline bool operator == (const Result& L, const Result& R);
       inline bool operator < (const Result& other) const;
     };
 
-    std::map<StateMachine::Result, std::size_t> run();
+    using Results = std::map<StateMachine::Result, std::size_t>;
+
+    /**
+     * @brief run the state machine and provide the results in the provided \param results
+     * @param results where the results of the state machine are stored.
+     */
+    void run(Results& results);
 
     void reset();
 

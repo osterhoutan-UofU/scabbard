@@ -29,20 +29,19 @@ namespace verif {
   }
 
 
-  std::map<StateMachine::Result, std::size_t> StateMachine::run()
+  void StateMachine::run(StateMachine::Results& results)
   {
     const InstrData FILTER = (
         InstrData::SYNC_EVENT | InstrData::DESYNC_EVENT
         | InstrData::READ | InstrData::WRITE
         | InstrData::ALLOCATE | InstrData::FREE
       );
-    std::map<StateMachine::Result, std::size_t> results;
     size_t dbg_i = 0u; //DEBUG
-    size_t dbg_j = 0u; //DEBUG
-    size_t dbg_k = 0u; //DEBUG
+    // size_t dbg_j = 0u; //DEBUG
+    // size_t dbg_k = 0u; //DEBUG
     for (const auto& td : trace) {
-      if (/* td.time_stamp == 0u || */ td.data == InstrData::NEVER) dbg_j++; //DEBUG
-      if (td.data & InstrData::ON_GPU) dbg_k++; //DEBUG
+      // if (/* td.time_stamp == 0u || */ td.data == InstrData::NEVER) dbg_j++; //DEBUG
+      // if (td.data & InstrData::ON_GPU) dbg_k++; //DEBUG
       std::map<size_t, const scabbard::TraceData *>::iterator it = mem.end();
       switch (td.data & FILTER)
       {
@@ -69,7 +68,7 @@ namespace verif {
           } else if (not (it->second->data & InstrData::READ)) { // OR the last operation on the mem space was a read 
             mem[td.ptr] = &td;
           } else { // This is probably a race  //NOTE: expand this to search for read times compared to last desync event? (after ending mem wipes during free events)
-            add_result(results,{ERROR, it->second, &td, "Data Written to after it was Read from"});
+            add_result(results,{ERROR, {*it->second}, {td}, "Data Written to after it was Read from"});
           }
           break;
 
@@ -78,14 +77,14 @@ namespace verif {
           if (it == mem.end()) {// read with no preceding write
             if ((td.data & InstrData::_RUNTIME_CONDITIONAL) && (td.data & InstrData::HOST_HEAP)) // if the memory location was conditional and verified to be on the heap
               break;  // it is not likely to be relevant to the gpu; skip it
-            add_result(results,{WARNING, &td, nullptr, "Read with no preceding/matching Write"}); // read with no preceding write
+            add_result(results,{WARNING, td, nullptr, "Read with no preceding/matching Write"}); // read with no preceding write
             mem[td.ptr] = &td;
             break;
           } else if (td.data & InstrData::_OPT_USED) { // bulk read (memcpy device to host)
             for (; it != mem.end() && it->second->ptr < td.ptr+td._OPT_DATA; ++it) {
               auto res = check_race_read(td, *it->second);
               if (res != GOOD) {
-                add_result(results,{res, &td, it->second, "Bulk Read/MemCpyAsync occurs before any identifiably relevant sync event"});
+                add_result(results,{res, {td}, {*it->second}, "Bulk Read/MemCpyAsync occurs before any identifiably relevant sync event"});
                 mem[it->second->ptr] = &td;
                 break; // goto switch_exit;
               }
@@ -93,7 +92,7 @@ namespace verif {
           } else { // single read
             auto res = check_race_read(td, *it->second);
               if (res != GOOD) {
-                add_result(results,{res, &td, it->second, "Read occurs before any identifiably relevant sync event"});
+                add_result(results,{res, {td}, {*it->second}, "Read occurs before any identifiably relevant sync event"});
                 mem[it->second->ptr] = &td;
                 break;
               }
@@ -108,10 +107,10 @@ namespace verif {
         case InstrData::FREE: {
           auto r = allocs.find(td.ptr);
           if (r == allocs.end()) {
-            add_result(results,{INTERNAL_ERROR, nullptr, nullptr, "\n[scabbard.verif:ERR] bad alloc data (could not find hipMalloc associated with hipFree in trace history)"}); //DEBUG
-            last_global_sync = td.time_stamp; //DEBUG
-            break; //DEBUG
-            // return {{{INTERNAL_ERROR, nullptr, nullptr, "\n[scabbard.verif:ERR] bad alloc data (could not find hipMalloc associated with hipFree in trace history)"}, 1ul}};
+            add_result(results,{INTERNAL_ERROR, {}, {}, "\n[scabbard.verif:ERR] bad alloc data (could not find hipMalloc associated with hipFree in trace history)"}); //DEBUG
+            last_global_sync = td.time_stamp;
+            break;
+            // results.insert({{INTERNAL_ERROR, {}, {}, "\n[scabbard.verif:ERR] bad alloc data (could not find hipMalloc associated with hipFree in trace history)"}, 1ul}); return;
           }
           for (it = mem.find(td.ptr); it != mem.end() && it->second->ptr < td.ptr+r->second; ++it)
             it = mem.erase(it);
@@ -128,8 +127,8 @@ namespace verif {
       dbg_i++; //DEBUG
     }
     if (results.size() == 0)
-      return {{{GOOD, nullptr, nullptr, std::to_string(dbg_i)},1ul}};
-    return results;
+      results.insert({{GOOD, {}, {}, std::to_string(dbg_i)},1ul});
+    return;
   }
 
 

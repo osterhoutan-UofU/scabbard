@@ -13,6 +13,7 @@
 #include "StateMachine.hpp"
 
 #include <scabbard/MetadataIO.hpp>
+#include <glob/glob.hpp>
 
 #include <iostream>
 
@@ -26,16 +27,20 @@ int main(int argc, char *argv[]) {
   using namespace ::scabbard::verif;
   if (argc != 3) {
     std::cerr << "incorrect input provided, please provide a file path to a scabbard metadata file "
-                 "AND to a scabbard trace file (in that order)"
+                 "AND to some number of scabbard trace files (in that order) (wildcard/glob notation accepted for trace files)"
               << std::endl;
     exit(EXIT_FAILURE);
   }
 
   auto mf = scabbard::read_metadata_file(std::string(argv[1]));
-  auto tf = scabbard::verif::readTraceFile(std::string(argv[2]));
+  StateMachine::Results results;
 
-  scabbard::verif::StateMachine sm(tf.trace_data);
-  auto results = sm.run();
+  for (size_t i=2ull; i<argc; ++i)
+    for (auto path : glob::glob(argv[i])) {
+      auto tf = scabbard::verif::readTraceFile(path.string());
+      scabbard::verif::StateMachine sm(tf.trace_data);
+      sm.run(results);
+    }
 
   std::string sep = "";
   for (auto result : results) {
@@ -114,7 +119,7 @@ void printResult(std::ostream& out,
   out << "  MEM LOC: 0x" << std::hex << ((res.read) ? res.read->ptr : res.write->ptr) << std::dec << ",\n"
          "METADATA: {" << res.read->data << "},\n";
   
-  if (res.write == nullptr) { //case there is no write data
+  if (not res.write) { //case there is no write data
     printRead();
     out << std::endl;
     return;

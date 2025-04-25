@@ -24,7 +24,8 @@
 namespace scabbard {
 
 
-struct TraceFile {
+template<template<typename> class S>
+struct BaseTraceFile {
 
   uint8_t VER_MAJOR = 0;
   uint8_t VER_MINOR = 0;
@@ -35,8 +36,15 @@ struct TraceFile {
 
   std::string EXE_PATH = "";
 
-  std::multiset<TraceData> trace_data;
+  S<TraceData> trace_data;
+
+  using iterator = S<TraceData>::iterator;
+
+  inline iterator begin() { return trace_data.begin(); }
+  inline iterator end() { return trace_data.end(); }
 
 };
+
+using BasicTraceFile = BaseTraceFile<std::set>;
 
 } //?namespace scabbard
