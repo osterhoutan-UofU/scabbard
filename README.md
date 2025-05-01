@@ -227,8 +227,21 @@ but could occur.
 You must use the scabbard interface tool in `verif` mode using the metadata file generated in [step 1](#step-1-instrument-your-build), and the trace file generated in [step 2](#step-2-generate-a-trace-file) to generate a report on what data-races occurred and places in your code that might have a unified memory data-race in the future due to lacking proper sync events or other code patterns that can result in undefined behavior.
 
 ```sh
-scabbard verif <meta-file\> <trace-file\>
+scabbard verif {options} <meta-file\> <trace-file(s)\>...
 ```
+The verify tool supports processing multiple trace files in multithreaded batches 
+(each file is run in a single thread but multiple files can be processed at once),
+to achieve this use the `-threads`/`-t` option and put in the number of concurrent threads you want to run.
+You can specify a list of trace files and glob patterns are supported for `<trace-file(s)\>` paths.
+
+The verify tool uses a buffered reader and has a memory cap that you can specify to prevent it from
+loading in too many entries from the trace files at once and taking all the system ram
+(default is ~2GB per thread).
+To change it from its default configuration use the `--mem-limit`/`-m` options and specify 
+a memory limit (for all threads combined) in Bytes, kB, MB, or GB 
+(_i.e._ `1024`, `15k`, `250M` or `2G` respectively).
+
+Please use `scabbard verif --help` for to see more options and details.
 
 > **NOTE:**
 > The offline-analysis/verify tool is robust, but single threaded, a little slow, 
@@ -237,7 +250,7 @@ scabbard verif <meta-file\> <trace-file\>
 > However we can assure you that it is very robust and is very very unlikely to be frozen or stuck.
 > So just let it run until it is done.
 >
-> A rule of thumb for how long it will take is is roughly 15sec per 1GB of trace file
+> A rule of thumb for how long it will take is is roughly 1min per 1GB of trace file
 > _(this can very greatly between different CPUs)_ 
 
 #### Interpreting the output:

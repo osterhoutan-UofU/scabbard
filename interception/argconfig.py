@@ -110,7 +110,7 @@ VerifArgParser = _SubArgParser.add_parser('verif',
         usage="""
             <>-data-type  {}-optional   []-required  ...-multiple accepted
         
-        $ scabbard verif [meta-file] [trace-file] 
+        $ scabbard verif {options}... [meta-file] [trace-file] 
         
         example:
           $ scabbard verif $(pwd)/proj-name.scabbard.meta $(pwd)/proj-name.scabbard.trace
