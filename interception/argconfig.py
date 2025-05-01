@@ -139,8 +139,8 @@ VerifArgParser.add_argument('--threads','-t',
 #         nargs=1,
 #         default=None,
 #         type=int,
-#         metavar='<#-threads>',
-#         help="how many threads you want to use when processing trace files in bulk"
+#         metavar='<#-entries-in-chunk>',
+#         help="how many trace entries should be read in at a time during buffered reads of large trace-files"
 #     )
 
 InstrArgParser.add_argument('--meta-file',
