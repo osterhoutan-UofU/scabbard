@@ -25,15 +25,15 @@ namespace scabbard {
 namespace verif {
 
 
-  using TraceFile = scabbard::BaseTraceFile<scabbard::BufferedReader>;
+  using TraceFile = scabbard::ITraceFileContainerMixer<BufferedReader>;
 
 
   /**
-   * @brief read in a trace file and 
-   * @param filepath the path to the file to be read
-   * @return \c std::unique_ptr<std::multiset<TraceData>> - 
+   * @brief read in a trace file and initiate the buffered reader with provided  
    */
-  TraceFile readTraceFile(const std::string& filepath);
+  TraceFile readTraceFile(const std::string& filepath, 
+                          uint64_t BuffSizeBytes=BufferedReader<TraceData>::_BuffSizeBytes, 
+                          size_t ChunkSizeElem=BufferedReader<TraceData>::_ChunkSizeElem);
 
 
 } //?namespace verif

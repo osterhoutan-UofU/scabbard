@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include "TraceReader.hpp"
+
 #include <scabbard/TraceData.hpp>
 #include <scabbard/less.hpp>
 
@@ -18,30 +20,45 @@
 #include <set>
 #include <map>
 #include <tuple>
-#include <optional>
+#include <memory>
 
 namespace scabbard {
 namespace verif {
 
   class StateMachine {
 
-    const std::multiset<TraceData>& trace;
-    std::map<size_t,const TraceData*> mem;
-    std::map<size_t,size_t> allocs;
-    size_t last_global_sync = __UINT64_MAX__;
-    std::map<size_t,size_t> last_stream_sync;
+    using Addr_t = uint64_t;
+    using LTime_t = uint64_t;
+    using StreamId_t = uint64_t;
+    using MemSpaceTy = std::map<Addr_t,std::shared_ptr<const TraceData>>;
+
+    TraceFile& trace;
+    MemSpaceTy mem;
+    std::map<Addr_t,size_t> allocs;
+    LTime_t last_global_sync = __UINT64_MAX__;
+    std::map<StreamId_t,LTime_t> last_stream_sync;
 
   public:
-    StateMachine(const std::multiset<TraceData>& trace_);
+    StateMachine(TraceFile& trace_);
     
     enum ResultStatus { GOOD=0, ERROR=2, WARNING=1, INTERNAL_ERROR=-1 };
     struct Result {
       ResultStatus status;
-      const std::optional<const TraceData> read = {}; 
-      const std::optional<const TraceData> write = {};
+      const std::shared_ptr<const TraceData> read = {}; 
+      const std::shared_ptr<const TraceData> write = {};
       std::string err_msg = "";
       friend inline bool operator == (const Result& L, const Result& R);
-      inline bool operator < (const Result& other) const;
+
+      inline bool operator < (const Result& other) const
+      {
+        if (status > other.status)
+          return false;
+        return ( (status < other.status)
+            || ((read && other.read) && read->metadata < other.read->metadata)
+            || ((write && other.write) && write->metadata < other.write->metadata)
+          );
+      }
+      
     };
 
     using Results = std::map<StateMachine::Result, std::size_t>;

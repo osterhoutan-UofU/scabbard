@@ -24,8 +24,7 @@
 namespace scabbard {
 
 
-template<template<typename> class S>
-struct BaseTraceFile {
+struct TraceFileMetadata {
 
   uint8_t VER_MAJOR = 0;
   uint8_t VER_MINOR = 0;
@@ -35,16 +34,26 @@ struct BaseTraceFile {
   uint32_t START_TIME = 0;
 
   std::string EXE_PATH = "";
+};
+
+
+template<template<typename> class S>
+struct ITraceFileContainerMixer : public TraceFileMetadata {
 
   S<TraceData> trace_data;
 
-  using iterator = S<TraceData>::iterator;
+  ITraceFileContainerMixer(TraceFileMetadata& metadata, S<TraceData> trace_data_)
+    : TraceFileMetadata(metadata), trace_data(trace_data_)
+  {}
 
-  inline iterator begin() { return trace_data.begin(); }
-  inline iterator end() { return trace_data.end(); }
+  using iterator = typename S<TraceData>::iterator;
+
+  inline iterator begin() { return std::begin(trace_data); }
+  inline iterator end() { return std::end(trace_data); }
 
 };
 
-using BasicTraceFile = BaseTraceFile<std::set>;
+// using BasicTraceFile = ITraceFileContainerMixer<std::set>;
+// typedef ITraceFileContainerMixer<std::set> BasicTraceFile;
 
 } //?namespace scabbard

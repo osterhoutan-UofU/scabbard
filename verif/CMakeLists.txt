@@ -1,10 +1,13 @@
 cmake_minimum_required(VERSION 3.16)
 project(scabbard-verif VERSION 0.1)
 
+find_package(Threads REQUIRED)
+
 add_executable(verif
     src/main.cpp
     src/StateMachine.cpp
     src/TraceReader.cpp
+    src/BufferedReader.cpp
   )
 
 target_include_directories(verif
@@ -21,6 +24,7 @@ target_link_libraries(verif
   PUBLIC
   $<BUILD_INTERFACE:${SCABBARD_PATH}/libscabbard.so>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/libscabbard.so>
+  Threads::Threads
 )
 
 if(SCABBARD_USE_COMPRESSION)

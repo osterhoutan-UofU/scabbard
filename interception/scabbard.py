@@ -15,7 +15,7 @@ import pathlib
 import subprocess
 import sys
 
-from argconfig import parseScabbardArgs, printScabbardHelp
+from argconfig import parseScabbardArgs, printScabbardHelp, process_mem_limit, process_chunk_size, process_threads
 from colors import *
 
 DEBUG: bool = False
@@ -189,13 +189,23 @@ def trace(scabbard_args, args) -> None:
 
 
 def verif(scabbard_args, args) -> None:
+    env = dict(os.environ)
     if 'trace_file' not in scabbard_args or scabbard_args.trace_file is None or not len(scabbard_args.trace_file) > 0:
         raise RuntimeError("scabbard trace expected a trace file as an argument but found none!")
     if 'meta_file' not in scabbard_args or scabbard_args.meta_file is None or not len(scabbard_args.meta_file) > 0:
         raise RuntimeError("scabbard trace expected a trace file as an argument but found none!")
+    if 'mem_limit' in scabbard_args and scabbard_args.mem_limit is not None and len(scabbard_args.mem_limit) > 0:
+        mem_limit = process_mem_limit(scabbard_args.mem_limit[0])
+        env.update({'SCABBARD_VERIF_MEM_LIMIT_BYTES': str(mem_limit)})
+    if 'chunk_size' in scabbard_args and scabbard_args.chunk_size is not None and len(scabbard_args.chunk_size) > 0:
+        mem_limit = process_chunk_size(scabbard_args.chunk_size[0])
+        env.update({'SCABBARD_VERIF_CHUNK_SIZE': str(mem_limit)})
+    if 'threads' in scabbard_args and scabbard_args.threads is not None and len(scabbard_args.threads) > 0:
+        threads = process_threads(scabbard_args.threads[0])
+        env.update({'SCABBARD_VERIF_THREAD_COUNT': str(threads)})
     try:
-        cmdOutput = subprocess.run(f"{SCABBARD_PATH}/verif {scabbard_args.meta_file[0]} {scabbard_args.trace_file[0]}", 
-                                    shell=True)
+        cmdOutput = subprocess.run(f"{SCABBARD_PATH}/verif {scabbard_args.meta_file[0]} {' '.join(scabbard_args.trace_file)}", 
+                                    shell=True, env=env)
                                     # shell=True, check=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         # print(cmdOutput.stdout)
     except subprocess.CalledProcessError as cpe:

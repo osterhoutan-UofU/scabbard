@@ -128,7 +128,8 @@
         "any": "cpp",
         "forward_list": "cpp",
         "future": "cpp",
-        "__availability": "cpp"
+        "__availability": "cpp",
+        "regex": "cpp"
     },
     "cSpell.words": [
         "amdgcn",

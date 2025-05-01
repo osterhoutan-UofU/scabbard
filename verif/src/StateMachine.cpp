@@ -14,12 +14,12 @@
 namespace scabbard {
 namespace verif {
 
-  StateMachine::StateMachine(const std::multiset<TraceData>& trace_)
+  StateMachine::StateMachine(TraceFile& trace_)
     : trace(trace_)
   {}
 
 
-  inline void add_result(std::map<StateMachine::Result, std::size_t>& results, const StateMachine::Result& res)
+  inline void add_result(StateMachine::Results& results, const StateMachine::Result& res)
   {
     auto it = results.find(res);
     if (it == results.end()) // case not encountered yet
@@ -39,10 +39,11 @@ namespace verif {
     size_t dbg_i = 0u; //DEBUG
     // size_t dbg_j = 0u; //DEBUG
     // size_t dbg_k = 0u; //DEBUG
-    for (const auto& td : trace) {
+    for (const auto& _td : trace) {
+      const auto& td = *_td;
       // if (/* td.time_stamp == 0u || */ td.data == InstrData::NEVER) dbg_j++; //DEBUG
       // if (td.data & InstrData::ON_GPU) dbg_k++; //DEBUG
-      std::map<size_t, const scabbard::TraceData *>::iterator it = mem.end();
+      MemSpaceTy::iterator it = mem.end();
       switch (td.data & FILTER)
       {
         case InstrData::SYNC_EVENT:
@@ -64,11 +65,11 @@ namespace verif {
         case InstrData::WRITE:
           it = mem.find(td.ptr); //TODO: \/ logic below needs a refresh (might be flawed) \/
           if (it == mem.end()) { // first write of a pair (empty or just allocated)
-            mem[td.ptr] = &td;
+            mem[td.ptr] = _td;
           } else if (not (it->second->data & InstrData::READ)) { // OR the last operation on the mem space was a read 
-            mem[td.ptr] = &td;
+            mem[td.ptr] = _td;
           } else { // This is probably a race  //NOTE: expand this to search for read times compared to last desync event? (after ending mem wipes during free events)
-            add_result(results,{ERROR, {*it->second}, {td}, "Data Written to after it was Read from"});
+            add_result(results,(Result){ERROR, it->second, _td, "Data Written to after it was Read from"});
           }
           break;
 
@@ -77,23 +78,23 @@ namespace verif {
           if (it == mem.end()) {// read with no preceding write
             if ((td.data & InstrData::_RUNTIME_CONDITIONAL) && (td.data & InstrData::HOST_HEAP)) // if the memory location was conditional and verified to be on the heap
               break;  // it is not likely to be relevant to the gpu; skip it
-            add_result(results,{WARNING, td, nullptr, "Read with no preceding/matching Write"}); // read with no preceding write
-            mem[td.ptr] = &td;
+            add_result(results,(Result){WARNING, _td, nullptr, "Read with no preceding/matching Write"}); // read with no preceding write
+            mem[td.ptr] = _td;
             break;
           } else if (td.data & InstrData::_OPT_USED) { // bulk read (memcpy device to host)
             for (; it != mem.end() && it->second->ptr < td.ptr+td._OPT_DATA; ++it) {
               auto res = check_race_read(td, *it->second);
               if (res != GOOD) {
-                add_result(results,{res, {td}, {*it->second}, "Bulk Read/MemCpyAsync occurs before any identifiably relevant sync event"});
-                mem[it->second->ptr] = &td;
+                add_result(results,(Result){res, _td, it->second, "Bulk Read/MemCpyAsync occurs before any identifiably relevant sync event"});
+                mem[it->second->ptr] = _td;
                 break; // goto switch_exit;
               }
             }
           } else { // single read
             auto res = check_race_read(td, *it->second);
               if (res != GOOD) {
-                add_result(results,{res, {td}, {*it->second}, "Read occurs before any identifiably relevant sync event"});
-                mem[it->second->ptr] = &td;
+                add_result(results,(Result){res, _td, it->second, "Read occurs before any identifiably relevant sync event"});
+                mem[it->second->ptr] = _td;
                 break;
               }
           }
@@ -107,7 +108,7 @@ namespace verif {
         case InstrData::FREE: {
           auto r = allocs.find(td.ptr);
           if (r == allocs.end()) {
-            add_result(results,{INTERNAL_ERROR, {}, {}, "\n[scabbard.verif:ERR] bad alloc data (could not find hipMalloc associated with hipFree in trace history)"}); //DEBUG
+            add_result(results,(Result){INTERNAL_ERROR, {}, {}, "\n[scabbard.verif:ERR] bad alloc data (could not find hipMalloc associated with hipFree in trace history)"}); //DEBUG
             last_global_sync = td.time_stamp;
             break;
             // results.insert({{INTERNAL_ERROR, {}, {}, "\n[scabbard.verif:ERR] bad alloc data (could not find hipMalloc associated with hipFree in trace history)"}, 1ul}); return;
@@ -154,7 +155,7 @@ namespace verif {
       if (res != last_stream_sync.end() && (res->second < o.time_stamp || res->second >= r.time_stamp )) // the write happened after the last global sync event or the read occurred after the last global sync event
         return ResultStatus::WARNING; // return a warning
     } // else    // if a read event we don't care yet (could be a double read)
-      mem[o.ptr] = &r;
+      mem[o.ptr] = std::make_shared<const TraceData>(&r);
       return ResultStatus::GOOD;
   }
 
@@ -190,15 +191,15 @@ namespace verif {
       );
   }
 
-  inline bool StateMachine::Result::operator < (const StateMachine::Result& other) const
-  {
-    if (status > other.status)
-      return false;
-    return ( (status < other.status)
-        || ((read && other.read) && read->metadata < other.read->metadata)
-        || ((write && other.write) && write->metadata < other.write->metadata)
-      );
-  }
+  // inline bool StateMachine::Result::operator < (const StateMachine::Result& other) const
+  // {
+  //   if (status > other.status)
+  //     return false;
+  //   return ( (status < other.status)
+  //       || ((read && other.read) && read->metadata < other.read->metadata)
+  //       || ((write && other.write) && write->metadata < other.write->metadata)
+  //     );
+  // }
 
 } //?namespace verif
 } //?namespace scabbard
