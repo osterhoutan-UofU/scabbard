@@ -33,7 +33,7 @@ namespace verif {
   public:
     FileMask(const std::string& file_path)
     {
-      in = gzopen(file_path, "rb");
+      in = gzopen(file_path.c_str(), "rb");
       if (in == NULL)
         throw std::runtime_error("Error: ZLIB Could not open file - '" + file_path + "'");
     }
