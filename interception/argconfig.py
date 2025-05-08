@@ -198,14 +198,14 @@ def process_mem_limit(arg:str) -> int|float:
             multiplier = 1
             if m.group(1) is not None:
                 match m.group(1).lower():
-                    case _:
-                        multiplier = 1
                     case 'k':
                         multiplier = 10**3
                     case 'm':
                         multiplier = 10**6
                     case 'g':
                         multiplier = 10**9
+                    case _:
+                        multiplier = 1
             return val * multiplier
         print("ARGUMENT ERROR: `--mem-limit/-m` argument must be a positive value grater than 0 with an optional unit designation of G/M/k")
         exit(-1)
