@@ -89,18 +89,10 @@ namespace scabbard {
                                     ? std::string(_EXE_NAME)
                                     : "unknown_exe");
       const char* _TRACE_FILE = std::getenv("SCABBARD_TRACE_FILE");
-      std::string trace_file = ((_TRACE_FILE) 
+      const std::string TRACE_FILE = ((_TRACE_FILE) 
                                   ? std::string(_TRACE_FILE) 
                                   : "./" + EXE_NAME + ".scabbard.trace");
-      const char* _IS_MPI = std::getenv("SCABBARD_IS_MULTI_NODE");
-      if (_IS_MPI)
-        trace_file += ".p" + std::to_string(getpid());
 
-#     ifdef SCABBARD_USE_COMPRESSION
-      if (not ends_with(trace_file,".gz")) // mark as a compressed trace file if necessary
-        trace_file += ".gz";
-#     endif
-      const std::string TRACE_FILE = trace_file;
       // std::cerr << "\n[scabbard.trace:DBG] initiating scabbard trace system with details as follows"    //DEBUG
       //              "\n[scabbard.trace:DBG]   'SCABBARD_INSTRUMENTED_EXE_NAME': `" << EXE_NAME << "`"    //DEBUG
       //              "\n[scabbard.trace:DBG]              'SCABBARD_TRACE_FILE': `" << TRACE_FILE << "`"; //DEBUG

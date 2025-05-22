@@ -40,7 +40,7 @@ static void run_single_threaded(const int argc, char* argv[], scabbard::verif::S
 
 int main(int argc, char *argv[]) {
   using namespace ::scabbard::verif;
-  if (argc >= 3) {
+  if (argc < 3) {
     std::cerr << "incorrect input provided, please provide a file path to a scabbard metadata file "
                  "AND to some number of scabbard trace files (in that order) (wildcard/glob notation accepted for trace files)"
               << std::endl;
