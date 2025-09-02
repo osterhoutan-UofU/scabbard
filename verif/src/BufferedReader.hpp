@@ -15,41 +15,56 @@
 #include "FileMask.hpp"
 
 #include <functional>
-#include <memory>
+#include <boost/smart_ptr/local_shared_ptr.hpp>
+#include <boost/smart_ptr/make_local_shared.hpp>
+#include <boost/pool/pool_alloc.hpp>
 #include <set>
 
 namespace scabbard {
 namespace verif {
 
 template<typename DataTy>
-struct BufferedReader {
+struct BufferedReader 
+{
 
+  using ElementTy = boost::local_shared_ptr<const DataTy>;
+
+  struct CompareMask {
+    inline bool operator () (const ElementTy& lhs, const ElementTy& rhs) const
+    {
+      return std::less<DataTy>()(*lhs.get(), *rhs.get());
+    }
+  };
+  
   static constexpr uint64_t _BuffSizeBytes  = 2'048'000'000ull;
   static constexpr size_t   _BuffSizeElem   = (size_t) _BuffSizeBytes / sizeof(DataTy);
   static constexpr size_t   _ChunkSizeElem  = 32'768ull;
   static constexpr size_t   _ChunksInBuf    = (size_t) _BuffSizeElem / _ChunkSizeElem;
+  
+  using ElementAllocator = boost::fast_pool_allocator<DataTy,boost::default_user_allocator_new_delete,boost::details::pool::default_mutex,_ChunkSizeElem>;
+  using ContainerAllocator = boost::fast_pool_allocator<ElementTy,boost::default_user_allocator_new_delete,boost::details::pool::default_mutex,_ChunkSizeElem>;
+  using Container = std::set<ElementTy, CompareMask, ContainerAllocator>;
 
   static_assert(_BuffSizeElem >= 5ull, "[scabbard.verif:ERR] the buffer needs to be big enough to support at least 5 chunks!");
 
-  using GetElementFnTy = std::function<void(FileMask&,DataTy&)>;
+  // using GetElementFnTy = std::function<void(FileMask&,DataTy&)>;
 
   FileMask* File;
-  const GetElementFnTy& GetElement;
+  ElementAllocator Allocator;
+  std::function<void(DataTy*)> Deallocator = [this](DataTy* ptr) -> void { this->Allocator.deallocate(ptr); };
+  // const GetElementFnTy& GetElement;
   const uint64_t        BuffSizeBytes = _BuffSizeBytes;
   const size_t          BuffSizeElem  = _BuffSizeElem;
   const size_t          ChunkSizeElem = _ChunkSizeElem;
   const size_t          ChunksInBuf   = _ChunksInBuf;
 
-  using ElementTy = std::shared_ptr<const DataTy>;
-  using Container = std::set<ElementTy>;
-
   Container BUF;
 
   BufferedReader() = delete;
-  BufferedReader(FileMask* File_, const GetElementFnTy& GetElement_);
-  BufferedReader(FileMask* File_, const GetElementFnTy& GetElement_,
-                  uint64_t BuffSizeBytes_, size_t ChunkSizeElem_ = _ChunkSizeElem)
-    : File(File_), GetElement(GetElement_), 
+  // BufferedReader(FileMask* File_, ElementAllocTy& Allocator_, const GetElementFnTy& GetElement_);
+  BufferedReader(FileMask* File_, // const GetElementFnTy& GetElement_,
+    uint64_t BuffSizeBytes_, size_t ChunkSizeElem_ = _ChunkSizeElem)
+    : File(std::move(File_)), // GetElement(GetElement_), 
       BuffSizeBytes(BuffSizeBytes_), BuffSizeElem(BuffSizeBytes_ / sizeof(DataTy)),
       ChunkSizeElem(ChunkSizeElem_), ChunksInBuf((BuffSizeBytes_ / sizeof(DataTy)) / ChunkSizeElem_)
   {
@@ -57,10 +72,11 @@ struct BufferedReader {
       throw std::domain_error("[scabbard.verif.BufferedReader:ERR] Buffer Size too small or Chunk Size too large");
     init_BUF(); 
   }
+  BufferedReader(FileMask* File_) : BufferedReader(File_, _BuffSizeBytes) {}
   ~BufferedReader()
   {
     File->close();
-    delete File;
+    // delete File; //TODO figure out where first free is
   }
 
   struct iterator 
@@ -77,8 +93,9 @@ struct BufferedReader {
     // Prefix increment
     inline iterator& operator ++()
     {
-      iter = parent.BUF.erase(iter);
+      ++iter;
       if (0ull == (++(parent.ElemSeen)) % parent.ChunkSizeElem) {
+        parent.BUF.erase(std::begin(parent.BUF),iter);
         parent.read_next_chunk();
         iter = std::begin(parent.BUF);
       }
@@ -115,9 +132,14 @@ private:
   {
     try {
       for (size_t i=0ull; i<ChunkSizeElem && not File->eof(); ++i) {
-        DataTy* data = new DataTy();
-        GetElement(*File, *data);
-        BUF.insert(std::make_shared<const DataTy>(data));
+        // ElementTy data((DataTy*)Allocator.allocate(), Deallocator);
+        DataTy* data = (DataTy*)Allocator.allocate();
+        File->read(reinterpret_cast<char*>(data), sizeof(DataTy)); // perf test avoid the function call redirection
+        BUF.insert(ElementTy(data, Deallocator));
+        // boost::local_shared_ptr<DataTy> data = boost::allocate_local_shared_noinit<DataTy>(Allocator);
+        // GetElement(*File, *data);
+        // File->read(reinterpret_cast<char*>(data.get()), sizeof(DataTy)); // perf test avoid the function call redirection
+        // BUF.insert(std::move(data));
       }
     } catch (...) {
       std::throw_with_nested(std::runtime_error("[scabbard.verif.BufferedReader:ERR] An ERROR occurred while reading a new chunk"));

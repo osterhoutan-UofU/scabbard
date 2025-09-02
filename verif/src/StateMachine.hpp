@@ -16,13 +16,20 @@
 #include <scabbard/TraceData.hpp>
 #include <scabbard/less.hpp>
 
+#include <boost/smart_ptr/local_shared_ptr.hpp>
+#include <boost/icl/split_interval_map.hpp>
+
 #include <unordered_set>
 #include <set>
 #include <map>
 #include <tuple>
-#include <memory>
+// #include <memory>
 
 namespace scabbard {
+
+template <class Type>
+struct ReplacementCombiner;
+
 namespace verif {
 
   class StateMachine {
@@ -30,7 +37,9 @@ namespace verif {
     using Addr_t = uint64_t;
     using LTime_t = uint64_t;
     using StreamId_t = uint64_t;
-    using MemSpaceTy = std::map<Addr_t,std::shared_ptr<const TraceData>>;
+    using MemSpaceTy = std::map<Addr_t, boost::local_shared_ptr<const TraceData>,std::less<Addr_t>,boost::fast_pool_allocator<std::pair<Addr_t,boost::local_shared_ptr<const TraceData>>>>;
+    // using MemSpaceTy = boost::icl::split_interval_map<Addr_t, boost::local_shared_ptr<const TraceData>,
+    //                                                   boost::icl::partial_absorber, std::less, scabbard::ReplacementCombiner>;
 
     TraceFile& trace;
     MemSpaceTy mem;
@@ -44,8 +53,8 @@ namespace verif {
     enum ResultStatus { GOOD=0, ERROR=2, WARNING=1, INTERNAL_ERROR=-1 };
     struct Result {
       ResultStatus status;
-      const std::shared_ptr<const TraceData> read = {}; 
-      const std::shared_ptr<const TraceData> write = {};
+      const boost::local_shared_ptr<const TraceData> read = {}; 
+      const boost::local_shared_ptr<const TraceData> write = {};
       std::string err_msg = "";
       friend inline bool operator == (const Result& L, const Result& R);
 
@@ -94,6 +103,17 @@ namespace verif {
   std::ostream& operator << (std::ostream& out, const StateMachine::ResultStatus& status);
 
 } //?namespace verif
+
+
+template <class Type>
+struct ReplacementCombiner : boost::icl::identity_based_inplace_combine<Type>
+{
+    void operator()(Type& object, const Type& other) const
+    {
+        object = other; // replace with newer object
+    }
+};
+
 } //?namespace scabbard
 
 

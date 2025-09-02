@@ -30,13 +30,31 @@
 #include <llvm/Transforms/Utils/BasicBlockUtils.h>
 #include <llvm/Transforms/Utils/Cloning.h>
 
-
-
-
-
-
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/Support/SourceMgr.h>
+
+
+namespace {
+  void __DBG_write_module (const llvm::Module& M, const std::string sfx="")
+  {
+    try {
+      std::error_code EC;
+      std::string filename = "/home/oster/repos/scabbard-tests/test_static_library/build/" + M.getSourceFileName() + sfx + ".scabbard.dbg.ll";
+      llvm::raw_fd_ostream DBG_OF(filename, EC);
+      if (EC) {
+        llvm::errs() << "[scabbard:DBG] failed to open or write to file durring debug output\n\n"
+                     << "[scabbard:DBG]    error: \"" << EC.message() << "\"\n";
+        return;
+      }
+      DBG_OF << M;
+      DBG_OF.close();
+      llvm::errs() << "[scabbard:DBG] saved snapshot of module at \"" << filename << "\"\n\n";
+    } catch (...) {
+      llvm::errs() << "[scabbard:DBG] failed to open or write to file durring debug output\n\n";
+    }
+  }
+}
+
 
 #define DEBUG_TYPE "scabbard"
 
@@ -165,16 +183,16 @@ namespace scabbard {
       
       DepTraceDevice dt(M);
       llvm::SmallVector<llvm::Function*> funcs;
+      llvm::SmallVector<llvm::Function*> external_kernels;
       for (auto& f : M.getFunctionList())
-        funcs.push_back(&f);
+        if (not(f.getName().starts_with("llvm.") //exclude intrinsics
+             || f.getName().starts_with("scabbard.") //exclude name mangled scabbard builtins
+             || device.NO_INSTR_FNS.count(f.getName().str()) // a manually excluded function (usually c++ builtin)
+             || (is_rocm_builtin(f.getSubprogram()))
+             || f.hasFnAttribute("disable_sanitizer_instrumentation")))
+          funcs.push_back(&f);
       for (auto* f : funcs)
-        if (not(f->getName().starts_with("llvm.") //exclude intrinsics
-             || f->getName().starts_with("scabbard.") //exclude name mangled scabbard builtins
-             || device.NO_INSTR_FNS.count(f->getName().str()) // a manually excluded function (usually c++ builtin)
-             || is_rocm_builtin(f->getSubprogram())
-             || f->hasFnAttribute("disable_sanitizer_instrumentation"))) {
-          run_device(*f, fam, dt);
-        }
+        run_device(*f, fam, dt);
       finish_replacing_old_funcs_device(M);
       // remove dummy function
       auto fn = M.getFunction(SCABBARD_DEVICE_DUMMY_FUNC_NAME);
@@ -243,6 +261,7 @@ namespace scabbard {
             || nullptr != M.getFunction(host.register_job_name))
           return; // return early this is already instrumented
       llvm::errs() << "\n[scabbard.instr.host.run:DBG] running instrumentation pass on host/CPU module ("<< (isLTO ? "LTO" : "LateOpt") <<")\n"; //DEBUG
+      __DBG_write_module(M,".host.pre-instr"); //DEBUG
       // make any necessary additions to the Module (i.e.inserting globals and linking references)
       instrCallbacks_host(M, MAM);
       llvm::FunctionAnalysisManager& fam = MAM.getResult<llvm::FunctionAnalysisManagerModuleProxy>(M)
@@ -251,10 +270,23 @@ namespace scabbard {
       if (auto f = M.getFunction("main"))
         instr_mainFunc_host(*f, fam);
       DepTraceHost dt(M);
+      llvm::SmallVector<llvm::Function*> funcs;
+      llvm::SmallVector<llvm::Function*> external_kernels;
       for (auto& f : M.getFunctionList())
-        if (not(f.getName() == "__hip_module_ctor"
-             || f.hasFnAttribute("disable_sanitizer_instrumentation")))
-          run_host(f, fam, dt);
+        if (not( f.isDeclaration()
+            || f.getName() == "__hip_module_ctor"
+            || f.hasFnAttribute("disable_sanitizer_instrumentation")
+            || f.getName().starts_with("llvm.")
+            || f.getName().starts_with("scabbard.")
+            || is_rocm_builtin(f.getSubprogram())))
+          funcs.push_back(&f);
+        else if (f.isDeclaration() && f.getName().contains("__device_stub__"))
+          external_kernels.push_back(&f);
+      for (auto* f : funcs)
+        run_host(*f, fam, dt);
+      for (auto* f : external_kernels)
+        handle_external_kernels(*f, fam);
+      __DBG_write_module(M,".host.post-instr"); //DEBUG
     }
 
     void ScabbardPassPlugin::instrCallbacks_host(llvm::Module& M, llvm::ModuleAnalysisManager& MAM)
@@ -610,7 +642,12 @@ namespace scabbard {
 
     void ScabbardPassPlugin::run_host(llvm::Function& F, llvm::FunctionAnalysisManager& FAM, const DepTraceHost& DT)
     {
-      if (F.isDeclaration()) return; // skip functions not defined (only declared) in this module
+      // if (F.isDeclaration()) {
+      //   llvm::errs() << "\n[scabbard.instr.host:DBG] checking declared fn `" << F.getName() << "`\n"; //DEBUG
+      //   if (F.getName().contains("__device_stub__"))
+      //     handle_external_kernels(F, FAM);
+      //   return; // skip functions not defined (only declared) in this module
+      // }
       for (auto& bb : F)
         for (auto& i : bb)
           if (auto* store = llvm::dyn_cast<llvm::StoreInst>(&i)) {
@@ -1008,6 +1045,124 @@ namespace scabbard {
                                                     const llvm::FunctionType& FnTy, const llvm::StringRef FnName) 
     {
       //TODO
+    }
+
+
+    llvm::Value* get_streamId(const llvm::Function& iFn, const llvm::CallInst* CI);
+
+    void ScabbardPassPlugin::handle_external_kernels(llvm::Function& OldFn, llvm::FunctionAnalysisManager& FAM)
+    {
+      if (OldFn.getNumUses() <= 0) return; // skip unused declarations
+      //> expand signature and instrument calls to external device stub (kernel/global) fn's
+      llvm::Module& M = *OldFn.getParent();
+      std::string old_name = OldFn.getName().str();
+      const auto* ptrTy = llvm::PointerType::get(OldFn.getContext(),0ul);
+      OldFn.setName(old_name+"__old__scabbard_instr_replaced__old__");
+      auto oldParamTys = OldFn.getFunctionType()->params();
+      std::vector<llvm::Type*> paramTys(oldParamTys.begin(), oldParamTys.end());
+      paramTys.push_back((llvm::Type*)ptrTy);
+      auto fn_callee = M.getOrInsertFunction(
+                          old_name,
+                          llvm::FunctionType::get(
+                              OldFn.getFunctionType()->getReturnType(),
+                              llvm::ArrayRef<llvm::Type*>(paramTys),
+                              OldFn.getFunctionType()->isVarArg()
+                            ),
+                          OldFn.getAttributes()
+                        );
+      llvm::Function* NewFn = llvm::dyn_cast<llvm::Function>(fn_callee.getCallee()); // new function (OldFn is old function)
+      NewFn->setCallingConv(OldFn.getCallingConv());
+      NewFn->setLinkage(OldFn.getLinkage());
+
+      //> instrument partial kernel launches
+      llvm::SmallPtrSet<llvm::CallInst*,8u> to_remove;
+      for (auto u : OldFn.users()) {
+        // if (auto CI = llvm::dyn_cast<llvm::CallInst>(u.getUser())) {
+        if (auto CI = llvm::dyn_cast<llvm::CallInst>(u)) {
+          llvm::Function* iFn = CI->getFunction();
+          //> find corrsponding hipPushCallConfiguration (and it's associated streamId)
+          auto streamId = get_streamId(*iFn, CI);
+          //> instrument the fn call with scabbard device
+          auto regFn = llvm::CallInst::Create(
+              host.register_job.getFunctionType(),
+              host.register_job.getCallee(),
+              llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,1>{
+                  streamId
+                })
+            );
+          regFn->insertBefore(CI);
+          auto loc = ((CI->getDebugLoc()) // hip generated device stubs have no debug location data so must accommodate
+                        ? metadata.trace(*iFn, CI->getDebugLoc(), ModuleType::HOST) 
+                        : MetadataHandler::get_hipAPI_loc());
+          auto regCbFn = llvm::CallInst::Create(
+              host.register_job_callback.getFunctionType(),
+              host.register_job_callback.getCallee(),
+              llvm::ArrayRef<llvm::Value*>(std::array<llvm::Value*,3>{
+                  regFn,
+                  streamId,
+                  loc.get_as_constant(iFn->getContext())
+                })
+            );
+          regCbFn->insertAfter(CI);
+          //> replace fn call augmented with device tracker operand
+          llvm::SmallVector<llvm::Value*,4u> operands;
+          for (auto& op : CI->args())
+            operands.push_back(op.get());
+          operands.push_back(regFn);
+          auto ci = llvm::CallInst::Create(
+                        NewFn->getFunctionType(),
+                        NewFn,
+                        llvm::ArrayRef<llvm::Value*>(operands)            
+                      );
+          if (CI->isTailCall())
+            ci->setTailCallKind(CI->getTailCallKind());
+          if (CI->canReturnTwice())
+            ci->setCanReturnTwice();
+          ci->insertBefore(CI);
+          CI->replaceAllUsesWith(ci);
+          ci->setDebugLoc(CI->getDebugLoc());
+          ci->setCallingConv(CI->getCallingConv());
+          ci->setDebugLoc(CI->getDebugLoc());
+          to_remove.insert(CI);
+
+        } else {
+          LLVM_DEBUG(llvm::errs() << "\n[scabbard.instr.host:DBG] external global/kernel function used in non-call instruction!\n";);
+        }
+      }
+      for (auto ci : to_remove)
+        ci->eraseFromParent();
+      to_remove.clear();
+      OldFn.eraseFromParent();
+    }
+
+    llvm::Value* get_streamId(const llvm::Function& iFn, const llvm::CallInst* CI)
+    {
+      //> look behind CI to find the __hipPushCallConfiguration() call with the streamId in the last argument
+      /*
+      // the following is an inefficient approach that requires scanning the entire function to find the correct call
+      const llvm::Value* streamId = llvm::ConstantPointerNull::get(llvm::PointerType::get(iFn.getContext(),0ull));
+      for (const auto& bb : iFn)
+        for (const auto& i : bb)
+          if (const auto ci = llvm::dyn_cast<llvm::CallInst>(&i)) {
+            if (ci == CI) 
+              return streamId;
+            if (ci->getCalledFunction()->getName() == "__hipPushCallConfiguration")
+              streamId = ci->getArgOperand(5ull);
+          }
+      return streamId; 
+      */
+      //the following is a (marginally) more efficient back tracking to find the call config
+      auto bb = CI->getParent();
+      for (const auto _brI : bb->users())
+        if (const auto br = llvm::dyn_cast<llvm::BranchInst>(_brI)) {
+          for (const auto& i : *br->getParent())
+            if (const auto ci = llvm::dyn_cast<llvm::CallInst>(&i)) {
+              if (ci->getCalledFunction()->getName() == "__hipPushCallConfiguration")
+                return ci->getArgOperand(5ull);
+            }
+        }
+      // if can't be found assume it uses the default stream
+      return llvm::ConstantPointerNull::get(llvm::PointerType::get(iFn.getContext(),0ull));
     }
 
     // const llvm::ImmutableMap<std::string, llvm::Function> ScabbardPassPlugin::HostInstrLibFuncs = {

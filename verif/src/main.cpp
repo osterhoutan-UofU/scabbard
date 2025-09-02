@@ -223,7 +223,7 @@ static void run_multithreaded(const int argc, char* argv[], const size_t THREADS
 
   std::vector<std::thread> threads(THREADS);
 
-  for (size_t i=0ull; i<THREADS; ++i)
+  for (size_t i=0ull; i<THREADS; ++i) 
     threads.emplace_back(std::thread(work, std::ref(outputs[i])));
 
   size_t seen = 0ull;

@@ -17,6 +17,8 @@
 #include <scabbard/TraceData.hpp>
 #include <scabbard/Metadata.hpp>
 
+#include <boost/pool/pool_alloc.hpp>
+
 #include <string>
 #include <set>
 #include <memory>
@@ -26,12 +28,13 @@ namespace verif {
 
 
   using TraceFile = scabbard::ITraceFileContainerMixer<BufferedReader>;
+  using TraceReaderAllocator = BufferedReader<TraceData>::ElementAllocator;
 
 
   /**
    * @brief read in a trace file and initiate the buffered reader with provided  
    */
-  TraceFile readTraceFile(const std::string& filepath, 
+  TraceFile readTraceFile(const std::string& filepath, // TraceReaderAllocator& allocator,
                           uint64_t BuffSizeBytes=BufferedReader<TraceData>::_BuffSizeBytes, 
                           size_t ChunkSizeElem=BufferedReader<TraceData>::_ChunkSizeElem);
 

@@ -22,6 +22,7 @@
 #include <llvm/IR/Function.h>
 #include <llvm/IR/PassManager.h>
 #include <llvm/IR/Intrinsics.h>
+#include <llvm/ADT/SmallSet.h>
 
 #include <string>
 #include <memory>
@@ -218,6 +219,8 @@ namespace instr {
 
     auto replace_device_function(llvm::Function& F) -> llvm::Function*;
     auto finish_replacing_old_funcs_device(llvm::Module& M) -> void;
+
+    auto handle_external_kernels(llvm::Function& OldFn, llvm::FunctionAnalysisManager& FAM) -> void;
 
     // auto clone_scabbard_functions_device(llvm::Module& M, const llvm::Module& LibM) -> void;
     

@@ -9,7 +9,7 @@
  * 
  */
 
- #pragma once
+#pragma once
 
 #ifdef SCABBARD_USE_COMPRESSION
 #include <zlib.h>

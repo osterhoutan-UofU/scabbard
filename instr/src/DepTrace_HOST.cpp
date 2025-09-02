@@ -21,6 +21,27 @@
 
 #include <unordered_map>
 
+#ifdef DEBUG
+#include <fstream>
+namespace {
+  void __DBG_write_module (const llvm::Module& M, const std::string sfx="")
+  {
+    try {
+      std::error_code EC;
+      llvm::raw_fd_ostream DBG_OF(llvm::Twine("./" + M.getSourceFileName() + sfx + ".scabbard.dbg.ll").getSingleStringRef(), EC);
+      if (EC) {
+        llvm::errs() << "[scabbard:DBG] failed to open or write to file durring debug output\n";
+        return;
+      }
+      DBG_OF << M;
+      DBG_OF.close();
+    } catch (...) {
+      llvm::errs() << "[scabbard:DBG] failed to open or write to file durring debug output\n";
+    }
+  }
+}
+#endif
+
 namespace scabbard {
   namespace instr {
 
@@ -111,7 +132,7 @@ namespace scabbard {
                   globalDeviceMem.insert(std::make_pair(global->getName(),global));
                   // llvm::dbgs() << "\n[scabbard::host::DBG_INFO] added `" << global->getName() << "` to list of global device mem.\n";
                 } else {
-                  llvm::dbgs() << "\n[scabbard::host::DBG_WARN] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterVar` that is not a global variable\n\n";
+                  llvm::dbgs() << "\n[scabbard.host:WARN] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterVar` that is not a global variable\n\n";
                 }
               } else if (call->getCalledFunction()->getName() == "__hipRegisterManagedVar") {
                 // llvm::dbgs() << "\n[scabbard::host::DBG_INFO] found a `__hipRegisterManagedVar` call!\n";
@@ -119,12 +140,12 @@ namespace scabbard {
                   globalManagedMem.insert(std::make_pair(global->getName(),global));
                   // llvm::dbgs() << "\n[scabbard::host::DBG_INFO] added `" << global->getName() << "` to list of global managed mem.\n";
                 } else {
-                  llvm::dbgs() << "\n[scabbard::host::DBG_WARN] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterManagedVar` that is not a global variable\n\n";
+                  llvm::dbgs() << "\n[scabbard.host:WARN] Consistency Error, `__hip_module_ctor` contains a call to `__hipRegisterManagedVar` that is not a global variable\n\n";
                 }
               }
             }
       } else {   // this module has no HIP components
-        llvm::dbgs() << "\n[scabbard::host::DBG_WARN] module that contains no hip components\n\n";
+        llvm::dbgs() << "\n[scabbard.host:WARN] module that contains no hip components\n\n";
       }
     }
 

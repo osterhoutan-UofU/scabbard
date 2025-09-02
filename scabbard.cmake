@@ -30,9 +30,11 @@ option(ENABLE_SCABBARD "instrument specified targets with scabbard" On)
 option(SCABBARD_USE_COMPRESSION "was compression enabled in your scabbard build?" @SCABBARD_USE_COMPRESSION@)
 
 if(SCABBARD_USE_COMPRESSION)
-set(SCABBARD_ZLIB_LINK_OPTIONS "@SCABBARD_ZLIB_LIBRARIES@ @SCABBARD_LINK_ZLIB@")
+set(SCABBARD_ZLIB_LIBRARIES @SCABBARD_ZLIB_LIBRARIES@)
+set(SCABBARD_LINK_ZLIB @SCABBARD_LINK_ZLIB@)
 else()
-set(SCABBARD_ZLIB_LINK_OPTIONS "")
+set(SCABBARD_ZLIB_LIBRARIES "")
+set(SCABBARD_LINK_ZLIB "")
 endif()
 
 
@@ -47,15 +49,16 @@ function(scabbard_instrument_target target)
             target_link_options(${target}
                 PUBLIC
                 -flto -fgpu-rdc 
-                ${SCABBARD_ZLIB_LINK_OPTIONS} 
+                ${SCABBARD_ZLIB_LIBRARIES} ${SCABBARD_LINK_ZLIB}
                 -Wl,--load-pass-plugin=${SCABBARD_PATH}/libinstr.so 
                 -Xoffload-linker --load-pass-plugin=${SCABBARD_PATH}/libinstr.so 
                 -L${SCABBARD_PATH} -ltrace -ltrace.device -lpthread)
-            target_compile_options(${target} PUBLIC -g -fgpu-rdc -flto) # debug info always required for scabbard
+            target_compile_options(${target} PUBLIC -g -fgpu-rdc -flto -foffload-lto) # debug info always required for scabbard
             # target_link_libraries(${target} PRIVATE instr)  #ensure that instrumentation gets built before a target that needs instrumenting
-        elseif(target_type STREQUAL "STATIC_LIBRARY")
-            message(NOTICE "[scabbard:NOTE] enabling GPU-RDC and LTO for static lib: '${target}'")
-            target_compile_options(${target} PUBLIC -g -fgpu-rdc -flto) # debug info always required for scabbard
+        elseif(target_type MATCHES "STATIC_LIBRARY|OBJECT_LIBRARY")
+            message(NOTICE "[scabbard:NOTE] enabling GPU-RDC and LTO for '${target_type}' lib: '${target}'")
+            target_compile_options(${target} PUBLIC -g -fgpu-rdc -flto -foffload-lto) # debug info always required for scabbard
+            target_link_options(${target} PUBLIC -g -fgpu-rdc -flto -foffload-lto) # debug info always required for scabbard
         elseif(NOT DEFINED SCABBARD_SUPPRESS_TYPE_WARN)
             message(NOTICE "[scabbard:NOTE] '${target}' is not a target of a supported type for the scabbard cmake module.\n"
                            "[scabbard:NOTE]  If this target is a custom target meant to build a hip/c/c++ object try adding the\n"
@@ -81,7 +84,7 @@ endfunction()
 function(_scabbard_get_all_targets _result _dir)
     get_property(_subdirs DIRECTORY "${_dir}" PROPERTY SUBDIRECTORIES)
     foreach(_subdir IN LISTS _subdirs)
-        get_all_targets(${_result} "${_subdir}")
+        _scabbard_get_all_targets(${_result} "${_subdir}")
     endforeach()
     get_directory_property(_sub_targets DIRECTORY "${_dir}" BUILDSYSTEM_TARGETS)
     set(${_result} ${${_result}} ${_sub_targets} PARENT_SCOPE)

@@ -1,7 +1,10 @@
 # the cmake build Dir
 **/build/**
+**/CMakeFiles/**
 **/tmp/**
 **/tmp.*
+**/CMakeOutput.log
+**/CMakeSystem.cmake
 
 # Prerequisites
 *.d

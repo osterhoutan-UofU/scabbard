@@ -192,21 +192,22 @@ namespace verif {
     }
 
     // based upon trace file decide how to interpret trace data
-    BufferedReader<TraceData>::GetElementFnTy readTraceData;
-    switch (tf.WORD_LEN) {
-      case 4u: // 32 bit wordsize
-        readTraceData = readTraceData_32;
-        break;
-      case 8u: // 64 bit wordsize 
-        readTraceData = readTraceData_64;
-        break;
-      default:
-        throw std::domain_error("tracefile comes from a machine with an unsupported wordsize");
-    }
+    // BufferedReader<TraceData>::GetElementFnTy readTraceData;
+    // switch (tf.WORD_LEN) {
+    //   case 4u: // 32 bit wordsize
+    //     readTraceData = readTraceData_32;
+    //     break;
+    //   case 8u: // 64 bit wordsize 
+    //     readTraceData = readTraceData_64;
+    //     break;
+    //   default:
+    //     throw std::domain_error("tracefile comes from a machine with an unsupported wordsize");
+    // }
 
 
     delete[] buf;
-    return TraceFile(tf, BufferedReader<TraceData>(_input, readTraceData, BuffSizeBytes, ChunkSizeElem));
+    // return TraceFile(tf, BufferedReader<TraceData>(_input, allocator, readTraceData, BuffSizeBytes, ChunkSizeElem));
+    return TraceFile(tf, BufferedReader<TraceData>(_input, BuffSizeBytes, ChunkSizeElem));
   }
 
 

@@ -88,7 +88,7 @@ namespace verif {
                 add_result(results,(Result){res, _td, it->second, "Bulk Read/MemCpyAsync occurs before any identifiably relevant sync event"});
                 mem[it->second->ptr] = _td;
                 break; // goto switch_exit;
-              }
+              } else mem[it->second->ptr] = _td;
             }
           } else { // single read
             auto res = check_race_read(td, *it->second);
@@ -96,7 +96,7 @@ namespace verif {
                 add_result(results,(Result){res, _td, it->second, "Read occurs before any identifiably relevant sync event"});
                 mem[it->second->ptr] = _td;
                 break;
-              }
+              } else mem[it->second->ptr] = _td;
           }
           break;
 
@@ -155,7 +155,7 @@ namespace verif {
       if (res != last_stream_sync.end() && (res->second < o.time_stamp || res->second >= r.time_stamp )) // the write happened after the last global sync event or the read occurred after the last global sync event
         return ResultStatus::WARNING; // return a warning
     } // else    // if a read event we don't care yet (could be a double read)
-      mem[o.ptr] = std::make_shared<const TraceData>(&r);
+      // mem[o.ptr] = std::make_shared<const TraceData>(&r); // moved out of here to keep the same smart_ptr
       return ResultStatus::GOOD;
   }
 
