@@ -268,8 +268,9 @@
             "name": "(gdb) Launch verif on test/device/def-race.scabbard.trace",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/verif/verif",
+            "program": "${workspaceFolder}/build/scabbard/verif",
             "args": [
+                "${workspaceFolder}/test/device/def-race.scabbard.meta",
                 "${workspaceFolder}/test/device/def-race.scabbard.trace"
             ],
             "stopAtEntry": false,

@@ -86,6 +86,7 @@ void printResult(std::ostream& out,
     out << "    READ: {\n" 
            "                time: " << res.read->time_stamp << " (logical),\n"
            "              device: CPU,\n"
+           "            metadata: {" << res.read->data << "},\n"
            "           thread id: 0x" << std::hex << std::hash<std::thread::id>{}(res.read->threadId.host) << std::dec << ",\n"
            "             src loc: \"" << meta.srcFile << ':' << meta.line << ',' << meta.col << "\"\n"
            "          }";
@@ -96,6 +97,7 @@ void printResult(std::ostream& out,
     out << "   WRITE: {\n" 
            "               time: " << res.write->time_stamp << " (logical),\n"
            "              device: GPU,\n"
+           "            metadata: {" << res.write->data << "},\n"
            "           thread id: {\n"
            "                           id: {stream: 0x" << std::hex << res.write->threadId.device.job.STREAM << std::dec << ", job#: " << res.write->threadId.device.job.JOB << "},\n"
            "                        block: {x:" << res.write->threadId.device.block.x << 
@@ -108,11 +110,20 @@ void printResult(std::ostream& out,
            "            src loc: \"" << meta.srcFile << ':' << meta.line << ',' << meta.col << "\"\n"
            "          }";
   };
-  out << "  RESULT: `" << res.status << "`,\n";
+  if (res.status == StateMachine::ResultStatus::WARNING) {
+    if (res.write == nullptr)
+      out << "  RESULT: `UNPAIRED_READ`,\n"
+          << "    INFO: \"No GPU Write detected before CPU Read.\n"
+             "           The memory might not have been initalized or was initalized by the CPU.\",\n";
+    else
+      out << "  RESULT: `UNPROTECTED_READ`,\n"
+          << "    INFO: \"No effective Synchronisation between this GPU Write and CPU Read was detected.\n"
+             "           A data race did not occur this time, but might in the future.\",\n";
+  } else 
+    out << "  RESULT: `" << res.status << "`,\n";
   if (res.err_msg != "")
     out << " MESSAGE: \"" << res.err_msg << "\",\n";
-  out << "  MEM LOC: 0x" << std::hex << ((res.read) ? res.read->ptr : res.write->ptr) << std::dec << ",\n"
-         "METADATA: {" << res.read->data << "},\n";
+  out << " MEM LOC: 0x" << std::hex << ((res.read) ? res.read->ptr : res.write->ptr) << std::dec << ",\n";
   
   if (res.write == nullptr) { //case there is no write data
     printRead();
